@@ -1,0 +1,148 @@
+{
+  "version": "1.0.0",
+  "description": "金蝶云星空字段类型映射表",
+  "types": {
+    "TextField": {
+      "display": "文本",
+      "description": "单行文本字段，存储编码、名称等"
+    },
+    "MulTextField": {
+      "display": "多行文本",
+      "description": "多行文本，存储备注、说明等"
+    },
+    "BillNoField": {
+      "display": "单据编号",
+      "description": "单据编号字段，自动编码规则"
+    },
+    "IntegerField": {
+      "display": "整数",
+      "description": "整数字段"
+    },
+    "DecimalField": {
+      "display": "小数",
+      "description": "小数数字字段"
+    },
+    "AmountField": {
+      "display": "金额",
+      "description": "金额字段，支持精度控制"
+    },
+    "PriceField": {
+      "display": "单价",
+      "description": "单价字段，支持价格精度"
+    },
+    "QtyField": {
+      "display": "数量",
+      "description": "数量字段，支持数量精度"
+    },
+    "DateField": {
+      "display": "日期",
+      "description": "日期字段（不含时间）"
+    },
+    "DateTimeField": {
+      "display": "日期时间",
+      "description": "日期+时间字段"
+    },
+    "BoolField": {
+      "display": "布尔",
+      "description": "是/否字段，值为 True/False"
+    },
+    "ComboField": {
+      "display": "下拉列表",
+      "description": "枚举下拉字段，如数据状态(A/B/C/Z)"
+    },
+    "BaseDataField": {
+      "display": "基础资料",
+      "description": "引用其他基础资料的字段，如客户、物料、供应商。用 .FName 取名称，.FNumber 取编码"
+    },
+    "OrgField": {
+      "display": "组织",
+      "description": "组织引用字段（公司、部门等）"
+    },
+    "FlexField": {
+      "display": "弹性域",
+      "description": "弹性域字段，用户自定义扩展"
+    },
+    "MulBasedataField": {
+      "display": "多选基础资料",
+      "description": "多选基础资料字段"
+    },
+    "TreeField": {
+      "display": "树形基础资料",
+      "description": "树形结构基础资料"
+    },
+    "SubHeadField": {
+      "display": "子表头",
+      "description": "子表头字段（明细表标识）"
+    },
+    "BillField": {
+      "display": "单据头",
+      "description": "单据头字段"
+    },
+    "PictureField": {
+      "display": "图片",
+      "description": "图片附件字段"
+    },
+    "AttachmentField": {
+      "display": "附件",
+      "description": "文件附件字段"
+    },
+    "ColorField": {
+      "display": "颜色",
+      "description": "颜色选择字段"
+    },
+    "BarCodeField": {
+      "display": "条码",
+      "description": "条码字段"
+    },
+    "MapField": {
+      "display": "地图",
+      "description": "地理位置字段"
+    },
+    "SeqField": {
+      "display": "序号",
+      "description": "行序号字段"
+    },
+    "ApproveField": {
+      "display": "审批",
+      "description": "审批状态字段"
+    },
+    "LocationField": {
+      "display": "位置",
+      "description": "库位字段"
+    },
+    "AssistField": {
+      "display": "辅助属性",
+      "description": "辅助属性字段（批号、序列号等）"
+    },
+    "UnitField": {
+      "display": "单位",
+      "description": "计量单位字段"
+    },
+    "CurrencyField": {
+      "display": "币别",
+      "description": "币别引用字段"
+    },
+    "RateField": {
+      "display": "汇率",
+      "description": "汇率字段"
+    },
+    "PercentField": {
+      "display": "百分比",
+      "description": "百分比字段（如税率）"
+    }
+  },
+  "common_status_codes": {
+    "A": "创建",
+    "B": "审核中",
+    "C": "已审核",
+    "D": "重新审核",
+    "Z": "暂存"
+  },
+  "field_access_tips": {
+    "引用字段取名称": "FCustId.FName（客户名称）、FMaterialId.FName（物料名称）",
+    "引用字段取编码": "FCustId.FNumber（客户编码）、FMaterialId.FNumber（物料编码）",
+    "引用字段取内码": "FCustId.FId（客户内码）",
+    "组织字段": "FOrgId.FName（组织名称）、FSaleOrgId.FName（销售组织名称）",
+    "明细表字段": "明细表字段需在子实体下查询，如 SAL_SaleOrderEntry 下的 FQty"
+  }
+}

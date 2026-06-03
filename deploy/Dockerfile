@@ -83,14 +83,17 @@ WORKDIR ${WORKSPACE_DIR}
 RUN python3 -m venv venv
 ENV PATH="/app/venv/bin:$PATH"
 
-COPY pyproject.toml setup.py README.md ./
+COPY pyproject.toml setup.py ./
 COPY src ./src
-COPY website/public/docs/ ./src/qwenpaw/docs/
 # Inject console dist from build stage (repo does not commit dist).
 COPY --from=console-builder /app/console/dist/ ./src/qwenpaw/console/
 # Speed up Python package installation with uv.
 COPY --from=agentscope-registry.ap-southeast-1.cr.aliyuncs.com/agentscope/uv:latest /uv /bin/uv
 RUN uv pip install --no-cache-dir . && rm -rf ./build
+
+# ── Install Kingdee SDK and ERP plugins ──────────────────────────────────
+COPY plugins/tool/kingdee-erp/backends/kingdee/*.whl /tmp/kd-sdk/
+RUN pip install /tmp/kd-sdk/*.whl && rm -rf /tmp/kd-sdk
 
 
 # QwenPaw app port (default 8088). Override at runtime with -e QWENPAW_PORT=3000.

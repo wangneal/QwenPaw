@@ -35,12 +35,25 @@ EOF
 
 # Auto-initialize if config.json is missing (bind mount with empty directory).
 if [ ! -f "${QWENPAW_WORKING_DIR}/config.json" ]; then
-  echo "⚠️  No config.json found in ${QWENPAW_WORKING_DIR}"
-  echo "📦 Running initialization..."
+  echo "No config.json found in ${QWENPAW_WORKING_DIR}"
+  echo "Running initialization..."
   qwenpaw init --defaults --accept-security
-  echo "✅ Initialization complete!"
+  echo "Initialization complete!"
 else
-  echo "✓ Config found in ${QWENPAW_WORKING_DIR}, skipping initialization."
+  echo "Config found in ${QWENPAW_WORKING_DIR}, skipping initialization."
+fi
+
+# ── ERP Agent initialization ──────────────────────────────────────────
+# Only run on first startup (when no ERP agent workspace exists).
+if [ ! -d "${QWENPAW_WORKING_DIR}/workspaces/erp-finance" ]; then
+  echo "Setting up ERP specialist agents..."
+  PERSONA_BASE="/app/plugins/tool/kingdee-erp/personas"
+  SKILL_BASE="/app/plugins/tool/kingdee-erp/skills"
+  export PERSONA_BASE SKILL_BASE
+  python3 /app/scripts/setup_erp_agents.py
+  echo "ERP agents initialized!"
+else
+  echo "ERP agents already exist, skipping initialization."
 fi
 
 export QWENPAW_PORT="${QWENPAW_PORT:-8088}"

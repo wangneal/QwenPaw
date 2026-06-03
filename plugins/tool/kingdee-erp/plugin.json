@@ -1,0 +1,42 @@
+{
+  "id": "qwenpaw-kd-tool",
+  "name": "可扩展ERP工具插件",
+  "version": "3.0.0",
+  "type": "tool",
+  "description": "多ERP后端统一插件，当前支持金蝶云星空，可扩展用友、钉钉OA等",
+  "description_i18n": {
+    "zh-CN": "多ERP后端统一插件，当前支持金蝶云星空，可扩展用友、钉钉OA等",
+    "en-US": "Unified multi-ERP backend plugin, currently supports Kingdee Cloud K/3, extensible to Yonyou, DingTalk OA etc."
+  },
+  "author": "QwenPaw Team",
+  "entry": {
+    "backend": "erp_plugin.py"
+  },
+  "dependencies": [
+    "fastapi>=0.100.0",
+    "pydantic>=2.0.0"
+  ],
+  "min_version": "1.1.7",
+  "meta": {
+    "tools": [
+      {"name": "kingdee_list_user_orgs", "description": "查询当前用户有权限的组织列表。⚠️任何操作前必调，不得编造org_id", "icon": "🏢", "requires_config": true},
+      {"name": "kingdee_query_bill", "description": "查询金蝶单据数据。⚠️不确定FormId时先调kingdee_search_form；不确定字段名时先调kingdee_query_metadata；不得猜测参数", "icon": "📊", "requires_config": true},
+      {"name": "kingdee_view_bill", "description": "查看金蝶单据完整详情。⚠️单号必须来自查询结果或用户提供，不得编造", "icon": "📄", "requires_config": true},
+      {"name": "kingdee_get_report", "description": "查询金蝶报表数据。⚠️form_id和scheme_id不得猜测", "icon": "📈", "requires_config": true},
+      {"name": "kingdee_get_kds_report", "description": "查询金蝶合并报表数据。⚠️编号参数必须从实际配置获取，不得使用示例值", "icon": "📊", "requires_config": true},
+      {"name": "kingdee_save_bill", "description": "保存/新增金蝶单据。⚠️三重防护：双步调用+FormId校验+防跳步。编码值必须查询获取", "icon": "💾", "requires_config": true},
+      {"name": "kingdee_delete_bill", "description": "删除金蝶单据。⚠️三重防护：双步调用+FormId校验+防跳步。删除不可逆！", "icon": "🗑️", "requires_config": true},
+      {"name": "kingdee_submit_bill", "description": "提交金蝶单据审批。⚠️三重防护：双步调用+FormId校验+防跳步", "icon": "📤", "requires_config": true},
+      {"name": "kingdee_audit_bill", "description": "审核金蝶单据。⚠️三重防护：双步调用+FormId校验+防跳步。审核后不可修改！", "icon": "✅", "requires_config": true},
+      {"name": "kingdee_unaudit_bill", "description": "反审核金蝶单据。⚠️三重防护：双步调用+FormId校验+防跳步", "icon": "↩️", "requires_config": true},
+      {"name": "kingdee_push_bill", "description": "下推金蝶单据。⚠️三重防护：双步调用+FormId校验+防跳步", "icon": "⬇️", "requires_config": true},
+      {"name": "kingdee_execute_operation", "description": "执行金蝶自定义操作。⚠️三重防护：双步调用+FormId校验+防跳步", "icon": "⚙️", "requires_config": true},
+      {"name": "kingdee_workflow_audit", "description": "工作流审批金蝶单据。⚠️三重防护：双步调用+FormId校验+防跳步", "icon": "📝", "requires_config": true},
+      {"name": "kingdee_switch_org", "description": "切换金蝶组织。⚠️org_number必须来自kingdee_list_user_orgs结果", "icon": "🔄", "requires_config": true},
+      {"name": "kingdee_query_metadata", "description": "查询金蝶表单字段定义。写入或查询前应先调用确认字段类型", "icon": "🔍", "requires_config": true},
+      {"name": "kingdee_search_form", "description": "模糊搜索金蝶表单。不确定FormId时应先调用此工具", "icon": "🔎", "requires_config": true},
+      {"name": "kingdee_product_qa", "description": "金蝶产品智能问答：解答产品使用问题、操作指导、报错解决", "icon": "❓", "requires_config": false},
+      {"name": "kingdee_list_digest_templates", "description": "列出所有预定义的高管报表摘要模板（销售日报/应收周报/库存月报/财务月报）", "icon": "📋", "requires_config": false}
+    ]
+  }
+}

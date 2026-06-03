@@ -133,12 +133,12 @@ export default function Header() {
       ? "ru"
       : "en";
     const faqLang = lang === "zh" ? "zh" : "en";
-    const url = `https://qwenpaw.agentscope.io/docs/faq.${faqLang}.md`;
+    const url = `https://kderpassistant.agentscope.io/docs/faq.${faqLang}.md`;
     fetch(url, { cache: "no-cache" })
       .then((res) => (res.ok ? res.text() : Promise.reject()))
       .then((text) => {
-        const zhPattern = /###\s*QwenPaw如何更新[\s\S]*?(?=\n###|$)/;
-        const enPattern = /###\s*How to update QwenPaw[\s\S]*?(?=\n###|$)/;
+        const zhPattern = /###\s*KD ERP Assistant如何更新[\s\S]*?(?=\n###|$)/;
+        const enPattern = /###\s*How to update KD ERP Assistant[\s\S]*?(?=\n###|$)/;
         const match = text.match(faqLang === "zh" ? zhPattern : enPattern);
         setUpdateMarkdown(
           match && lang !== "ru"
@@ -168,7 +168,7 @@ export default function Header() {
         <div className={styles.logoWrapper}>
           <img
             src={isDark ? "/logo-dark.svg" : "/logo-light.svg"}
-            alt="QwenPaw"
+            alt="KD ERP Assistant"
             className={styles.logoImg}
           />
           <div className={styles.logoDivider} />

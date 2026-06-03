@@ -1,0 +1,16 @@
+{
+  "id": "qwenpaw-kd-admin",
+  "name": "金蝶云星空权限管理",
+  "version": "2.0.0",
+  "type": "frontend",
+  "description": "金蝶云星空工具插件的权限管理前端，提供渠道身份绑定、权限配置等管理界面",
+  "description_i18n": {
+    "zh-CN": "金蝶云星空工具插件的权限管理前端，提供渠道身份绑定、权限配置等管理界面",
+    "en-US": "Permission management frontend for Kingdee Cloud K/3 tool plugin"
+  },
+  "author": "QwenPaw Team",
+  "entry": {
+    "frontend": "ui/dist/index.js"
+  },
+  "min_version": "1.1.7"
+}

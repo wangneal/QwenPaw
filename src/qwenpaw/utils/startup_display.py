@@ -12,7 +12,7 @@ def print_ready_banner(
     api_info: Optional[Tuple[str, int]] = None,
     elapsed_seconds: Optional[float] = None,
 ) -> None:
-    """Print a fancy QwenPaw ready banner with rich formatting.
+    """Print a fancy KD ERP Assistant ready banner with rich formatting.
 
     Args:
         api_info: Optional tuple of (host, port) for the server URL.
@@ -36,7 +36,7 @@ def print_ready_banner(
 
         # Create tree structure (Docker/K8s style)
         tree = Tree(
-            "[bold green]✓[/bold green] [bold]QwenPaw[/bold]",
+            "[bold green]✓[/bold green] [bold]KD ERP Assistant[/bold]",
             guide_style="bright_black",
         )
         tree.add("[dim]Status:[/dim]  [bold green]Ready[/bold green]")
@@ -59,7 +59,7 @@ def print_ready_banner(
     else:
         # Simple ready message without URL
         tree = Tree(
-            "[bold green]✓[/bold green] [bold]QwenPaw[/bold]",
+            "[bold green]✓[/bold green] [bold]KD ERP Assistant[/bold]",
             guide_style="bright_black",
         )
         tree.add("[dim]Status:[/dim]  [bold green]Ready[/bold green]")
