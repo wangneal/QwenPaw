@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-"""`kderpassistant doctor` — read-only checks.
+﻿# -*- coding: utf-8 -*-
+"""`starmind doctor` — read-only checks.
 
-`kderpassistant doctor fix` — conservative repairs with backup.
+`starmind doctor fix` — conservative repairs with backup.
 """
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ from .doctor_checks import (
     scan_unknown_config_keys,
     security_baseline_notes,
     skill_layout_notes,
-    kderpassistant_local_llm_deep_notes,
+    starmind_local_llm_deep_notes,
     startup_extra_volume_disk_notes,
     workspace_hygiene_notes,
     windows_environment_lines,
@@ -159,8 +159,8 @@ def _doctor_server_python_mismatch_note(
     if server_exe and doctor_exe:
         if not _same_python_executable(doctor_exe, server_exe):
             return (
-                "This `kderpassistant doctor` is not using the same Python "
-                "executable as the running `kderpassistant app` — diagnostics and "
+                "This `starmind doctor` is not using the same Python "
+                "executable as the running `starmind app` — diagnostics and "
                 "package versions may not match the server. doctor: "
                 f"{doctor_exe!r}; server: {server_exe!r}"
             )
@@ -168,7 +168,7 @@ def _doctor_server_python_mismatch_note(
     if doctor_env.strip() != server_env.strip():
         return (
             "Doctor Python environment label differs from the running "
-            f"`kderpassistant app` (doctor: {doctor_env!r}; server: "
+            f"`starmind app` (doctor: {doctor_env!r}; server: "
             f"{server_env!r}). "
             "Use the same venv when debugging if possible."
         )
@@ -215,11 +215,11 @@ def _check_web_auth(base: str) -> tuple[bool, str]:
         return (
             False,
             "enabled but no account registered yet.\n"
-            f"        1) Start `kderpassistant app`, open {base}/ in a browser.\n"
+            f"        1) Start `starmind app`, open {base}/ in a browser.\n"
             "        2) Complete registration (single user) on the login "
             "page.\n"
-            "        For automation, set KDERPASSISTANT_AUTH_USERNAME and "
-            "KDERPASSISTANT_AUTH_PASSWORD (legacy COPAW_* names still work) — the "
+            "        For automation, set starmind_AUTH_USERNAME and "
+            "starmind_AUTH_PASSWORD (legacy COPAW_* names still work) — the "
             "server creates the user on startup.",
         )
     return (
@@ -250,7 +250,7 @@ def _classify_console_root_response(resp: httpx.Response) -> tuple[bool, str]:
                     "server is running but the console bundle is not "
                     "installed — build `console/` or set "
                     f"{CONSOLE_STATIC_ENV}, then restart "
-                    "`kderpassistant app`.",
+                    "`starmind app`.",
                 )
         return False, "HTTP GET / returned JSON instead of the console page"
     return (
@@ -272,7 +272,7 @@ async def _check_active_llm(
     ):
         return (
             False,
-            "no active LLM slot — run `kderpassistant models list` and configure "
+            "no active LLM slot — run `starmind models list` and configure "
             "an active model",
             [],
         )
@@ -285,8 +285,8 @@ async def _check_active_llm(
 
     deep_notes: list[str] = []
     pid = (slot.provider_id or "").strip()
-    if deep and pid in ("kderpassistant-local", "copaw-local"):
-        deep_notes = kderpassistant_local_llm_deep_notes()
+    if deep and pid in ("starmind-local", "copaw-local"):
+        deep_notes = starmind_local_llm_deep_notes()
 
     if not getattr(provider, "support_connection_check", True):
         return (
@@ -305,7 +305,7 @@ async def _check_active_llm(
         if getattr(provider, "is_local", False) or slot.provider_id in (
             "ollama",
             "lmstudio",
-            "kderpassistant-local",
+            "starmind-local",
             "copaw-local",
         ):
             hint = active_llm_local_failure_hint(provider, slot.provider_id)
@@ -380,7 +380,7 @@ def run_doctor_checks(
     llm_timeout: float,
     deep: bool,
 ) -> None:
-    """Run read-only ``kderpassistant doctor`` checks (no disk mutations)."""
+    """Run read-only ``starmind doctor`` checks (no disk mutations)."""
     base = resolve_base_url(ctx, None).rstrip("/")
     failed = False
 
@@ -417,7 +417,7 @@ def run_doctor_checks(
         _doctor_fix_hint(
             "fix the root `config.json` fields shown above. "
             "For workspace repairs after it validates, see "
-            "`kderpassistant doctor fix --dry-run --help` and `--only`.",
+            "`starmind doctor fix --dry-run --help` and `--only`.",
         )
 
     raw_cfg = load_raw_config_dict()
@@ -435,7 +435,7 @@ def run_doctor_checks(
                 click.echo(f"  - {item}")
             _doctor_fix_hint(
                 "Fix: edit `config.json` manually to remove obsolete keys "
-                "(`kderpassistant doctor` and `doctor fix` do not strip unknown keys "
+                "(`starmind doctor` and `doctor fix` do not strip unknown keys "
                 "yet).",
             )
 
@@ -458,7 +458,7 @@ def run_doctor_checks(
                 err=True,
             )
             _doctor_fix_hint(
-                "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+                "Preview the plan (no writes): `starmind doctor fix --dry-run "
                 "--only ensure-working-dir,ensure-workspace-dirs`. Apply: run "
                 "the plan without `--dry-run` (add `-y` to skip the "
                 "confirmation prompt).",
@@ -475,7 +475,7 @@ def run_doctor_checks(
                 err=True,
             )
             _doctor_fix_hint(
-                "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+                "Preview the plan (no writes): `starmind doctor fix --dry-run "
                 "--only seed-missing-agent-json,reset-invalid-agent-json`. "
                 "Apply: run the plan without `--dry-run` (risky writes need "
                 "adding `-y` to skip the confirmation prompt).",
@@ -492,7 +492,7 @@ def run_doctor_checks(
                 err=True,
             )
             _doctor_fix_hint(
-                "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+                "Preview the plan (no writes): `starmind doctor fix --dry-run "
                 "--only seed-missing-agent-json,reset-invalid-agent-json`. "
                 "Apply: run the plan without `--dry-run` (risky writes need "
                 "adding `-y` to skip the confirmation prompt).",
@@ -522,7 +522,7 @@ def run_doctor_checks(
         if not ext_nonempty:
             click.echo(
                 click.style("OK", fg="green")
-                + " — no extension notes (register via kderpassistant.doctor entry "
+                + " — no extension notes (register via starmind.doctor entry "
                 "points or register_doctor_contribution; legacy "
                 "copaw.doctor is still loaded)",
             )
@@ -626,7 +626,7 @@ def run_doctor_checks(
                 err=True,
             )
             _doctor_fix_hint(
-                "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+                "Preview the plan (no writes): `starmind doctor fix --dry-run "
                 "--only validate-all-jobs-json` (read-only), or the same "
                 "command with `write-empty-jobs-json,normalize-jobs-cron` in "
                 "`--only`. "
@@ -655,7 +655,7 @@ def run_doctor_checks(
             click.style("SKIP", fg="yellow")
             + " — not run because root `config.json` failed validation above: "
             + _skipped_when_cfg_invalid
-            + ". Fix the config file, then re-run `kderpassistant doctor`.",
+            + ". Fix the config file, then re-run `starmind doctor`.",
         )
         click.echo("\n=== Browser (browser_use / Playwright) ===")
         br_skip = browser_automation_notes(None)
@@ -676,9 +676,9 @@ def run_doctor_checks(
         failed = True
         click.echo(click.style("FAIL", fg="red") + f" — {detail}", err=True)
         _doctor_fix_hint(
-            "Fix: set `KDERPASSISTANT_WORKING_DIR` (or legacy `COPAW_WORKING_DIR`) "
-            "or run `kderpassistant init`. "
-            "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+            "Fix: set `starmind_WORKING_DIR` (or legacy `COPAW_WORKING_DIR`) "
+            "or run `starmind init`. "
+            "Preview the plan (no writes): `starmind doctor fix --dry-run "
             "--only ensure-working-dir` if the parent path exists and is "
             "writable. Apply: run the plan `without --dry-run` (add `-y` to "
             "skip the confirmation prompt).",
@@ -704,7 +704,7 @@ def run_doctor_checks(
             )
             _doctor_fix_hint(
                 "Fix: ensure the data directory is writable. "
-                "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+                "Preview the plan (no writes): `starmind doctor fix --dry-run "
                 "--only ensure-working-dir` if the directory is missing and "
                 "the parent allows creating it. Apply: run the plan `without "
                 "--dry-run` (add `-y` to skip the confirmation prompt).",
@@ -748,7 +748,7 @@ def run_doctor_checks(
         _doctor_fix_hint(
             f"Fix: build `console/` or set {CONSOLE_STATIC_ENV}. From a git "
             "checkout — "
-            "Preview the plan (no writes): `kderpassistant doctor fix --dry-run "
+            "Preview the plan (no writes): `starmind doctor fix --dry-run "
             "--only rebuild-console-npm`. "
             "Apply: run `without --dry-run` and include `-y` (runs npm; "
             "copies dist → bundled console).",
@@ -796,7 +796,7 @@ def run_doctor_checks(
             err=True,
         )
         _doctor_fix_hint(
-            "`kderpassistant models list` / console model settings — not a "
+            "`starmind models list` / console model settings — not a "
             "filesystem fix.",
         )
     for line in llm_notes:
@@ -855,7 +855,7 @@ def run_doctor_checks(
             err=True,
         )
         click.echo(
-            f"Hint: start the server with `kderpassistant app` (default {base}).",
+            f"Hint: start the server with `starmind app` (default {base}).",
             err=True,
         )
     else:
@@ -977,7 +977,7 @@ def run_doctor_checks(
     is_flag=True,
     help=(
         "Run extra checks: enabled-channel reachability (non-fatal notes; "
-        "uses --timeout) and, when the active model is kderpassistant-local, "
+        "uses --timeout) and, when the active model is starmind-local, "
         "llama.cpp install/server status notes."
     ),
 )

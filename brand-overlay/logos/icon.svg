@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="wingGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="wingGrad2" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Left butterfly wing - represents 金蝶 heritage -->
+  <path d="M100,100 C80,60 30,40 25,80 C20,110 60,130 100,100Z" fill="url(#wingGrad)" opacity="0.9"/>
+  <path d="M100,100 C85,70 45,55 40,85 C35,105 65,120 100,100Z" fill="url(#wingGrad)" opacity="0.5"/>
+
+  <!-- Right butterfly wing -->
+  <path d="M100,100 C120,60 170,40 175,80 C180,110 140,130 100,100Z" fill="url(#wingGrad2)" opacity="0.9"/>
+  <path d="M100,100 C115,70 155,55 160,85 C165,105 135,120 100,100Z" fill="url(#wingGrad2)" opacity="0.5"/>
+
+  <!-- Left lower wing -->
+  <path d="M100,105 C75,130 35,145 40,120 C45,100 75,110 100,105Z" fill="url(#wingGrad)" opacity="0.7"/>
+  <!-- Right lower wing -->
+  <path d="M100,105 C125,130 165,145 160,120 C155,100 125,110 100,105Z" fill="url(#wingGrad2)" opacity="0.7"/>
+
+  <!-- Central star - represents 星空 + intelligence -->
+  <polygon points="100,55 107,78 131,78 112,92 118,115 100,102 82,115 88,92 69,78 93,78"
+           fill="url(#starGrad)" filter="url(#glow)"/>
+
+  <!-- Node network dots on wings - represents AI/mind -->
+  <circle cx="55" cy="75" r="3" fill="#A78BFA" opacity="0.8"/>
+  <circle cx="70" cy="65" r="2.5" fill="#8B5CF6" opacity="0.7"/>
+  <circle cx="45" cy="95" r="2" fill="#6366F1" opacity="0.6"/>
+  <circle cx="65" cy="110" r="2.5" fill="#8B5CF6" opacity="0.7"/>
+
+  <circle cx="145" cy="75" r="3" fill="#A78BFA" opacity="0.8"/>
+  <circle cx="130" cy="65" r="2.5" fill="#8B5CF6" opacity="0.7"/>
+  <circle cx="155" cy="95" r="2" fill="#6366F1" opacity="0.6"/>
+  <circle cx="135" cy="110" r="2.5" fill="#8B5CF6" opacity="0.7"/>
+
+  <!-- Connection lines between nodes -->
+  <line x1="55" y1="75" x2="70" y2="65" stroke="#8B5CF6" stroke-width="0.8" opacity="0.4"/>
+  <line x1="70" y1="65" x2="65" y2="110" stroke="#8B5CF6" stroke-width="0.8" opacity="0.3"/>
+  <line x1="45" y1="95" x2="65" y2="110" stroke="#8B5CF6" stroke-width="0.8" opacity="0.3"/>
+
+  <line x1="145" y1="75" x2="130" y2="65" stroke="#8B5CF6" stroke-width="0.8" opacity="0.4"/>
+  <line x1="130" y1="65" x2="135" y2="110" stroke="#8B5CF6" stroke-width="0.8" opacity="0.3"/>
+  <line x1="155" y1="95" x2="135" y2="110" stroke="#8B5CF6" stroke-width="0.8" opacity="0.3"/>
+
+  <!-- Center body of butterfly -->
+  <ellipse cx="100" cy="100" rx="4" ry="15" fill="#4F46E5"/>
+</svg>

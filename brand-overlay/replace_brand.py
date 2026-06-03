@@ -5,12 +5,12 @@ brand_overlay.py — QwenPaw 白标品牌替换脚本
 在 Docker 构建阶段运行，将 QwenPaw 品牌替换为自有品牌。
 
 用法:
-    python brand_overlay.py --src /app --brand "金蝶ERP助手" --brand-en "KD ERP Assistant"
+    python brand_overlay.py --src /app --brand "星智" --brand-en "StarMind"
 
 环境变量（也可通过命令行参数覆盖）:
     QWENPAW_SRC      — QwenPaw 源码根目录（默认 /app）
-    BRAND_NAME_ZH    — 中文品牌名（默认 "金蝶ERP助手"）
-    BRAND_NAME_EN    — 英文品牌名（默认 "KD ERP Assistant"）
+    BRAND_NAME_ZH    — 中文品牌名（默认 "星智"）
+    BRAND_NAME_EN    — 英文品牌名（默认 "StarMind"）
     DOCS_BASE_URL    — 使用文档基础 URL（默认 "/api/erp/docs"）
 """
 

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,13 +13,13 @@ def _get_env(key: str, default: str = "") -> str:
     """Look up an env var with automatic COPAW_ legacy fallback.
 
     Primary key is always used as-is.  When the primary key starts with
-    ``KDERPASSISTANT_``, the corresponding ``COPAW_`` variant is transparently
+    ``starmind_``, the corresponding ``COPAW_`` variant is transparently
     checked as a fallback so that existing deployments keep working.
     """
     if key in os.environ:
         return os.environ[key]
-    if key.startswith("KDERPASSISTANT_"):
-        legacy_key = "COPAW_" + key[len("KDERPASSISTANT_") :]
+    if key.startswith("starmind_"):
+        legacy_key = "COPAW_" + key[len("starmind_") :]
         if legacy_key in os.environ:
             return os.environ[legacy_key]
     return default
@@ -27,7 +27,7 @@ def _get_env(key: str, default: str = "") -> str:
 
 class EnvVarLoader:
     """Utility to load and parse environment variables with type safety
-    and defaults.  Pass KDERPASSISTANT_* keys; COPAW_* legacy variants are
+    and defaults.  Pass starmind_* keys; COPAW_* legacy variants are
     checked automatically as a fallback inside _get_env.
     """
 
@@ -87,10 +87,10 @@ class EnvVarLoader:
 
 
 # WORKING_DIR priority:
-# 1. KDERPASSISTANT_WORKING_DIR / COPAW_WORKING_DIR env var is set → use it
+# 1. starmind_WORKING_DIR / COPAW_WORKING_DIR env var is set → use it
 # 2. ~/.copaw exists (legacy installation) → use it as-is
-# 3. Default → ~/.kderpassistant
-_explicit_working_dir = _get_env("KDERPASSISTANT_WORKING_DIR")
+# 3. Default → ~/.starmind
+_explicit_working_dir = _get_env("starmind_WORKING_DIR")
 if _explicit_working_dir:
     WORKING_DIR = Path(_explicit_working_dir).expanduser().resolve()
 else:
@@ -98,11 +98,11 @@ else:
     if _legacy_copaw_dir.exists():
         WORKING_DIR = _legacy_copaw_dir.resolve()
     else:
-        WORKING_DIR = Path("~/.kderpassistant").expanduser().resolve()
+        WORKING_DIR = Path("~/.starmind").expanduser().resolve()
 SECRET_DIR = (
     Path(
         EnvVarLoader.get_str(
-            "KDERPASSISTANT_SECRET_DIR",
+            "starmind_SECRET_DIR",
             f"{WORKING_DIR}.secret",
         ),
     )
@@ -110,7 +110,7 @@ SECRET_DIR = (
     .resolve()
 )
 
-PROJECT_NAME = "KD ERP Assistant"
+PROJECT_NAME = "StarMind"
 
 # Subdirectory name inside each agent's workspace that holds cloned / imported
 # coding projects.
@@ -119,7 +119,7 @@ CODING_PROJECT_SUBDIR = "coding_projects"
 
 
 def _resolve_docs_dir() -> Path | None:
-    """Find KD ERP Assistant documentation directory across all install methods."""
+    """Find StarMind documentation directory across all install methods."""
     _pkg_docs = Path(__file__).resolve().parent / "docs"
     if _pkg_docs.is_dir() and any(_pkg_docs.glob("*.md")):
         return _pkg_docs
@@ -139,12 +139,12 @@ DEFAULT_MEDIA_DIR = WORKING_DIR / "media"
 # Default local provider directory
 DEFAULT_LOCAL_PROVIDER_DIR = WORKING_DIR / "local_models"
 
-JOBS_FILE = EnvVarLoader.get_str("KDERPASSISTANT_JOBS_FILE", "jobs.json")
+JOBS_FILE = EnvVarLoader.get_str("starmind_JOBS_FILE", "jobs.json")
 
-CHATS_FILE = EnvVarLoader.get_str("KDERPASSISTANT_CHATS_FILE", "chats.json")
+CHATS_FILE = EnvVarLoader.get_str("starmind_CHATS_FILE", "chats.json")
 
 
-# Builtin Q&A helper profile.  agent_id keeps "KD ERP Assistant" prefix for existing
+# Builtin Q&A helper profile.  agent_id keeps "StarMind" prefix for existing
 # workspaces and agent.json; do not rename.
 def _discover_agent_languages() -> frozenset[str]:
     md_root = Path(__file__).resolve().parent / "agents" / "md_files"
@@ -163,7 +163,7 @@ def _discover_agent_languages() -> frozenset[str]:
 
 SUPPORTED_AGENT_LANGUAGES: frozenset[str] = _discover_agent_languages()
 
-BUILTIN_QA_AGENT_ID = "KD ERP Assistant_QA_Agent_0.2"
+BUILTIN_QA_AGENT_ID = "StarMind_QA_Agent_0.2"
 BUILTIN_QA_AGENT_NAME = "QA Agent"
 # Default skills when the builtin QA workspace is first created only.
 BUILTIN_QA_AGENT_SKILL_NAMES: tuple[str, ...] = (
@@ -177,13 +177,13 @@ BUILTIN_QA_AGENT_SKILL_NAMES: tuple[str, ...] = (
 LEGACY_QA_AGENT_ID = "CoPaw_QA_Agent_0.1beta1"
 
 TOKEN_USAGE_FILE = EnvVarLoader.get_str(
-    "KDERPASSISTANT_TOKEN_USAGE_FILE",
+    "starmind_TOKEN_USAGE_FILE",
     "token_usage.json",
 )
 
-CONFIG_FILE = EnvVarLoader.get_str("KDERPASSISTANT_CONFIG_FILE", "config.json")
+CONFIG_FILE = EnvVarLoader.get_str("starmind_CONFIG_FILE", "config.json")
 
-HEARTBEAT_FILE = EnvVarLoader.get_str("KDERPASSISTANT_HEARTBEAT_FILE", "HEARTBEAT.md")
+HEARTBEAT_FILE = EnvVarLoader.get_str("starmind_HEARTBEAT_FILE", "HEARTBEAT.md")
 HEARTBEAT_DEFAULT_EVERY = "6h"
 HEARTBEAT_DEFAULT_TARGET = "main"
 HEARTBEAT_TARGET_LAST = "last"
@@ -191,23 +191,23 @@ HEARTBEAT_TARGET_INBOX = "inbox"
 
 # Debug history file for /dump_history and /load_history commands
 DEBUG_HISTORY_FILE = EnvVarLoader.get_str(
-    "KDERPASSISTANT_DEBUG_HISTORY_FILE",
+    "starmind_DEBUG_HISTORY_FILE",
     "debug_history.jsonl",
 )
 MAX_LOAD_HISTORY_COUNT = 10000
 
 # Env key for app log level (used by CLI and app load for reload child).
-LOG_LEVEL_ENV = "KDERPASSISTANT_LOG_LEVEL"
+LOG_LEVEL_ENV = "starmind_LOG_LEVEL"
 
 # Env to indicate running inside a container (e.g. Docker). Set to 1/true/yes.
 RUNNING_IN_CONTAINER = EnvVarLoader.get_bool(
-    "KDERPASSISTANT_RUNNING_IN_CONTAINER",
+    "starmind_RUNNING_IN_CONTAINER",
     False,
 )
 
 # Timeout in seconds for checking if a provider is reachable.
 MODEL_PROVIDER_CHECK_TIMEOUT = EnvVarLoader.get_float(
-    "KDERPASSISTANT_MODEL_PROVIDER_CHECK_TIMEOUT",
+    "starmind_MODEL_PROVIDER_CHECK_TIMEOUT",
     5.0,
     min_value=0,
     allow_inf=False,
@@ -218,7 +218,7 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH_ENV = "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
 
 # When True, expose /docs, /redoc, /openapi.json
 # (dev only; keep False in prod).
-DOCS_ENABLED = EnvVarLoader.get_bool("KDERPASSISTANT_OPENAPI_DOCS", False)
+DOCS_ENABLED = EnvVarLoader.get_bool("starmind_OPENAPI_DOCS", False)
 
 # Memory directory
 MEMORY_DIR = WORKING_DIR / "memory"
@@ -227,7 +227,7 @@ MEMORY_DIR = WORKING_DIR / "memory"
 BACKUP_DIR = (
     Path(
         EnvVarLoader.get_str(
-            "KDERPASSISTANT_BACKUP_DIR",
+            "starmind_BACKUP_DIR",
             f"{WORKING_DIR}.backups",
         ),
     )
@@ -235,39 +235,39 @@ BACKUP_DIR = (
     .resolve()
 )
 
-# Custom channel modules (installed via `kderpassistant channels install`); manager
+# Custom channel modules (installed via `starmind channels install`); manager
 # loads BaseChannel subclasses from here.
 CUSTOM_CHANNELS_DIR = WORKING_DIR / "custom_channels"
 
-# Plugin directory (installed via `kderpassistant plugin install`)
+# Plugin directory (installed via `starmind plugin install`)
 PLUGINS_DIR = WORKING_DIR / "plugins"
 
 # Local models directory
 MODELS_DIR = WORKING_DIR / "models"
 
 MEMORY_COMPACT_KEEP_RECENT = EnvVarLoader.get_int(
-    "KDERPASSISTANT_MEMORY_COMPACT_KEEP_RECENT",
+    "starmind_MEMORY_COMPACT_KEEP_RECENT",
     3,
     min_value=0,
 )
 
 # Memory compaction configuration
 MEMORY_COMPACT_RATIO = EnvVarLoader.get_float(
-    "KDERPASSISTANT_MEMORY_COMPACT_RATIO",
+    "starmind_MEMORY_COMPACT_RATIO",
     0.7,
     min_value=0,
     allow_inf=False,
 )
 
 # CORS configuration — comma-separated list of allowed origins for dev mode.
-# Example: KDERPASSISTANT_CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5173"
+# Example: starmind_CORS_ORIGINS="http://localhost:5173,http://127.0.0.1:5173"
 # When unset, CORS middleware is not applied.
-CORS_ORIGINS = EnvVarLoader.get_str("KDERPASSISTANT_CORS_ORIGINS", "").strip()
+CORS_ORIGINS = EnvVarLoader.get_str("starmind_CORS_ORIGINS", "").strip()
 
 # Upload size limit (MB).  None = no limit.
 UPLOAD_MAX_SIZE_MB: int | None = (
     int(v)
-    if (v := EnvVarLoader.get_str("KDERPASSISTANT_UPLOAD_MAX_SIZE_MB", ""))
+    if (v := EnvVarLoader.get_str("starmind_UPLOAD_MAX_SIZE_MB", ""))
     .strip()
     .isdigit()
     else None
@@ -275,19 +275,19 @@ UPLOAD_MAX_SIZE_MB: int | None = (
 
 # LLM API retry configuration
 LLM_MAX_RETRIES = EnvVarLoader.get_int(
-    "KDERPASSISTANT_LLM_MAX_RETRIES",
+    "starmind_LLM_MAX_RETRIES",
     3,
     min_value=0,
 )
 
 LLM_BACKOFF_BASE = EnvVarLoader.get_float(
-    "KDERPASSISTANT_LLM_BACKOFF_BASE",
+    "starmind_LLM_BACKOFF_BASE",
     1.0,
     min_value=0.1,
 )
 
 LLM_BACKOFF_CAP = EnvVarLoader.get_float(
-    "KDERPASSISTANT_LLM_BACKOFF_CAP",
+    "starmind_LLM_BACKOFF_CAP",
     10.0,
     min_value=0.5,
 )
@@ -297,7 +297,7 @@ LLM_BACKOFF_CAP = EnvVarLoader.get_float(
 # the semaphore.  Tune to your API quota: start conservatively at 3-5 and
 # increase (e.g. OpenAI Tier 1 ~500 QPM allows ~25 at 3 s/call average).
 LLM_MAX_CONCURRENT = EnvVarLoader.get_int(
-    "KDERPASSISTANT_LLM_MAX_CONCURRENT",
+    "starmind_LLM_MAX_CONCURRENT",
     10,
     min_value=1,
 )
@@ -308,7 +308,7 @@ LLM_MAX_CONCURRENT = EnvVarLoader.get_int(
 # 0 = unlimited (disabled).
 # Examples: Anthropic Tier-1 ≈ 50 QPM; OpenAI Tier-1 ≈ 500 QPM.
 LLM_MAX_QPM = EnvVarLoader.get_int(
-    "KDERPASSISTANT_LLM_MAX_QPM",
+    "starmind_LLM_MAX_QPM",
     600,
     min_value=0,
 )
@@ -316,7 +316,7 @@ LLM_MAX_QPM = EnvVarLoader.get_int(
 # Default global pause duration (seconds) applied to all waiters when a 429
 # is received.  Overridden by the API's Retry-After header when present.
 LLM_RATE_LIMIT_PAUSE = EnvVarLoader.get_float(
-    "KDERPASSISTANT_LLM_RATE_LIMIT_PAUSE",
+    "starmind_LLM_RATE_LIMIT_PAUSE",
     5.0,
     min_value=1.0,
 )
@@ -324,7 +324,7 @@ LLM_RATE_LIMIT_PAUSE = EnvVarLoader.get_float(
 # Random jitter range (seconds) added on top of the pause remaining time so
 # concurrent waiters stagger their wake-up and avoid a new burst.
 LLM_RATE_LIMIT_JITTER = EnvVarLoader.get_float(
-    "KDERPASSISTANT_LLM_RATE_LIMIT_JITTER",
+    "starmind_LLM_RATE_LIMIT_JITTER",
     1.0,
     min_value=0.0,
 )
@@ -332,7 +332,7 @@ LLM_RATE_LIMIT_JITTER = EnvVarLoader.get_float(
 # Maximum time (seconds) a caller will wait for a semaphore slot before
 # giving up with a RuntimeError rather than blocking indefinitely.
 LLM_ACQUIRE_TIMEOUT = EnvVarLoader.get_float(
-    "KDERPASSISTANT_LLM_ACQUIRE_TIMEOUT",
+    "starmind_LLM_ACQUIRE_TIMEOUT",
     300.0,
     min_value=10.0,
 )
@@ -341,7 +341,7 @@ LLM_ACQUIRE_TIMEOUT = EnvVarLoader.get_float(
 try:
     TOOL_GUARD_APPROVAL_TIMEOUT_SECONDS = max(
         float(
-            _get_env("KDERPASSISTANT_TOOL_GUARD_APPROVAL_TIMEOUT_SECONDS", "300"),
+            _get_env("starmind_TOOL_GUARD_APPROVAL_TIMEOUT_SECONDS", "300"),
         ),
         1.0,
     )
@@ -354,7 +354,7 @@ except (TypeError, ValueError):
 try:
     TOOL_GUARD_APPROVAL_HEARTBEAT_INTERVAL = max(
         float(
-            _get_env("KDERPASSISTANT_TOOL_GUARD_APPROVAL_HEARTBEAT_INTERVAL", "15"),
+            _get_env("starmind_TOOL_GUARD_APPROVAL_HEARTBEAT_INTERVAL", "15"),
         ),
         5.0,
     )

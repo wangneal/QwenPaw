@@ -1,4 +1,4 @@
-# 金蝶ERP助手 管理员指南
+﻿# 星智 管理员指南
 
 本文档面向系统管理员，涵盖部署、配置、权限管理和运维操作。
 
@@ -97,7 +97,7 @@ Docker Volume：
 
 ## 模型配置
 
-金蝶ERP助手使用云端大语言模型，不支持本地模型部署。
+星智使用云端大语言模型，不支持本地模型部署。
 
 ### 添加模型 Provider
 
@@ -563,7 +563,7 @@ ls -la /app/working/plugin_data/erp/audit_archive/
                     +-------+-------+
                             | API
               +-------------v-------------+
-              |     金蝶ERP助手 Server      |    FastAPI + Agent
+              |     星智 Server      |    FastAPI + Agent
               |                           |
               +--+--------+--------+------+
                  |        |        |
@@ -596,4 +596,4 @@ ls -la /app/working/plugin_data/erp/audit_archive/
 
 ---
 
-> 金蝶ERP助手 -- 系统管理员指南
+> 星智 -- 系统管理员指南

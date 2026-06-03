@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """Skills hub client and install helpers."""
 from __future__ import annotations
 
@@ -140,7 +140,7 @@ _cancel_checker_ctx: contextvars.ContextVar[
 
 
 def _github_cache_ttl() -> float:
-    raw = EnvVarLoader.get_str("KDERPASSISTANT_GITHUB_CACHE_TTL", "")
+    raw = EnvVarLoader.get_str("starmind_GITHUB_CACHE_TTL", "")
     if raw:
         try:
             return max(0.0, float(raw))
@@ -150,7 +150,7 @@ def _github_cache_ttl() -> float:
 
 
 def _hub_http_timeout() -> float:
-    raw = EnvVarLoader.get_str("KDERPASSISTANT_SKILLS_HUB_HTTP_TIMEOUT", "30")
+    raw = EnvVarLoader.get_str("starmind_SKILLS_HUB_HTTP_TIMEOUT", "30")
     try:
         return max(3.0, float(raw))
     except Exception:
@@ -158,7 +158,7 @@ def _hub_http_timeout() -> float:
 
 
 def _hub_http_retries() -> int:
-    raw = EnvVarLoader.get_str("KDERPASSISTANT_SKILLS_HUB_HTTP_RETRIES", "3")
+    raw = EnvVarLoader.get_str("starmind_SKILLS_HUB_HTTP_RETRIES", "3")
     try:
         return max(0, int(raw))
     except Exception:
@@ -166,7 +166,7 @@ def _hub_http_retries() -> int:
 
 
 def _hub_http_backoff_base() -> float:
-    raw = EnvVarLoader.get_str("KDERPASSISTANT_SKILLS_HUB_HTTP_BACKOFF_BASE", "0.8")
+    raw = EnvVarLoader.get_str("starmind_SKILLS_HUB_HTTP_BACKOFF_BASE", "0.8")
     try:
         return max(0.1, float(raw))
     except Exception:
@@ -174,7 +174,7 @@ def _hub_http_backoff_base() -> float:
 
 
 def _hub_http_backoff_cap() -> float:
-    raw = EnvVarLoader.get_str("KDERPASSISTANT_SKILLS_HUB_HTTP_BACKOFF_CAP", "6")
+    raw = EnvVarLoader.get_str("starmind_SKILLS_HUB_HTTP_BACKOFF_CAP", "6")
     try:
         return max(0.5, float(raw))
     except Exception:
@@ -192,35 +192,35 @@ def _compute_backoff_seconds(attempt: int) -> float:
 
 def _hub_base_url() -> str:
     return EnvVarLoader.get_str(
-        "KDERPASSISTANT_SKILLS_HUB_BASE_URL",
+        "starmind_SKILLS_HUB_BASE_URL",
         "https://clawhub.ai",
     )
 
 
 def _hub_search_path() -> str:
     return EnvVarLoader.get_str(
-        "KDERPASSISTANT_SKILLS_HUB_SEARCH_PATH",
+        "starmind_SKILLS_HUB_SEARCH_PATH",
         "/api/v1/search",
     )
 
 
 def _hub_version_path() -> str:
     return EnvVarLoader.get_str(
-        "KDERPASSISTANT_SKILLS_HUB_VERSION_PATH",
+        "starmind_SKILLS_HUB_VERSION_PATH",
         "/api/v1/skills/{slug}/versions/{version}",
     )
 
 
 def _hub_detail_path() -> str:
     return EnvVarLoader.get_str(
-        "KDERPASSISTANT_SKILLS_HUB_DETAIL_PATH",
+        "starmind_SKILLS_HUB_DETAIL_PATH",
         "/api/v1/skills/{slug}",
     )
 
 
 def _hub_file_path() -> str:
     return EnvVarLoader.get_str(
-        "KDERPASSISTANT_SKILLS_HUB_FILE_PATH",
+        "starmind_SKILLS_HUB_FILE_PATH",
         "/api/v1/skills/{slug}/file",
     )
 
@@ -324,7 +324,7 @@ def _build_async_client() -> httpx.AsyncClient:
         ),
         transport=httpx.AsyncHTTPTransport(retries=2),
         follow_redirects=True,
-        headers={"User-Agent": "kderpassistant-skills-hub/1.0"},
+        headers={"User-Agent": "starmind-skills-hub/1.0"},
         limits=httpx.Limits(
             max_keepalive_connections=8,
             max_connections=20,
@@ -1018,7 +1018,7 @@ def _extract_modelscope_skill_spec(
 def _extract_aliyun_skill_spec(url: str) -> str | None:
     """Parse an Aliyun AgentExplorer skill URL and return the skill id.
 
-    Accepts URLs synthesised by `kderpassistant.market.providers.aliyun`, of the
+    Accepts URLs synthesised by `starmind.market.providers.aliyun`, of the
     form `https://api.aliyun.com/agentexplorer/skills/<skill_id>`.
     """
     parsed = urlparse(url)
@@ -1746,7 +1746,7 @@ async def _fetch_bundle_from_aliyun_url(
         )
 
     try:
-        from kderpassistant.market.providers.aliyun import (
+        from starmind.market.providers.aliyun import (
             call_aliyun_action_async,
         )
     except ImportError as exc:  # pragma: no cover

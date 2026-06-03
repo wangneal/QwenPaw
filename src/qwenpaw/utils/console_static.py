@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """Resolve the web console static assets directory (shared by app and CLI)."""
 from __future__ import annotations
 
@@ -8,17 +8,17 @@ from pathlib import Path
 from ..constant import EnvVarLoader
 
 # Primary env key (``COPAW_CONSOLE_STATIC_DIR`` is accepted as a legacy
-# fallback via :class:`~kderpassistant.constant.EnvVarLoader`).
-CONSOLE_STATIC_ENV = "KDERPASSISTANT_CONSOLE_STATIC_DIR"
+# fallback via :class:`~starmind.constant.EnvVarLoader`).
+CONSOLE_STATIC_ENV = "starmind_CONSOLE_STATIC_DIR"
 
 
 def resolve_console_static_dir() -> str:
     """Return the directory expected to contain ``index.html`` for the console.
 
-    Resolution order matches :mod:`kderpassistant.app._app`: env override, package
-    ``kderpassistant/console``, repo ``console/dist``, then cwd fallbacks.
+    Resolution order matches :mod:`starmind.app._app`: env override, package
+    ``starmind/console``, repo ``console/dist``, then cwd fallbacks.
     """
-    static_dir = EnvVarLoader.get_str("KDERPASSISTANT_CONSOLE_STATIC_DIR")
+    static_dir = EnvVarLoader.get_str("starmind_CONSOLE_STATIC_DIR")
     if static_dir:
         return static_dir
 
@@ -41,26 +41,26 @@ def resolve_console_static_dir() -> str:
     return str(cwd / "console" / "dist")
 
 
-def find_kderpassistant_source_repo_root() -> Path | None:
+def find_starmind_source_repo_root() -> Path | None:
     """Return the git checkout root if this Python
-    is running from KD ERP Assistant source.
+    is running from StarMind source.
 
-    Looks upward from :mod:`kderpassistant` for ``console/package.json``,
-    ``console/package-lock.json``, and ``src/kderpassistant/``
+    Looks upward from :mod:`starmind` for ``console/package.json``,
+    ``console/package-lock.json``, and ``src/starmind/``
     (bundled static target).
     Returns ``None`` for a normal pip/wheel install.
     """
     try:
-        import kderpassistant  # noqa: PLC0415 — avoid import cycle at module load
+        import starmind  # noqa: PLC0415 — avoid import cycle at module load
     except Exception:  # pylint: disable=broad-exception-caught
         return None
-    cur = Path(kderpassistant.__file__).resolve().parent
+    cur = Path(starmind.__file__).resolve().parent
     for _ in range(20):
         con = cur / "console"
         if (
             (con / "package.json").is_file()
             and (con / "package-lock.json").is_file()
-            and (cur / "src" / "kderpassistant").is_dir()
+            and (cur / "src" / "starmind").is_dir()
         ):
             return cur
         if cur.parent == cur:
