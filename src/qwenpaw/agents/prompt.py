@@ -299,13 +299,23 @@ def build_system_prompt_from_working_dir(
             config = load_config()
             enabled_files = config.agents.system_prompt_files
 
-    builder = PromptBuilder(
-        working_dir=working_dir,
-        enabled_files=enabled_files,
-        heartbeat_enabled=heartbeat_enabled,
-        language=language,
-        memory_manager=memory_manager,
-    )
+    # P2.3: 根据配置选择 compact / full 构建器
+    if _use_compact_prompt(config):
+        builder = CompactPromptBuilder(
+            working_dir=working_dir,
+            enabled_files=enabled_files,
+            heartbeat_enabled=heartbeat_enabled,
+            language=language,
+            memory_manager=memory_manager,
+        )
+    else:
+        builder = PromptBuilder(
+            working_dir=working_dir,
+            enabled_files=enabled_files,
+            heartbeat_enabled=heartbeat_enabled,
+            language=language,
+            memory_manager=memory_manager,
+        )
     prompt = builder.build()
 
     # Add agent identity information at the beginning of the prompt
@@ -477,6 +487,148 @@ __all__ = [
     "get_active_model_multimodal_raw",
     "PromptBuilder",
     "PromptConfig",
+    "CompactPromptBuilder",  # [NEW]
+    "CITATION_RULE",         # [NEW]
     "DEFAULT_SYS_PROMPT",
-    "SYS_PROMPT",  # Backward compatibility
+    "SYS_PROMPT",
 ]
+
+
+# ======================================================================
+# P2.3 / P2.4 — CompactPromptBuilder + CITATION_RULE
+# ======================================================================
+
+# P2.4: 引用溯源规则
+CITATION_RULE = """
+## 引用规则（强制）
+
+当你的回答基于以下来源时，必须标注出处：
+- 基于记忆检索结果 -> 标注 [来源:记忆]
+- 基于工具查询结果 -> 标注 [来源:工具名]
+- 基于技能知识文档 -> 标注 [来源:技能名]
+- 基于你自己的推理/知识 -> 标注 [来源:推理]
+
+示例："该供应商编码是 S001 [来源:kingdee_query_bill]"
+未标注来源的回答将被标记为【未验证】。
+"""
+
+# AGENTS.md 入口点摘要行数上限（约 800 token）
+_ENTRY_POINT_LINE_LIMIT = 40
+
+
+class CompactPromptBuilder(PromptBuilder):
+    """两阶段构建的提示词构建器 — 仅注入入口点，节省 token。
+
+    阶段1（始终注入）:
+    - SOUL.md 全量 — 身份定义不宜拆分
+    - PROFILE.md 全量 — 通常简短
+    - AGENTS.md 摘要 — 前 40 行的核心规则（约 800 token）
+    - CITATION_RULE — 引用溯源规则
+
+    阶段2（按需注入，通过 pre_reasoning hook）:
+    - SKILL.md — 只在触发对应技能时注入
+    - AGENTS.md 完整版 — 通过 read_file 按需加载
+
+    使用方法：在配置中设置 ``system_prompt_mode: "compact"``。
+    默认 ``"full"`` 保留原有 PromptBuilder 行为，向后兼容。
+    """
+
+    def __init__(
+        self,
+        working_dir: Path,
+        enabled_files: list[str] | None = None,
+        heartbeat_enabled: bool = False,
+        language: str = "zh",
+        memory_manager: BaseMemoryManager | None = None,
+    ):
+        super().__init__(
+            working_dir=working_dir,
+            enabled_files=enabled_files,
+            heartbeat_enabled=heartbeat_enabled,
+            language=language,
+            memory_manager=memory_manager,
+        )
+
+    def _load_file(self, filename: str) -> None:
+        """加载单个文件——全量加载（保留父类行为）。"""
+        # AGENTS.md 仅加载入口点摘要
+        if filename == "AGENTS.md":
+            self._load_agents_entry_point()
+            return
+        super()._load_file(filename)
+
+    def _load_agents_entry_point(self) -> None:
+        """加载 AGENTS.md 的前 N 行作为入口点摘要。"""
+        file_path = self.working_dir / "AGENTS.md"
+        if not file_path.exists():
+            logger.debug("AGENTS.md not found, skipping entry point")
+            return
+
+        try:
+            from .utils.file_handling import read_text_file_with_encoding_fallback
+
+            full_content = read_text_file_with_encoding_fallback(
+                file_path,
+            ).strip()
+            if not full_content:
+                return
+
+            # 取前 N 行作为摘要
+            lines = full_content.split("\n")
+            entry_lines = lines[:_ENTRY_POINT_LINE_LIMIT]
+            entry_content = "\n".join(entry_lines).strip()
+
+            if entry_content:
+                if self.prompt_parts:
+                    self.prompt_parts.append("")
+                self.prompt_parts.append("# AGENTS.md（核心规则摘要）")
+                self.prompt_parts.append("")
+                self.prompt_parts.append(entry_content)
+                self.prompt_parts.append("")
+                self.prompt_parts.append(
+                    "> 完整 AGENTS.md 可通过 read_file(\"AGENTS.md\") 查看。"
+                )
+                self.loaded_count += 1
+                logger.debug(
+                    "Loaded AGENTS.md entry point (%d/%d lines)",
+                    len(entry_lines),
+                    len(lines),
+                )
+        except Exception as e:
+            logger.warning("Failed to load AGENTS.md entry point: %s", e)
+
+    def build(self) -> str:
+        """构建系统提示词 — 全量 SOUL.md + PROFILE.md + AGENTS.md 摘要。"""
+        # 加载指定文件列表
+        files_to_load = (
+            PromptConfig.DEFAULT_FILES
+            if self.enabled_files is None
+            else self.enabled_files
+        )
+        for filename in files_to_load:
+            self._load_file(filename)
+
+        # 追加引用溯源规则
+        self.prompt_parts.append("")
+        self.prompt_parts.append(CITATION_RULE.strip())
+
+        if not self.prompt_parts:
+            logger.warning("No content loaded from working directory")
+            return DEFAULT_SYS_PROMPT
+
+        final_prompt = "\n\n".join(self.prompt_parts)
+        logger.debug(
+            "Compact prompt built from %d file(s), total length: %d chars",
+            self.loaded_count,
+            len(final_prompt),
+        )
+        return final_prompt
+
+
+def _use_compact_prompt(config: Any) -> bool:
+    """检查配置是否启用 compact 模式。"""
+    try:
+        mode = getattr(config.agents, "system_prompt_mode", "full")
+        return mode == "compact"
+    except Exception:
+        return False

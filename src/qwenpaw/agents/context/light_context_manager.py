@@ -44,6 +44,142 @@ def _fmt_tokens(n: int) -> str:
     return f"{n / 1000:.1f}k" if n >= 1000 else str(n)
 
 
+# ======================================================================
+# P1.3 / P1.4 — 幻觉防护辅助函数
+# ======================================================================
+
+import re as _re
+
+
+def _extract_text_from_msg(msg: Any) -> str:
+    """从 Msg 对象中提取纯文本。
+
+    支持 Msg 的 content 为以下格式：
+    - ``str``: 直接返回
+    - ``list[dict]``: 提取所有 ``type == "text"`` 的 block
+    - 其他: 返回 ``str(msg)``
+    """
+    if not hasattr(msg, "content"):
+        return str(msg)
+
+    content = msg.content
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        texts: list[str] = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                texts.append(block.get("text", ""))
+        return "\n".join(texts)
+    return str(content)
+
+
+def _contains_factual_claims(text: str) -> bool:
+    """检测文本是否包含事实性声明（启发式）。
+
+    匹配以下模式：
+    - 日期: ``2024-01-01``
+    - 编码: ``编码为 xxx``
+    - 金额/数量: ``金额为 100.00``
+    - 专有名词: ``供应商为 xxx``
+    """
+    patterns = [
+        _re.compile(r"\d{4}-\d{2}-\d{2}"),
+        _re.compile(r"编码[是为:：]\s*\S+"),
+        _re.compile(r"(?:金额|数量|总额|单价)为[：:：]?\s*[\d,.]+"),
+        _re.compile(r"(供应商|组织|部门|仓库)[是为:：]"),
+    ]
+    return any(p.search(text) for p in patterns)
+
+
+def _get_agent_cfg(agent_name: str | None) -> Any:
+    """获取 agent 配置对象，带默认值兜底。"""
+    if not agent_name:
+        return _EmptyConfig()
+    try:
+        from ...config.config import load_agent_config
+        return load_agent_config(agent_name)
+    except Exception:
+        return _EmptyConfig()
+
+
+class _EmptyConfig:
+    """配置缺失时的空兜底对象。"""
+
+    def __getattr__(self, name: str) -> Any:
+        return None
+
+    @property
+    def empty_result_declaration(self) -> bool:  # type: ignore[override]
+        return True
+
+    @property
+    def enable_self_review(self) -> bool:
+        return False
+
+
+def _maybe_inject_empty_declaration(memory: Any) -> None:
+    """检查 memory 中最新 tool_result 是否为空，是则追加防幻觉声明。
+
+    作为 ``post_acting`` hook 的一部分运行。
+    """
+    try:
+        # 获取最新一条消息
+        if not hasattr(memory, "content"):
+            return
+        messages = [msg for msg, _ in memory.content]
+        if not messages:
+            return
+
+        latest = messages[-1]
+        if not hasattr(latest, "content"):
+            return
+
+        # 检查是否为 tool 角色消息
+        role = getattr(latest, "role", "")
+        if role != "tool":
+            return
+
+        text = _extract_text_from_msg(latest)
+        if not text or len(text.strip()) < 5:
+            # 空结果 — 追加防幻觉声明（到最新消息的末尾）
+            decl = (
+                "\n\n【系统声明】查询返回空结果。"
+                "请核实查询条件，不要编造替代答案或虚构数据。"
+            )
+            if hasattr(latest, "content") and isinstance(latest.content, list):
+                for block in latest.content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        block["text"] = block.get("text", "") + decl
+                        break
+    except Exception:
+        logger.debug("Empty-result declaration skipped", exc_info=True)
+
+
+def _maybe_self_review_citation(agent: Any, output: Any) -> None:
+    """检查 Agent 回复是否包含事实性声明但未标注来源，是则注入反馈。
+
+    作为 ``post_reply`` hook 的一部分运行。
+    """
+    text = _extract_text_from_msg(output)
+    if not text:
+        return
+
+    has_citation = bool(_re.search(r"\[来源:", text))
+    is_factual = _contains_factual_claims(text)
+
+    if is_factual and not has_citation:
+        feedback = (
+            "【自审反馈】此回答包含事实性声明但未标注来源，"
+            "可信度待验证。请在后续回答中标注 [来源:xxx]。"
+        )
+        try:
+            agent.memory.add(Msg(name="system", role="system", content=feedback))
+            logger.debug("Self-review: citation missing, injected feedback")
+        except Exception as e:
+            logger.debug("Self-review injection failed: %s", e)
+
+
 @context_registry.register("light")
 class LightContextManager(BaseContextManager):
     """Context manager for agents with compaction support.
@@ -968,6 +1104,20 @@ class LightContextManager(BaseContextManager):
                 exc_info=True,
             )
 
+        # ---- P1.3: 空结果防幻觉声明 ----
+        try:
+            agent_id = getattr(agent, "name", None)
+            if not agent_id:
+                agent_id = self.agent_id
+            agent_cfg = _get_agent_cfg(agent_id)
+            if (
+                hasattr(agent, "memory")
+                and getattr(agent_cfg, "empty_result_declaration", True)
+            ):
+                _maybe_inject_empty_declaration(agent.memory)
+        except Exception as e:
+            logger.debug("Empty-result declaration hook skipped: %s", e)
+
         return None
 
     async def post_reply(
@@ -995,6 +1145,14 @@ class LightContextManager(BaseContextManager):
                 )
         except Exception as e:
             logger.warning("post_reply hook failed: %s", e)
+
+        # ---- P1.4: 引用溯源自审 ----
+        try:
+            agent_cfg = _get_agent_cfg(agent.name)
+            if getattr(agent_cfg, "enable_self_review", False):
+                _maybe_self_review_citation(agent, output)
+        except Exception as e:
+            logger.debug("Self-review hook skipped: %s", e)
 
         return None
 

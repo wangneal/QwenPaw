@@ -37,6 +37,7 @@ from .skill_system import (
     resolve_effective_skills,
 )
 from .coding_mode_mixin import CodingModeMixin
+from .hallucination_guard_mixin import HallucinationGuardMixin  # [NEW]
 from .tool_guard_mixin import ToolGuardMixin
 from .tools import (
     browser_use,
@@ -80,7 +81,7 @@ logger = logging.getLogger(__name__)
 NamesakeStrategy = Literal["override", "skip", "raise", "rename"]
 
 
-class QwenPawAgent(CodingModeMixin, ToolGuardMixin, ReActAgent):
+class QwenPawAgent(HallucinationGuardMixin, CodingModeMixin, ToolGuardMixin, ReActAgent):
     """QwenPaw Agent with integrated tools, skills, and memory management.
 
     This agent extends ReActAgent with:
@@ -91,10 +92,12 @@ class QwenPawAgent(CodingModeMixin, ToolGuardMixin, ReActAgent):
     - System command handling (/compact, /new, etc.)
     - Tool-guard security interception (via ToolGuardMixin)
     - Coding Mode features: Inline Diff (via CodingModeMixin)
+    - Hallucination guard: file-path + schema validation (via HallucinationGuardMixin)
 
     MRO note
     ~~~~~~~~
-    MRO: QwenPawAgent → CodingModeMixin → ToolGuardMixin → ReActAgent.
+    MRO: QwenPawAgent → HallucinationGuardMixin → CodingModeMixin →
+         ToolGuardMixin → ReActAgent.
     Each ``_acting`` override **must** call ``super()._acting(...)`` so
     the full chain stays active.
     """
