@@ -12,12 +12,242 @@ from pydantic import BaseModel
 
 from erp_backend import ERPBackend, with_request_id
 from erp_config import ConfigManager
-from erp_permissions import PermissionManager, register_settings_routes
+from erp_permissions import (
+    PermissionManager, register_settings_routes,
+    OPERATIONS, BUILTIN_ROLES, TOOL_OP_MAP,
+    resolve_row_filter,
+)
 from .domains import get_domain_map, BASE_PREFIXES
 from .config_fields import KINGDEE_CONFIG_FIELDS, BACKEND_NAME, BACKEND_LABEL, BACKEND_ICON
 from .sdk import KingdeeClient
 
 logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 内置文档 HTML — 教程 / FAQ / 更新日志
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _docs_html(title: str, content: str) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{title} - 星智 StarMind</title>
+<style>
+:root {{--bg:#fff;--fg:#1a1a2e;--muted:#6b7280;--accent:#4f46e5;--card:#f9fafb;--border:#e5e7eb;}}
+@media(prefers-color-scheme:dark){{:root{{--bg:#0f172a;--fg:#e2e8f0;--muted:#94a3b8;--accent:#818cf8;--card:#1e293b;--border:#334155;}}}}
+*{{margin:0;padding:0;box-sizing:border-box;}}
+body{{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--fg);line-height:1.75;padding:2rem;max-width:800px;margin:0 auto;}}
+h1{{font-size:1.75rem;margin-bottom:1rem;color:var(--accent);}}
+h2{{font-size:1.25rem;margin:1.5rem 0 0.75rem;border-bottom:1px solid var(--border);padding-bottom:0.25rem;}}
+h3{{font-size:1.05rem;margin:1rem 0 0.5rem;}}
+p,li{{margin:0.4rem 0;}}
+ul,ol{{padding-left:1.5rem;}}
+code{{background:var(--card);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.9em;border:1px solid var(--border);}}
+pre{{background:var(--card);padding:1rem;border-radius:8px;overflow-x:auto;margin:0.75rem 0;border:1px solid var(--border);}}
+pre code{{background:none;padding:0;border:none;}}
+.tip{{background:var(--card);border-left:3px solid var(--accent);padding:0.75rem 1rem;border-radius:0 8px 8px 0;margin:1rem 0;}}
+.tip strong{{color:var(--accent);}}
+a{{color:var(--accent);text-decoration:none;}}
+a:hover{{text-decoration:underline;}}
+</style>
+</head>
+<body>
+{content}
+</body>
+</html>"""
+
+_DOCS_HTML_ZH = _docs_html("使用教程", """
+<h1>📖 星智 StarMind 使用教程</h1>
+
+<h2>一、快速开始</h2>
+<p>星智 StarMind 是一个 AI 智能助手平台，集成了金蝶云星空 ERP 能力，可以通过自然语言完成业务操作。</p>
+
+<div class="tip"><strong>💡 提示：</strong>首次使用前，请确保管理员已在「设置」中配置金蝶 ERP 连接信息。</div>
+
+<h2>二、与 AI 对话</h2>
+<p>在对话框中输入自然语言即可与 AI 交流，AI 会自动调用合适的工具完成任务。</p>
+<h3>示例对话</h3>
+<ul>
+<li><code>查询最近10条销售订单</code></li>
+<li><code>查看客户"华为技术"的详细信息</code></li>
+<li><code>帮我查一下物料F001的库存</code></li>
+<li><code>查询今天的收款单据</code></li>
+</ul>
+
+<h2>三、金蝶 ERP 工具</h2>
+<p>星智内置以下金蝶云星空工具，AI 会根据你的需求自动选择：</p>
+<ul>
+<li><strong>查询单据</strong>：按编号或条件查询单据详情</li>
+<li><strong>查询列表</strong>：按条件查询单据列表，支持分页</li>
+<li><strong>保存单据</strong>：创建或修改单据（需确认）</li>
+<li><strong>删除单据</strong>：删除指定单据（需确认）</li>
+<li><strong>提交/审核</strong>：单据流程操作</li>
+<li><strong>查询物料库存</strong>：查询物料的实时库存</li>
+<li><strong>查询客户/供应商</strong>：查询基础资料信息</li>
+</ul>
+
+<div class="tip"><strong>⚠️ 安全提示：</strong>涉及写入、删除、审核等操作时，AI 会展示操作摘要并要求你确认后才会执行。</div>
+
+<h2>四、代码模式</h2>
+<p>点击顶部的「代码模式」切换按钮，可以查看和编辑 Agent 的工作区文件。</p>
+<p>工作区中存放 Agent 的配置文件、技能文件等。你可以自由编辑这些文件来定制 Agent 行为。</p>
+
+<div class="tip"><strong>🔒 注意：</strong>系统源码和内置插件代码为只读，不可修改。</div>
+
+<h2>五、权限管理</h2>
+<p>管理员可通过「ERP 权限管理」页面为不同渠道配置金蝶 ERP 的操作权限：</p>
+<ul>
+<li>按渠道（如微信、钉钉、飞书）配置不同的权限策略</li>
+<li>限制可操作的表单类型（如只允许查询，不允许修改）</li>
+<li>限制可查询的数据范围</li>
+</ul>
+
+<h2>六、多语言支持</h2>
+<p>星智支持中文、英文、俄文界面，点击顶部语言切换按钮即可切换。</p>
+""")
+
+_DOCS_HTML_EN = _docs_html("Tutorial", """
+<h1>📖 StarMind Tutorial</h1>
+
+<h2>1. Getting Started</h2>
+<p>StarMind is an AI assistant platform integrated with Kingdee Cloud ERP capabilities. You can complete business operations using natural language.</p>
+
+<div class="tip"><strong>💡 Tip:</strong> Before first use, make sure the administrator has configured the Kingdee ERP connection in Settings.</div>
+
+<h2>2. Chat with AI</h2>
+<p>Simply type in natural language and the AI will automatically invoke the appropriate tools.</p>
+<h3>Example Prompts</h3>
+<ul>
+<li><code>Query the last 10 sales orders</code></li>
+<li><code>View details for customer "Huawei"</code></li>
+<li><code>Check inventory for material F001</code></li>
+<li><code>Query today's payment receipts</code></li>
+</ul>
+
+<h2>3. Kingdee ERP Tools</h2>
+<p>StarMind includes the following Kingdee Cloud tools — the AI selects the right one automatically:</p>
+<ul>
+<li><strong>Query Bill</strong>: Look up bill details by number or conditions</li>
+<li><strong>Query List</strong>: Search bill lists with filters and pagination</li>
+<li><strong>Save Bill</strong>: Create or modify bills (confirmation required)</li>
+<li><strong>Delete Bill</strong>: Remove bills (confirmation required)</li>
+<li><strong>Submit/Approve</strong>: Workflow operations</li>
+<li><strong>Query Inventory</strong>: Real-time stock levels</li>
+<li><strong>Query Customer/Vendor</strong>: Master data lookup</li>
+</ul>
+
+<div class="tip"><strong>⚠️ Security:</strong> Write, delete, and approve operations require your confirmation before execution.</div>
+
+<h2>4. Coding Mode</h2>
+<p>Toggle "Coding Mode" in the header to view and edit Agent workspace files such as configurations and skills.</p>
+
+<div class="tip"><strong>🔒 Note:</strong> System source code and built-in plugins are read-only.</div>
+
+<h2>5. Permission Management</h2>
+<p>Administrators can configure Kingdee ERP permissions per channel (WeChat, DingTalk, Feishu, etc.) through the ERP Admin panel.</p>
+
+<h2>6. Multi-language</h2>
+<p>StarMind supports Chinese, English, and Russian UI. Use the language switcher in the header.</p>
+""")
+
+_FAQ_HTML_ZH = _docs_html("常见问题", """
+<h1>❓ 常见问题</h1>
+
+<h2>Q: 如何配置金蝶 ERP 连接？</h2>
+<p>A: 管理员登录后，进入「设置 → ERP 配置」，填写金蝶云星空的 API 地址、数据库标识、用户名和密码，保存即可。</p>
+
+<h2>Q: AI 调用金蝶接口时报错怎么办？</h2>
+<p>A: 常见原因：</p>
+<ul>
+<li>连接信息未配置或配置错误 — 请检查设置中的 ERP 配置</li>
+<li>金蝶账号权限不足 — 请联系金蝶管理员分配相应权限</li>
+<li>网络不通 — 请确认服务器可以访问金蝶 API 地址</li>
+</ul>
+
+<h2>Q: 如何限制 AI 只能查询不能修改？</h2>
+<p>A: 在「ERP 权限管理」中，可以为渠道配置权限策略，选择"只读"模式即可限制为仅查询操作。</p>
+
+<h2>Q: 代码模式中为什么有些文件无法编辑？</h2>
+<p>A: 系统源码和内置插件代码为只读保护，防止误操作导致系统异常。你只能编辑 Agent 工作区中的文件。</p>
+
+<h2>Q: 如何添加新的 AI Agent？</h2>
+<p>A: 在左侧导航栏点击「+ 新建对话」，选择或创建一个 Agent 即可。Agent 的行为由 Persona（角色）和 Skill（技能）文件定义。</p>
+
+<h2>Q: 数据存储在哪里？安全吗？</h2>
+<p>A: 所有数据存储在 Docker 数据卷中，不会外传。金蝶连接信息以加密方式存储。建议在生产环境中使用 HTTPS 和适当的网络安全策略。</p>
+
+<h2>Q: 支持哪些金蝶云星空版本？</h2>
+<p>A: 支持金蝶云星空 V8 及以上版本的 WebAPI 接口。如果你的版本较旧，请联系技术支持确认兼容性。</p>
+
+<h2>Q: 如何更新星智？</h2>
+<p>A: 点击顶部的版本号查看更新指南。自托管部署通过重建 Docker 镜像更新，数据卷会自动保留。</p>
+""")
+
+_FAQ_HTML_EN = _docs_html("FAQ", """
+<h1>❓ Frequently Asked Questions</h1>
+
+<h2>Q: How to configure Kingdee ERP connection?</h2>
+<p>A: After logging in as admin, go to Settings → ERP Configuration, fill in the Kingdee Cloud API URL, database ID, username and password, then save.</p>
+
+<h2>Q: What if the AI returns an error when calling Kingdee APIs?</h2>
+<p>A: Common causes:</p>
+<ul>
+<li>Missing or incorrect connection info — check ERP configuration in Settings</li>
+<li>Insufficient Kingdee account permissions — contact your Kingdee admin</li>
+<li>Network unreachable — verify the server can access the Kingdee API URL</li>
+</ul>
+
+<h2>Q: How to restrict AI to read-only mode?</h2>
+<p>A: In ERP Permission Management, configure a "Read-Only" policy for the channel to restrict to query operations only.</p>
+
+<h2>Q: Why are some files not editable in Coding Mode?</h2>
+<p>A: System source code and built-in plugins are read-only to prevent accidental damage. You can only edit files in the Agent workspace.</p>
+
+<h2>Q: How to add a new AI Agent?</h2>
+<p>A: Click "+ New Conversation" in the sidebar, then select or create an Agent. Agent behavior is defined by Persona and Skill files.</p>
+
+<h2>Q: Where is data stored? Is it secure?</h2>
+<p>A: All data is stored in Docker volumes and never transmitted externally. Kingdee credentials are encrypted. Use HTTPS and proper network security in production.</p>
+
+<h2>Q: Which Kingdee Cloud versions are supported?</h2>
+<p>A: Kingdee Cloud V8+ WebAPI interfaces are supported. Contact support for older version compatibility.</p>
+
+<h2>Q: How to update StarMind?</h2>
+<p>A: Click the version badge in the header for the update guide. Self-hosted deployments update by rebuilding the Docker image; data volumes are preserved.</p>
+""")
+
+_RELEASE_NOTES_HTML_ZH = _docs_html("更新日志", """
+<h1>📋 星智 StarMind 更新日志</h1>
+
+<h2>v1.0.0 — 初始版本</h2>
+<ul>
+<li>✅ 基于 QwenPaw 白标定制</li>
+<li>✅ 集成金蝶云星空 WebAPI 全量工具</li>
+<li>✅ ERP 权限管理前端</li>
+<li>✅ 内置金蝶 ERP Agent Persona 和 Skill</li>
+<li>✅ 代码模式路径保护（系统源码只读）</li>
+<li>✅ 内置文档（教程 / FAQ / 更新日志）</li>
+<li>✅ 品牌定制：星智 StarMind</li>
+</ul>
+""")
+
+_RELEASE_NOTES_HTML_EN = _docs_html("Release Notes", """
+<h1>📋 StarMind Release Notes</h1>
+
+<h2>v1.0.0 — Initial Release</h2>
+<ul>
+<li>✅ White-label customization based on QwenPaw</li>
+<li>✅ Integrated Kingdee Cloud WebAPI tools</li>
+<li>✅ ERP Permission Management UI</li>
+<li>✅ Built-in Kingdee ERP Agent Persona and Skills</li>
+<li>✅ Coding Mode path protection (system code read-only)</li>
+<li>✅ Built-in documentation (Tutorial / FAQ / Release Notes)</li>
+<li>✅ Brand customization: StarMind</li>
+</ul>
+""")
 
 
 class KingdeeBackend:
@@ -131,12 +361,14 @@ class KingdeeBackend:
         mgr = PermissionManager()
 
         class PermBody(BaseModel):
-            """权限请求体"""
+            """权限请求体（向后兼容 access 字段）"""
             key: str
             org_id: str = "*"
             display_name: str = ""
             domains: list = []
             access: str = "readonly"
+            role: str = ""
+            operations: list = []
 
         async def _enrich_with_org_names(items):
             org_ids = [item.get("org_id") for item in items if item.get("org_id") and item.get("org_id") != "*"]
@@ -227,19 +459,193 @@ class KingdeeBackend:
 
         @router.post("/")
         def set_perm(body: PermBody):
-            """新增或更新单个组织权限"""
+            """新增或更新单个组织权限（支持 role/operations，向后兼容 access）"""
+            # 角色解析：优先 role 字段，回退到 access 映射
+            role = body.role
+            if not role:
+                # 向后兼容：readonly→viewer，writeable→admin
+                role = "viewer" if body.access == "readonly" else "admin"
+            # 如果 role 是内置角色且未指定 operations，使用角色默认操作码
+            operations = body.operations if body.operations else None
             mgr.set_permission(
                 key=body.key, org_id=body.org_id,
                 display_name=body.display_name, domains=body.domains,
-                access=body.access,
+                access=body.access, role=role, operations=operations,
             )
-            return {"status": "ok", "key": body.key, "org_id": body.org_id}
+            return {"status": "ok", "key": body.key, "org_id": body.org_id, "role": role}
 
         @router.delete("/{key}/{org_id}")
         def del_perm(key: str, org_id: str):
             """删除指定用户的指定组织权限"""
             mgr.remove_permission(key, org_id)
             return {"status": "ok"}
+
+        # ── 角色管理端点（必须在 /{key} 之前注册）──
+
+        class RoleBody(BaseModel):
+            """自定义角色请求体"""
+            name: str
+            label: str = ""
+            operations: list = []
+
+        @router.get("/roles")
+        def list_roles():
+            """列出所有角色（内置 + 自定义）"""
+            return {"roles": mgr.list_roles()}
+
+        @router.post("/roles")
+        def create_role(body: RoleBody):
+            """创建自定义角色"""
+            try:
+                mgr.set_role(name=body.name, label=body.label, operations=body.operations)
+                return {"status": "ok", "name": body.name}
+            except ValueError as e:
+                return {"status": "error", "message": str(e)}
+
+        @router.put("/roles/{name}")
+        def update_role(name: str, body: RoleBody):
+            """更新自定义角色"""
+            try:
+                mgr.set_role(name=name, label=body.label, operations=body.operations)
+                return {"status": "ok", "name": name}
+            except ValueError as e:
+                return {"status": "error", "message": str(e)}
+
+        @router.delete("/roles/{name}")
+        def delete_role(name: str):
+            """删除自定义角色（内置角色不可删）"""
+            try:
+                mgr.delete_role(name)
+                return {"status": "ok", "name": name}
+            except ValueError as e:
+                return {"status": "error", "message": str(e)}
+
+        # ── 操作码元数据端点 ──
+
+        @router.get("/operations")
+        def list_operations():
+            """返回所有操作码定义（label, tools, risk）"""
+            return {"operations": OPERATIONS}
+
+        # ── 字段级权限端点（必须在 /{key} 之前注册）──
+
+        class FieldPermBody(BaseModel):
+            """字段权限请求体"""
+            key: str
+            org_id: str = "*"
+            form_id: str
+            field_name: str
+            permission: str = "visible"
+
+        @router.get("/field-permissions")
+        def list_field_perms(
+            key: str = Query(""),
+            org_id: str = Query(""),
+            form_id: str = Query(""),
+        ):
+            """列出字段权限（支持可选过滤）"""
+            items = mgr.list_field_permissions(key=key, org_id=org_id, form_id=form_id)
+            return {"items": items}
+
+        @router.post("/field-permissions")
+        def set_field_perm(body: FieldPermBody):
+            """设置字段权限"""
+            try:
+                mgr.set_field_permission(
+                    key=body.key, org_id=body.org_id,
+                    form_id=body.form_id, field_name=body.field_name,
+                    permission=body.permission,
+                )
+                return {"status": "ok"}
+            except ValueError as e:
+                return {"status": "error", "message": str(e)}
+
+        @router.delete("/field-permissions")
+        def delete_field_perm(
+            key: str = Query(...),
+            org_id: str = Query(...),
+            form_id: str = Query(...),
+            field_name: str = Query(...),
+        ):
+            """删除指定字段权限"""
+            mgr.remove_field_permission(key, org_id, form_id, field_name)
+            return {"status": "ok"}
+
+        @router.get("/field-permissions/{key}/{org_id}/{form_id}")
+        def get_field_perms(key: str, org_id: str, form_id: str):
+            """获取用户+组织+表单的所有字段权限"""
+            perms = mgr.get_field_permissions(key, org_id, form_id)
+            return {"key": key, "org_id": org_id, "form_id": form_id, "permissions": perms}
+
+        # ── 用户操作权限查询端点（必须在 /{key} 之前注册）──
+
+        @router.get("/{key}/operations")
+        def get_user_operations(
+            key: str,
+            org_id: str = Query(""),
+            domain: str = Query(""),
+        ):
+            """查询用户在指定上下文下允许的操作列表"""
+            if not org_id:
+                return {"error": "请指定 org_id 参数", "operations": []}
+            operations = mgr.get_user_operations(key, org_id, domain)
+            return {"key": key, "org_id": org_id, "domain": domain, "operations": operations}
+
+        # ── 行级过滤端点（必须在 /{key} 之前注册）──
+
+        class RowFilterBody(BaseModel):
+            """行级过滤请求体"""
+            key: str
+            org_id: str = "*"
+            form_id: str
+            filter_expr: str = ""
+
+        @router.get("/row-filters")
+        def list_row_filters(
+            key: str = Query(""),
+            org_id: str = Query(""),
+            form_id: str = Query(""),
+        ):
+            """列出行级过滤规则（支持可选过滤条件）"""
+            items = mgr.list_row_filters(key=key, org_id=org_id, form_id=form_id)
+            return {"items": items}
+
+        @router.post("/row-filters")
+        def set_row_filter(body: RowFilterBody):
+            """设置行级过滤规则"""
+            mgr.set_row_filter(
+                key=body.key, org_id=body.org_id,
+                form_id=body.form_id, filter_expr=body.filter_expr,
+            )
+            return {
+                "status": "ok",
+                "key": body.key,
+                "org_id": body.org_id,
+                "form_id": body.form_id,
+            }
+
+        @router.delete("/row-filters")
+        def delete_row_filter(
+            key: str = Query(...),
+            org_id: str = Query(...),
+            form_id: str = Query(...),
+        ):
+            """删除行级过滤规则"""
+            mgr.remove_row_filter(key=key, org_id=org_id, form_id=form_id)
+            return {"status": "ok"}
+
+        @router.get("/row-filters/{key}/{org_id}/{form_id}")
+        def get_row_filter(key: str, org_id: str, form_id: str):
+            """获取指定用户+组织+表单的行级过滤规则"""
+            expr = mgr.get_row_filter(key=key, org_id=org_id, form_id=form_id)
+            if expr is None:
+                return {"key": key, "org_id": org_id, "form_id": form_id, "filter_expr": None}
+            return {
+                "key": key,
+                "org_id": org_id,
+                "form_id": form_id,
+                "filter_expr": expr,
+            }
 
         # ── 参数路由（必须在具体路径之后注册）──
 
@@ -414,8 +820,44 @@ class KingdeeBackend:
                     "config": config,
                 }
 
+        # ── 内置文档路由（教程 / FAQ）──────────────────────────
+
+        docs_router = APIRouter()
+
+        @docs_router.get("")
+        async def docs_page(lang: str = "zh"):
+            """返回内置教程文档 HTML 页面"""
+            from fastapi.responses import HTMLResponse
+            if lang == "zh":
+                html = _DOCS_HTML_ZH
+            else:
+                html = _DOCS_HTML_EN
+            return HTMLResponse(content=html)
+
+        @docs_router.get("/faq")
+        async def faq_page(lang: str = "zh"):
+            """返回内置 FAQ 文档 HTML 页面"""
+            from fastapi.responses import HTMLResponse
+            if lang == "zh":
+                html = _FAQ_HTML_ZH
+            else:
+                html = _FAQ_HTML_EN
+            return HTMLResponse(content=html)
+
+        @docs_router.get("/release-notes")
+        async def release_notes_page(lang: str = "zh"):
+            """返回更新日志 HTML 页面"""
+            from fastapi.responses import HTMLResponse
+            if lang == "zh":
+                html = _RELEASE_NOTES_HTML_ZH
+            else:
+                html = _RELEASE_NOTES_HTML_EN
+            return HTMLResponse(content=html)
+
+        api.register_http_router(docs_router, prefix="/erp/docs",
+                                      tags=["erp"])
         api.register_http_router(router, prefix="/erp-permissions",
-                                     tags=["erp"])
+                                      tags=["erp"])
         api.register_http_router(digest_router, prefix="/erp/digest",
                                      tags=["erp"])
 

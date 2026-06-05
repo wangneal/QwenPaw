@@ -1,0 +1,5581 @@
+{
+  "_note": "金蝶云星空旗舰版 V2 API URL映射（form_id->operation->完整URL）",
+  "form_op_url": {
+    "pdm_mftbom": {
+      "batchUpdate": {
+        "url": "v2/fmm/pdm_mftbom/batchUpdate",
+        "app": "fmm"
+      },
+      "batchDelete": {
+        "url": "v2/fmm/pdm_mftbom/batchDelete",
+        "app": "fmm"
+      },
+      "batchUnaudit": {
+        "url": "v2/fmm/pdm_mftbom/batchUnaudit",
+        "app": "fmm"
+      },
+      "batchEnable": {
+        "url": "v2/fmm/pdm_mftbom/batchEnable",
+        "app": "fmm"
+      },
+      "batchAudit": {
+        "url": "v2/fmm/pdm_mftbom/batchAudit",
+        "app": "fmm"
+      },
+      "batchSubmit": {
+        "url": "v2/fmm/pdm_mftbom/batchSubmit",
+        "app": "fmm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/fmm/pdm_mftbom/batchUnsubmit",
+        "app": "fmm"
+      },
+      "batchAdd": {
+        "url": "v2/fmm/pdm_mftbom/batchAdd",
+        "app": "fmm"
+      },
+      "batchDisable": {
+        "url": "v2/fmm/pdm_mftbom/batchDisable",
+        "app": "fmm"
+      },
+      "bomQuery": {
+        "url": "v2/fmm/pdm_mftbom/bomQuery",
+        "app": "fmm"
+      }
+    },
+    "bos_position": {
+      "sync": {
+        "url": "v2/xkbase/bos_position/sync",
+        "app": "xkbase"
+      },
+      "getList": {
+        "url": "v2/xkbase/bos_position/getList",
+        "app": "base"
+      },
+      "cancelmainposition": {
+        "url": "v2/xkbase/bos_position/cancelmainposition",
+        "app": "base"
+      },
+      "cancelmainpositionByNumber": {
+        "url": "v2/xkbase/bos_position/cancelmainpositionByNumber",
+        "app": "base"
+      },
+      "enableByNumber": {
+        "url": "v2/xkbase/bos_position/enableByNumber",
+        "app": "base"
+      },
+      "enable": {
+        "url": "v2/xkbase/bos_position/enable",
+        "app": "base"
+      },
+      "batchAdd": {
+        "url": "v2/xkbase/bos_position/batchAdd",
+        "app": "base"
+      },
+      "batchUpdateById": {
+        "url": "v2/xkbase/bos_position/batchUpdateById",
+        "app": "base"
+      },
+      "batchUpdateByNumber": {
+        "url": "v2/xkbase/bos_position/batchUpdateByNumber",
+        "app": "base"
+      },
+      "disable": {
+        "url": "v2/xkbase/bos_position/disable",
+        "app": "base"
+      },
+      "disableByNumber": {
+        "url": "v2/xkbase/bos_position/disableByNumber",
+        "app": "base"
+      },
+      "setmainposition": {
+        "url": "v2/xkbase/bos_position/setmainposition",
+        "app": "base"
+      },
+      "setmainpositionByNumber": {
+        "url": "v2/xkbase/bos_position/setmainpositionByNumber",
+        "app": "base"
+      }
+    },
+    "xkbos_postion_shrrelation": {
+      "queryShrPositionMapping": {
+        "url": "v2/xkbase/xkbos_postion_shrrelation/queryShrPositionMapping",
+        "app": "base"
+      }
+    },
+    "bos_reportrelation": {
+      "sync": {
+        "url": "v2/xkbase/bos_reportrelation/sync",
+        "app": "base"
+      }
+    },
+    "bos_org": {
+      "updateById": {
+        "url": "v2/kdxk/base/bos_org/updateById",
+        "app": "base"
+      },
+      "updateByNumber": {
+        "url": "v2/kdxk/base/bos_org/updateByNumber",
+        "app": "base"
+      },
+      "getList": {
+        "url": "v2/base/bos_org/getList",
+        "app": "base"
+      },
+      "enableById": {
+        "url": "v2/kdxk/base/bos_org/enableById",
+        "app": "base"
+      },
+      "enableByNumber": {
+        "url": "v2/kdxk/base/bos_org/enableByNumber",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/kdxk/base/bos_org/add",
+        "app": "base"
+      },
+      "disableById": {
+        "url": "v2/kdxk/base/bos_org/disableById",
+        "app": "base"
+      },
+      "disableByNumber": {
+        "url": "v2/kdxk/base/bos_org/disableByNumber",
+        "app": "base"
+      },
+      "queryById": {
+        "url": "v2/kdxk/base/bos_org/queryById",
+        "app": "base"
+      },
+      "queryOne": {
+        "url": "v2/base/bos_org/queryOne",
+        "app": "base"
+      }
+    },
+    "bos_org_orgrelation_dept": {
+      "enable": {
+        "url": "v2/base/bos_org_orgrelation_dept/enable",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/base/bos_org_orgrelation_dept/add",
+        "app": "base"
+      },
+      "queryById": {
+        "url": "v2/base/bos_org_orgrelation_dept/queryById",
+        "app": "base"
+      },
+      "queryByNumber": {
+        "url": "v2/base/bos_org_orgrelation_dept/queryByNumber",
+        "app": "base"
+      },
+      "disable": {
+        "url": "v2/base/bos_org_orgrelation_dept/disable",
+        "app": "base"
+      }
+    },
+    "ccm_temp_archive_new": {
+      "batchAudit": {
+        "url": "v2/ccm/ccm_temp_archive_new/batchAudit",
+        "app": "ccm"
+      },
+      "batchSubmit": {
+        "url": "v2/ccm/ccm_temp_archive_new/batchSubmit",
+        "app": "ccm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/ccm/ccm_temp_archive_new/batchUnSubmit",
+        "app": "ccm"
+      },
+      "batchUpdate": {
+        "url": "v2/ccm/ccm_temp_archive_new/batchUpdate",
+        "app": "ccm"
+      },
+      "batchQuery": {
+        "url": "v2/ccm/ccm_temp_archive_new/batchQuery",
+        "app": "ccm"
+      }
+    },
+    "scax_outsourceprices": {
+      "unaudit": {
+        "url": "v2/scax/scax_outsourceprices/unaudit",
+        "app": "scax"
+      },
+      "audit": {
+        "url": "v2/scax/scax_outsourceprices/audit",
+        "app": "scax"
+      },
+      "submit": {
+        "url": "v2/scax/scax_outsourceprices/submit",
+        "app": "scax"
+      },
+      "add": {
+        "url": "v2/scax/scax_outsourceprices/add",
+        "app": "scax"
+      },
+      "query": {
+        "url": "v2/scax/scax_outsourceprices/query",
+        "app": "scax"
+      }
+    },
+    "bos_user": {
+      "update": {
+        "url": "v2/base/bos_user/update",
+        "app": "base"
+      },
+      "updateByUserName": {
+        "url": "v2/xkbase/bos_user/updateByUserName",
+        "app": "base"
+      },
+      "queryById": {
+        "url": "v2/xkbase/bos_user/queryById",
+        "app": "base"
+      },
+      "queryByNumber": {
+        "url": "v2/base/bos_user/queryByNumber",
+        "app": "base"
+      },
+      "batchDelete": {
+        "url": "v2/base/bos_user/batchDelete",
+        "app": "base"
+      },
+      "deleteByNumber": {
+        "url": "v2/base/bos_user/deleteByNumber",
+        "app": "base"
+      },
+      "syncUser": {
+        "url": "v2/xkbase/bos_user/syncUser",
+        "app": "base"
+      },
+      "enable": {
+        "url": "v2/base/bos_user/enable",
+        "app": "base"
+      },
+      "enableByNumber": {
+        "url": "v2/base/bos_user/enableByNumber",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/xkbase/bos_user/add",
+        "app": "base"
+      },
+      "disable": {
+        "url": "v2/base/bos_user/disable",
+        "app": "base"
+      },
+      "disableByNumber": {
+        "url": "v2/base/bos_user/disableByNumber",
+        "app": "base"
+      },
+      "queryInfoById": {
+        "url": "v2/xkbase/bos_user/queryInfoById",
+        "app": "base"
+      },
+      "queryInfoByNumber": {
+        "url": "v2/xkbase/bos_user/queryInfoByNumber",
+        "app": "base"
+      },
+      "queryUserList": {
+        "url": "v2/xkbase/bos_user/queryUserList",
+        "app": "base"
+      },
+      "getList": {
+        "url": "v2/base/bos_user/getList",
+        "app": "base"
+      },
+      "getListByUserName": {
+        "url": "v2/xkbase/bos_user/getListByUserName",
+        "app": "base"
+      },
+      "batchSubscriberDisable": {
+        "url": "v2/xkbase/bos_user/batchSubscriberDisable",
+        "app": "base"
+      },
+      "batchSubscriberDisableByNumber": {
+        "url": "v2/xkbase/bos_user/batchSubscriberDisableByNumber",
+        "app": "base"
+      }
+    },
+    "bd_location": {
+      "getList": {
+        "url": "v2/sbd/bd_location/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_location/query",
+        "app": "sbd"
+      }
+    },
+    "im_locationtransfer": {
+      "getList": {
+        "url": "v2/im/im_locationtransfer/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_locationtransfer/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_locationtransfer/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_locationtransfer/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_locationtransfer/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_locationtransfer/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_locationtransfer/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_locationtransfer/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_locationtransfer/query",
+        "app": "im"
+      }
+    },
+    "bd_warelocareference": {
+      "getList": {
+        "url": "v2/sbd/bd_warelocareference/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_warelocareference/query",
+        "app": "sbd"
+      }
+    },
+    "bd_warehousegroup": {
+      "getList": {
+        "url": "v2/sbd/bd_warehousegroup/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_warehousegroup/query",
+        "app": "sbd"
+      }
+    },
+    "bd_warehouse": {
+      "getList": {
+        "url": "v2/sbd/bd_warehouse/getList",
+        "app": "sbd"
+      },
+      "batchDelete": {
+        "url": "v2/sbd/bd_warehouse/batchDelete",
+        "app": "sbd"
+      },
+      "batchUnaudit": {
+        "url": "v2/sbd/bd_warehouse/batchUnaudit",
+        "app": "sbd"
+      },
+      "batchAudit": {
+        "url": "v2/sbd/bd_warehouse/batchAudit",
+        "app": "sbd"
+      },
+      "batchSubmit": {
+        "url": "v2/sbd/bd_warehouse/batchSubmit",
+        "app": "sbd"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sbd/bd_warehouse/batchUnSubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/bd_warehouse/batchAdd",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_warehouse/batchUpdate",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_warehouse/query",
+        "app": "sbd"
+      }
+    },
+    "cas_paybill": {
+      "updateSave": {
+        "url": "v2/cas/cas_paybill/updateSave",
+        "app": "cas"
+      },
+      "delete": {
+        "url": "v2/cas/cas_paybill/delete",
+        "app": "cas"
+      },
+      "unaduit": {
+        "url": "v2/cas/cas_paybill/unaduit",
+        "app": "cas"
+      },
+      "aduit": {
+        "url": "v2/cas/cas_paybill/aduit",
+        "app": "cas"
+      },
+      "paybillBatchPay": {
+        "url": "v2/cas/cas_paybill/paybillBatchPay",
+        "app": "cas"
+      },
+      "submit": {
+        "url": "v2/cas/cas_paybill/submit",
+        "app": "cas"
+      },
+      "unsubmit": {
+        "url": "v2/cas/cas_paybill/unsubmit",
+        "app": "cas"
+      },
+      "addSave": {
+        "url": "v2/cas/cas_paybill/addSave",
+        "app": "cas"
+      },
+      "query": {
+        "url": "v2/cas/cas_paybill/query",
+        "app": "cas"
+      },
+      "add": {
+        "url": "v2/cas/cas_paybill/add",
+        "app": "cas"
+      }
+    },
+    "bd_paycondition": {
+      "query": {
+        "url": "v2/sbd/bd_paycondition/query",
+        "app": "sbd"
+      }
+    },
+    "ap_payapply": {
+      "updateSave": {
+        "url": "v2/ap/ap_payapply/updateSave",
+        "app": "ap"
+      },
+      "unaudit": {
+        "url": "v2/ap/ap_payapply/unaudit",
+        "app": "ap"
+      },
+      "audit": {
+        "url": "v2/ap/ap_payapply/audit",
+        "app": "ap"
+      },
+      "batchDelete": {
+        "url": "v2/ap/ap_payapply/batchDelete",
+        "app": "ap"
+      },
+      "submit": {
+        "url": "v2/ap/ap_payapply/submit",
+        "app": "ap"
+      },
+      "unsubmit": {
+        "url": "v2/ap/ap_payapply/unsubmit",
+        "app": "ap"
+      },
+      "addSave": {
+        "url": "v2/ap/ap_payapply/addSave",
+        "app": "ap"
+      },
+      "query": {
+        "url": "v2/ap/ap_payapply/query",
+        "app": "ap"
+      }
+    },
+    "ap_plansplit_scheme": {
+      "query": {
+        "url": "v2/ap/ap_plansplit_scheme/query",
+        "app": "ap"
+      }
+    },
+    "cas_agentpaybill": {
+      "updateSave": {
+        "url": "v2/cas/cas_agentpaybill/updateSave",
+        "app": "cas"
+      },
+      "delete": {
+        "url": "v2/cas/cas_agentpaybill/delete",
+        "app": "cas"
+      },
+      "unaduit": {
+        "url": "v2/cas/cas_agentpaybill/unaduit",
+        "app": "cas"
+      },
+      "aduit": {
+        "url": "v2/cas/cas_agentpaybill/aduit",
+        "app": "cas"
+      },
+      "submit": {
+        "url": "v2/cas/cas_agentpaybill/submit",
+        "app": "cas"
+      },
+      "unsubmit": {
+        "url": "v2/cas/cas_agentpaybill/unsubmit",
+        "app": "cas"
+      },
+      "addSave": {
+        "url": "v2/cas/cas_agentpaybill/addSave",
+        "app": "cas"
+      },
+      "query": {
+        "url": "v2/cas/cas_agentpaybill/query",
+        "app": "cas"
+      }
+    },
+    "cas_agentreturnbill": {
+      "update": {
+        "url": "v2/cas/cas_agentreturnbill/update",
+        "app": "cas"
+      },
+      "unaudit": {
+        "url": "v2/cas/cas_agentreturnbill/unaudit",
+        "app": "cas"
+      },
+      "audit": {
+        "url": "v2/cas/cas_agentreturnbill/audit",
+        "app": "cas"
+      },
+      "submit": {
+        "url": "v2/cas/cas_agentreturnbill/submit",
+        "app": "cas"
+      },
+      "unsubmit": {
+        "url": "v2/cas/cas_agentreturnbill/unsubmit",
+        "app": "cas"
+      },
+      "add": {
+        "url": "v2/cas/cas_agentreturnbill/add",
+        "app": "cas"
+      },
+      "queryByTime": {
+        "url": "v2/cas/cas_agentreturnbill/queryByTime",
+        "app": "cas"
+      }
+    },
+    "srm_blackenterprise": {
+      "query": {
+        "url": "v2/srm/srm_blackenterprise/query",
+        "app": "srm"
+      }
+    },
+    "tdm_account_depreciation": {
+      "batchSave": {
+        "url": "v2/tdm/tdm_account_depreciation/batchSave",
+        "app": "tdm"
+      },
+      "getList": {
+        "url": "v2/tdm/tdm_account_depreciation/getList",
+        "app": "tdm"
+      }
+    },
+    "bd_period": {
+      "getList": {
+        "url": "v2/fibd/bd_period/getList",
+        "app": "fibd"
+      }
+    },
+    "bd_period_type": {
+      "getList": {
+        "url": "v2/fibd/bd_period_type/getList",
+        "app": "fibd"
+      }
+    },
+    "bd_accountview": {
+      "getList": {
+        "url": "v2/gl/bd_accountview/getList",
+        "app": "gl"
+      }
+    },
+    "bd_element": {
+      "getList": {
+        "url": "v2/gl/bd_element/getList",
+        "app": "gl"
+      }
+    },
+    "scax_mftworkprice": {
+      "unaudit": {
+        "url": "v2/scax/scax_mftworkprice/unaudit",
+        "app": "scax"
+      },
+      "audit": {
+        "url": "v2/scax/scax_mftworkprice/audit",
+        "app": "scax"
+      },
+      "submit": {
+        "url": "v2/scax/scax_mftworkprice/submit",
+        "app": "scax"
+      },
+      "query": {
+        "url": "v2/scax/scax_mftworkprice/query",
+        "app": "scax"
+      }
+    },
+    "fa_usestatus": {
+      "update": {
+        "url": "v2/fa/fa_usestatus/update",
+        "app": "fa"
+      },
+      "getList": {
+        "url": "v2/fa/fa_usestatus/getList",
+        "app": "fa"
+      },
+      "batchEnable": {
+        "url": "v2/fa/fa_usestatus/batchEnable",
+        "app": "fa"
+      },
+      "batchDisable": {
+        "url": "v2/fa/fa_usestatus/batchDisable",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_usestatus/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_usestatus/query",
+        "app": "fa"
+      }
+    },
+    "srm_audit_org": {
+      "srm_audit_org_query": {
+        "url": "v2/srm/srm_audit_org/srm_audit_org_query",
+        "app": "srm"
+      }
+    },
+    "bd_supplier": {
+      "batchDelete": {
+        "url": "v2/basedata/bd_supplier/batchDelete",
+        "app": "basedata"
+      },
+      "batchUnAudit": {
+        "url": "v2/basedata/bd_supplier/batchUnAudit",
+        "app": "basedata"
+      },
+      "batchEnable": {
+        "url": "v2/basedata/bd_supplier/batchEnable",
+        "app": "basedata"
+      },
+      "batchAudit": {
+        "url": "v2/basedata/bd_supplier/batchAudit",
+        "app": "basedata"
+      },
+      "batchSubmit": {
+        "url": "v2/basedata/bd_supplier/batchSubmit",
+        "app": "basedata"
+      },
+      "batchUnSubmit": {
+        "url": "v2/basedata/bd_supplier/batchUnSubmit",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_supplier/batchUpdate",
+        "app": "basedata"
+      },
+      "batchDisable": {
+        "url": "v2/basedata/bd_supplier/batchDisable",
+        "app": "basedata"
+      },
+      "add": {
+        "url": "v2/basedata/bd_supplier/add",
+        "app": "basedata"
+      },
+      "pbd/query": {
+        "url": "v2/basedata/bd_supplier/pbd/query",
+        "app": "basedata"
+      },
+      "query": {
+        "url": "v2/basedata/bd_supplier/query",
+        "app": "basedata"
+      }
+    },
+    "srm_supplierreg": {
+      "save": {
+        "url": "v2/srm/srm_supplierreg/save",
+        "app": "srm"
+      },
+      "srm_supplierreg_submit": {
+        "url": "v2/srm/srm_supplierreg/srm_supplierreg_submit",
+        "app": "srm"
+      },
+      "audit": {
+        "url": "v2/srm/srm_supplierreg/audit",
+        "app": "srm"
+      },
+      "query": {
+        "url": "v2/srm/srm_supplierreg/query",
+        "app": "srm"
+      },
+      "reject": {
+        "url": "v2/srm/srm_supplierreg/reject",
+        "app": "srm"
+      }
+    },
+    "bd_operator": {
+      "getList": {
+        "url": "v2/sbd/bd_operator/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_operator/query",
+        "app": "sbd"
+      }
+    },
+    "bd_operatorgroup": {
+      "getList": {
+        "url": "v2/sbd/bd_operatorgroup/getList",
+        "app": "sbd"
+      },
+      "batchEnable": {
+        "url": "v2/sbd/bd_operatorgroup/batchEnable",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/bd_operatorgroup/batchAdd",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_operatorgroup/batchUpdate",
+        "app": "sbd"
+      },
+      "batchDisable": {
+        "url": "v2/sbd/bd_operatorgroup/batchDisable",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_operatorgroup/query",
+        "app": "sbd"
+      }
+    },
+    "bd_lotcodeitem": {
+      "getList": {
+        "url": "v2/sbd/bd_lotcodeitem/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_lotcodeitem/query",
+        "app": "sbd"
+      }
+    },
+    "bd_lotcoderule": {
+      "getList": {
+        "url": "v2/sbd/bd_lotcoderule/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_lotcoderule/query",
+        "app": "sbd"
+      }
+    },
+    "ids_gpe_biz_request": {
+      "save": {
+        "url": "v2/ids/ids_gpe_biz_request/save",
+        "app": "ids"
+      }
+    },
+    "mal_purscheme": {
+      "save": {
+        "url": "v2/mal/mal_purscheme/save",
+        "app": "mal"
+      },
+      "delete": {
+        "url": "v2/mal/mal_purscheme/delete",
+        "app": "mal"
+      },
+      "getList": {
+        "url": "v2/mal/mal_purscheme/getList",
+        "app": "mal"
+      }
+    },
+    "mal_address": {
+      "save": {
+        "url": "v2/mal/mal_address/save",
+        "app": "mal"
+      },
+      "delete": {
+        "url": "v2/mal/mal_address/delete",
+        "app": "mal"
+      },
+      "getAdressList": {
+        "url": "v2/mal/mal_address/getAdressList",
+        "app": "mal"
+      },
+      "getList": {
+        "url": "v2/mal/mal_address/getList",
+        "app": "mal"
+      }
+    },
+    "ids_gpe_dataset": {
+      "save": {
+        "url": "v2/ids/ids_gpe_dataset/save",
+        "app": "ids"
+      }
+    },
+    "openapi_unittest": {
+      "updatePropChanged": {
+        "url": "v2/open/openapi_unittest/updatePropChanged",
+        "app": "open"
+      },
+      "update": {
+        "url": "v2/open/openapi_unittest/update",
+        "app": "open"
+      },
+      "deleteById": {
+        "url": "v2/open/openapi_unittest/deleteById",
+        "app": "open"
+      },
+      "unauditById": {
+        "url": "v2/open/openapi_unittest/unauditById",
+        "app": "open"
+      },
+      "auditById": {
+        "url": "v2/open/openapi_unittest/auditById",
+        "app": "open"
+      },
+      "submitById": {
+        "url": "v2/open/openapi_unittest/submitById",
+        "app": "open"
+      },
+      "batchSubmitById": {
+        "url": "v2/open/openapi_unittest/batchSubmitById",
+        "app": "open"
+      },
+      "unsubmitById": {
+        "url": "v2/open/openapi_unittest/unsubmitById",
+        "app": "open"
+      },
+      "deleteByCreator": {
+        "url": "v2/open/openapi_unittest/deleteByCreator",
+        "app": "open"
+      },
+      "unauditByCreator": {
+        "url": "v2/open/openapi_unittest/unauditByCreator",
+        "app": "open"
+      },
+      "auditByCreator": {
+        "url": "v2/open/openapi_unittest/auditByCreator",
+        "app": "open"
+      },
+      "unsubmitByCreator": {
+        "url": "v2/open/openapi_unittest/unsubmitByCreator",
+        "app": "open"
+      },
+      "submitByCreator": {
+        "url": "v2/open/openapi_unittest/submitByCreator",
+        "app": "open"
+      },
+      "deleteByCreatetime": {
+        "url": "v2/open/openapi_unittest/deleteByCreatetime",
+        "app": "open"
+      },
+      "unauditByCreatetime": {
+        "url": "v2/open/openapi_unittest/unauditByCreatetime",
+        "app": "open"
+      },
+      "auditByCreatetime": {
+        "url": "v2/open/openapi_unittest/auditByCreatetime",
+        "app": "open"
+      },
+      "submitByCreatetime": {
+        "url": "v2/open/openapi_unittest/submitByCreatetime",
+        "app": "open"
+      },
+      "unsubmitByCreatetime": {
+        "url": "v2/open/openapi_unittest/unsubmitByCreatetime",
+        "app": "open"
+      },
+      "queryByCreatime": {
+        "url": "v2/open/openapi_unittest/queryByCreatime",
+        "app": "open"
+      },
+      "deleteByBillno": {
+        "url": "v2/open/openapi_unittest/deleteByBillno",
+        "app": "open"
+      },
+      "unauditByBillno": {
+        "url": "v2/open/openapi_unittest/unauditByBillno",
+        "app": "open"
+      },
+      "auditByBillno": {
+        "url": "v2/open/openapi_unittest/auditByBillno",
+        "app": "open"
+      },
+      "submitByBillno": {
+        "url": "v2/open/openapi_unittest/submitByBillno",
+        "app": "open"
+      },
+      "batchSubmitByBillno": {
+        "url": "v2/open/openapi_unittest/batchSubmitByBillno",
+        "app": "open"
+      },
+      "unsubmitByBillno": {
+        "url": "v2/open/openapi_unittest/unsubmitByBillno",
+        "app": "open"
+      },
+      "forcedSubmit": {
+        "url": "v2/open/openapi_unittest/forcedSubmit",
+        "app": "open"
+      },
+      "addWithoutStatusAndError": {
+        "url": "v2/open/openapi_unittest/addWithoutStatusAndError",
+        "app": "open"
+      },
+      "add": {
+        "url": "v2/open/openapi_unittest/add",
+        "app": "open"
+      },
+      "addFlex": {
+        "url": "v2/open/openapi_unittest/addFlex",
+        "app": "open"
+      },
+      "addPropChanged": {
+        "url": "v2/open/openapi_unittest/addPropChanged",
+        "app": "open"
+      },
+      "updateWithoutStatusAndError": {
+        "url": "v2/open/openapi_unittest/updateWithoutStatusAndError",
+        "app": "open"
+      },
+      "updateFlex": {
+        "url": "v2/open/openapi_unittest/updateFlex",
+        "app": "open"
+      },
+      "queryByAuthority": {
+        "url": "v2/open/openapi_unittest/queryByAuthority",
+        "app": "open"
+      },
+      "getDynamicObject": {
+        "url": "v2/open/openapi_unittest/getDynamicObject",
+        "app": "open"
+      },
+      "queryBySupplier": {
+        "url": "v2/open/openapi_unittest/queryBySupplier",
+        "app": "open"
+      },
+      "queryByStatus": {
+        "url": "v2/open/openapi_unittest/queryByStatus",
+        "app": "open"
+      },
+      "queryByApplier": {
+        "url": "v2/open/openapi_unittest/queryByApplier",
+        "app": "open"
+      },
+      "queryByDept": {
+        "url": "v2/open/openapi_unittest/queryByDept",
+        "app": "open"
+      },
+      "queryByBillno": {
+        "url": "v2/open/openapi_unittest/queryByBillno",
+        "app": "open"
+      },
+      "queryByOrg": {
+        "url": "v2/open/openapi_unittest/queryByOrg",
+        "app": "open"
+      },
+      "getList": {
+        "url": "v2/open/openapi_unittest/getList",
+        "app": "open"
+      },
+      "queryConstant": {
+        "url": "v2/open/openapi_unittest/queryConstant",
+        "app": "open"
+      },
+      "queryDefault": {
+        "url": "v2/open/openapi_unittest/queryDefault",
+        "app": "open"
+      }
+    },
+    "ids_gpe_predict_record": {
+      "save": {
+        "url": "v2/ids/ids_gpe_predict_record/save",
+        "app": "ids"
+      }
+    },
+    "ccm_archive_apply_new": {
+      "batchUnAudit": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchUnAudit",
+        "app": "ccm"
+      },
+      "batchAudit": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchAudit",
+        "app": "ccm"
+      },
+      "batchSubmit": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchSubmit",
+        "app": "ccm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchUnSubmit",
+        "app": "ccm"
+      },
+      "batchAdd": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchAdd",
+        "app": "ccm"
+      },
+      "batchUpdate": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchUpdate",
+        "app": "ccm"
+      },
+      "batchQuery": {
+        "url": "v2/ccm/ccm_archive_apply_new/batchQuery",
+        "app": "ccm"
+      }
+    },
+    "im_mdc_mftproorder": {
+      "update": {
+        "url": "v2/im/im_mdc_mftproorder/update",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_mftproorder/batchDelete",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_mftproorder/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_mftproorder/batchSubmit",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_mdc_mftproorder/batchUnaudit",
+        "app": "im"
+      },
+      "batchUnsubmit": {
+        "url": "v2/im/im_mdc_mftproorder/batchUnsubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_mftproorder/batchQuery",
+        "app": "im"
+      }
+    },
+    "bos_devpn_entitymeta": {
+      "queryByNumberOrisv": {
+        "url": "v2/devnew/bos_devpn_entitymeta/queryByNumberOrisv",
+        "app": "devnew"
+      },
+      "list": {
+        "url": "v2/devnew/bos_devpn_entitymeta/list",
+        "app": "devnew"
+      }
+    },
+    "cal_incalbill": {
+      "query": {
+        "url": "v2/cal/cal_incalbill/query",
+        "app": "cal"
+      }
+    },
+    "im_otherinbill": {
+      "getList": {
+        "url": "v2/im/im_otherinbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_otherinbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_otherinbill/batchUnaudit",
+        "app": "im"
+      },
+      "billbatchAudit": {
+        "url": "v2/im/im_otherinbill/billbatchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_otherinbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_otherinbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_otherinbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_otherinbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_otherinbill/query",
+        "app": "im"
+      }
+    },
+    "im_otheroutbill": {
+      "getList": {
+        "url": "v2/im/im_otheroutbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_otheroutbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_otheroutbill/batchUnaudit",
+        "app": "im"
+      },
+      "billbatchAudit": {
+        "url": "v2/im/im_otheroutbill/billbatchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_otheroutbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_otheroutbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_otheroutbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_otheroutbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_otheroutbill/query",
+        "app": "im"
+      }
+    },
+    "gl_voucher": {
+      "voucherUpdate": {
+        "url": "v2/gl/gl_voucher/voucherUpdate",
+        "app": "gl"
+      },
+      "voucherListQuery": {
+        "url": "v2/gl/gl_voucher/voucherListQuery",
+        "app": "gl"
+      },
+      "voucherDelete": {
+        "url": "v2/gl/gl_voucher/voucherDelete",
+        "app": "gl"
+      },
+      "voucherAudit": {
+        "url": "v2/gl/gl_voucher/voucherAudit",
+        "app": "gl"
+      },
+      "voucherSubmit": {
+        "url": "v2/gl/gl_voucher/voucherSubmit",
+        "app": "gl"
+      },
+      "voucherUnSubmit": {
+        "url": "v2/gl/gl_voucher/voucherUnSubmit",
+        "app": "gl"
+      },
+      "voucherAdd": {
+        "url": "v2/gl/gl_voucher/voucherAdd",
+        "app": "gl"
+      },
+      "voucherQuery": {
+        "url": "v2/gl/gl_voucher/voucherQuery",
+        "app": "gl"
+      }
+    },
+    "gl_vouchertype": {
+      "getList": {
+        "url": "v2/gl/gl_vouchertype/getList",
+        "app": "gl"
+      }
+    },
+    "cal_outcalbill": {
+      "query": {
+        "url": "v2/cal/cal_outcalbill/query",
+        "app": "cal"
+      }
+    },
+    "cal_calculateoutrpt": {
+      "query": {
+        "url": "v2/cal/cal_calculateoutrpt/query",
+        "app": "cal"
+      }
+    },
+    "im_outapplybill": {
+      "getList": {
+        "url": "v2/im/im_outapplybill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_outapplybill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_outapplybill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_outapplybill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_outapplybill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_outapplybill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_outapplybill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_outapplybill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_outapplybill/query",
+        "app": "im"
+      }
+    },
+    "bd_matchout_rule": {
+      "getList": {
+        "url": "v2/sbd/bd_matchout_rule/getList",
+        "app": "sbd"
+      },
+      "query": {
+        "url": "v2/sbd/bd_matchout_rule/query",
+        "app": "sbd"
+      }
+    },
+    "pbd_dim": {
+      "save": {
+        "url": "v2/pbd/pbd_dim/save",
+        "app": "pbd"
+      },
+      "delete": {
+        "url": "v2/pbd/pbd_dim/delete",
+        "app": "pbd"
+      },
+      "unaudit": {
+        "url": "v2/pbd/pbd_dim/unaudit",
+        "app": "pbd"
+      },
+      "query": {
+        "url": "v2/pbd/pbd_dim/query",
+        "app": "pbd"
+      }
+    },
+    "im_transinbill": {
+      "getList": {
+        "url": "v2/im/im_transinbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_transinbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_transinbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_transinbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_transinbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_transinbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd_V2": {
+        "url": "v2/im/im_transinbill/batchAdd_V2",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_transinbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_transinbill/query",
+        "app": "im"
+      }
+    },
+    "im_transoutbill": {
+      "getList": {
+        "url": "v2/im/im_transoutbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_transoutbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_transoutbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_transoutbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_transoutbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_transoutbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_transoutbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_transoutbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_transoutbill/query",
+        "app": "im"
+      }
+    },
+    "cal_initbill": {
+      "query": {
+        "url": "v2/cal/cal_initbill/query",
+        "app": "cal"
+      }
+    },
+    "fa_asset_initcard": {
+      "delete": {
+        "url": "v2/fa/fa_asset_initcard/delete",
+        "app": "fa"
+      },
+      "unaudit": {
+        "url": "v2/fa/fa_asset_initcard/unaudit",
+        "app": "fa"
+      },
+      "audit": {
+        "url": "v2/fa/fa_asset_initcard/audit",
+        "app": "fa"
+      },
+      "submit": {
+        "url": "v2/fa/fa_asset_initcard/submit",
+        "app": "fa"
+      },
+      "unsubmit": {
+        "url": "v2/fa/fa_asset_initcard/unsubmit",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_asset_initcard/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_asset_initcard/query",
+        "app": "fa"
+      }
+    },
+    "bos_bizpartneruser": {
+      "batchdelete": {
+        "url": "v2/base/bos_bizpartneruser/batchdelete",
+        "app": "base"
+      },
+      "enable": {
+        "url": "v2/base/bos_bizpartneruser/enable",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/base/bos_bizpartneruser/add",
+        "app": "base"
+      },
+      "disable": {
+        "url": "v2/base/bos_bizpartneruser/disable",
+        "app": "base"
+      },
+      "getlist": {
+        "url": "v2/base/bos_bizpartneruser/getlist",
+        "app": "base"
+      }
+    },
+    "bos_org_orgrelation": {
+      "add": {
+        "url": "v2/kdxk/base/bos_org_orgrelation/add",
+        "app": "base"
+      },
+      "getList": {
+        "url": "v2/kdxk/base/bos_org_orgrelation/getList",
+        "app": "base"
+      }
+    },
+    "bos_org_typerelation": {
+      "getList": {
+        "url": "v2/kdxk/base/bos_org_typerelation/getList",
+        "app": "base"
+      }
+    },
+    "sbs_billsnrelation": {
+      "batchAdd": {
+        "url": "v2/sbs/sbs_billsnrelation/batchAdd",
+        "app": "sbs"
+      },
+      "query": {
+        "url": "v2/sbs/sbs_billsnrelation/query",
+        "app": "sbs"
+      }
+    },
+    "tdm_stamptax_voucher": {
+      "batchSave": {
+        "url": "v2/tdm/tdm_stamptax_voucher/batchSave",
+        "app": "tdm"
+      },
+      "batchDelete": {
+        "url": "v2/tdm/tdm_stamptax_voucher/batchDelete",
+        "app": "tdm"
+      }
+    },
+    "sm_delivernotice": {
+      "batchDelete": {
+        "url": "v2/sm/sm_delivernotice/batchDelete",
+        "app": "sm"
+      },
+      "batchUnAudit": {
+        "url": "v2/sm/sm_delivernotice/batchUnAudit",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_delivernotice/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_delivernotice/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sm/sm_delivernotice/batchUnSubmit",
+        "app": "sm"
+      },
+      "batchAdd": {
+        "url": "v2/sm/sm_delivernotice/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_delivernotice/batchUpdate",
+        "app": "sm"
+      },
+      "batchQuery": {
+        "url": "v2/sm/sm_delivernotice/batchQuery",
+        "app": "sm"
+      }
+    },
+    "mal_order": {
+      "cancelOrder": {
+        "url": "v2/mal/mal_order/cancelOrder",
+        "app": "mal"
+      },
+      "batchAudit": {
+        "url": "v2/mal/mal_order/batchAudit",
+        "app": "mal"
+      },
+      "getList": {
+        "url": "v2/mal/mal_order/getList",
+        "app": "mal"
+      },
+      "malconfirm": {
+        "url": "v2/mal/mal_order/malconfirm",
+        "app": "mal"
+      },
+      "getDetail": {
+        "url": "v2/mal/mal_order/getDetail",
+        "app": "mal"
+      }
+    },
+    "im_oeminbill": {
+      "getList": {
+        "url": "v2/im/im_oeminbill/getList",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_oeminbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_oeminbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_oeminbill/batchSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_oeminbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_oeminbill/batchUpdate",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_oeminbill/batchUnSubmit",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_oeminbill/query",
+        "app": "im"
+      }
+    },
+    "cal_stopsyncbillset": {
+      "query": {
+        "url": "v2/cal/cal_stopsyncbillset/query",
+        "app": "cal"
+      }
+    },
+    "xkcal_sysctrlentityenable": {
+      "query": {
+        "url": "v2/cal/xkcal_sysctrlentityenable/query",
+        "app": "cal"
+      }
+    },
+    "mal_returnreq": {
+      "getList": {
+        "url": "v2/mal/mal_returnreq/getList",
+        "app": "mal"
+      }
+    },
+    "gtm_cominvoice": {
+      "batchUnaudit": {
+        "url": "v2/gtm/gtm_cominvoice/batchUnaudit",
+        "app": "gtm"
+      },
+      "batchAudit": {
+        "url": "v2/gtm/gtm_cominvoice/batchAudit",
+        "app": "gtm"
+      },
+      "batchSubmit": {
+        "url": "v2/gtm/gtm_cominvoice/batchSubmit",
+        "app": "gtm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/gtm/gtm_cominvoice/batchUnsubmit",
+        "app": "gtm"
+      },
+      "batchAdd": {
+        "url": "v2/gtm/gtm_cominvoice/batchAdd",
+        "app": "gtm"
+      },
+      "batchUpdate": {
+        "url": "v2/gtm/gtm_cominvoice/batchUpdate",
+        "app": "gtm"
+      },
+      "getList": {
+        "url": "v2/gtm/gtm_cominvoice/getList",
+        "app": "gtm"
+      }
+    },
+    "fa_periodclose": {
+      "periodclose": {
+        "url": "v2/fa/fa_periodclose/periodclose",
+        "app": "fa"
+      }
+    },
+    "fa_changemode": {
+      "update": {
+        "url": "v2/fa/fa_changemode/update",
+        "app": "fa"
+      },
+      "getList": {
+        "url": "v2/fa/fa_changemode/getList",
+        "app": "fa"
+      },
+      "batchEnable": {
+        "url": "v2/fa/fa_changemode/batchEnable",
+        "app": "fa"
+      },
+      "batchDisable": {
+        "url": "v2/fa/fa_changemode/batchDisable",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_changemode/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_changemode/query",
+        "app": "fa"
+      }
+    },
+    "cas_exchangebill": {
+      "update": {
+        "url": "v2/cas/cas_exchangebill/update",
+        "app": "cas"
+      },
+      "unaudit": {
+        "url": "v2/cas/cas_exchangebill/unaudit",
+        "app": "cas"
+      },
+      "audit": {
+        "url": "v2/cas/cas_exchangebill/audit",
+        "app": "cas"
+      },
+      "submit": {
+        "url": "v2/cas/cas_exchangebill/submit",
+        "app": "cas"
+      },
+      "unsubmit": {
+        "url": "v2/cas/cas_exchangebill/unsubmit",
+        "app": "cas"
+      },
+      "add": {
+        "url": "v2/cas/cas_exchangebill/add",
+        "app": "cas"
+      },
+      "queryByTime": {
+        "url": "v2/cas/cas_exchangebill/queryByTime",
+        "app": "cas"
+      }
+    },
+    "sfc_outsourcesendbill": {
+      "batchUnAudit": {
+        "url": "v2/sfc/sfc_outsourcesendbill/batchUnAudit",
+        "app": "sfc"
+      },
+      "batchAudit": {
+        "url": "v2/sfc/sfc_outsourcesendbill/batchAudit",
+        "app": "sfc"
+      },
+      "batchSubmit": {
+        "url": "v2/sfc/sfc_outsourcesendbill/batchSubmit",
+        "app": "sfc"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sfc/sfc_outsourcesendbill/batchUnSubmit",
+        "app": "sfc"
+      },
+      "batchUpdate": {
+        "url": "v2/sfc/sfc_outsourcesendbill/batchUpdate",
+        "app": "sfc"
+      },
+      "batchQuery": {
+        "url": "v2/sfc/sfc_outsourcesendbill/batchQuery",
+        "app": "sfc"
+      }
+    },
+    "im_mdc_omprdinbill": {
+      "batchUpdate": {
+        "url": "v2/im/im_mdc_omprdinbill/batchUpdate",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_omprdinbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_omprdinbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_omprdinbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_omprdinbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_omprdinbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_omprdinbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "im_mdc_omprdoutbill": {
+      "batchUpdate": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchUpdate",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_omprdoutbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "sfc_outreceive": {
+      "batchUnAudit": {
+        "url": "v2/sfc/sfc_outreceive/batchUnAudit",
+        "app": "sfc"
+      },
+      "batchAudit": {
+        "url": "v2/sfc/sfc_outreceive/batchAudit",
+        "app": "sfc"
+      },
+      "batchSubmit": {
+        "url": "v2/sfc/sfc_outreceive/batchSubmit",
+        "app": "sfc"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sfc/sfc_outreceive/batchUnSubmit",
+        "app": "sfc"
+      },
+      "batchUpdate": {
+        "url": "v2/sfc/sfc_outreceive/batchUpdate",
+        "app": "sfc"
+      },
+      "batchQuery": {
+        "url": "v2/sfc/sfc_outreceive/batchQuery",
+        "app": "sfc"
+      },
+      "jointCoBatchAdd": {
+        "url": "v2/sfc/sfc_outreceive/jointCoBatchAdd",
+        "app": "sfc"
+      },
+      "jointCoBatchSelected": {
+        "url": "v2/sfc/sfc_outreceive/jointCoBatchSelected",
+        "app": "sfc"
+      }
+    },
+    "sm_salesagency": {
+      "batchUnaudit": {
+        "url": "v2/sm/sm_salesagency/batchUnaudit",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_salesagency/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_salesagency/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/sm/sm_salesagency/batchUnsubmit",
+        "app": "sm"
+      },
+      "batchAdd": {
+        "url": "v2/sm/sm_salesagency/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_salesagency/batchUpdate",
+        "app": "sm"
+      },
+      "batchQuery": {
+        "url": "v2/sm/sm_salesagency/batchQuery",
+        "app": "sm"
+      }
+    },
+    "fa_storeplace": {
+      "update": {
+        "url": "v2/fa/fa_storeplace/update",
+        "app": "fa"
+      },
+      "getList": {
+        "url": "v2/fa/fa_storeplace/getList",
+        "app": "fa"
+      },
+      "batchEnable": {
+        "url": "v2/fa/fa_storeplace/batchEnable",
+        "app": "fa"
+      },
+      "batchDisable": {
+        "url": "v2/fa/fa_storeplace/batchDisable",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_storeplace/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_storeplace/query",
+        "app": "fa"
+      }
+    },
+    "cal_balance_updaterecord": {
+      "query": {
+        "url": "v2/cal/cal_balance_updaterecord/query",
+        "app": "cal"
+      }
+    },
+    "cal_periodsettinglog": {
+      "query": {
+        "url": "v2/cal/cal_periodsettinglog/query",
+        "app": "cal"
+      }
+    },
+    "cal_sysctrlentity": {
+      "query": {
+        "url": "v2/cal/cal_sysctrlentity/query",
+        "app": "cal"
+      }
+    },
+    "bd_materialcategory": {
+      "query": {
+        "url": "v2/basedata/bd_materialcategory/query",
+        "app": "basedata"
+      }
+    },
+    "cal_price_revbill": {
+      "query": {
+        "url": "v2/cal/cal_price_revbill/query",
+        "app": "cal"
+      }
+    },
+    "cal_fallprice_setting": {
+      "query": {
+        "url": "v2/cal/cal_fallprice_setting/query",
+        "app": "cal"
+      }
+    },
+    "cal_price_provbill": {
+      "query": {
+        "url": "v2/cal/cal_price_provbill/query",
+        "app": "cal"
+      }
+    },
+    "cad_factnedoutputbill": {
+      "query": {
+        "url": "v2/cad/cad_factnedoutputbill/query",
+        "app": "cad"
+      }
+    },
+    "im_mdc_mftmanuinbill": {
+      "batchDelete": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchUpdate",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchQuery",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_mdc_mftmanuinbill/query",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_mftmanuinbill/batchSubmit",
+        "app": "im"
+      }
+    },
+    "im_mdc_mftreturnbill": {
+      "batchUpdate": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchUpdate",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_mftreturnbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "bd_customergroup": {
+      "batchDelete": {
+        "url": "v2/basedata/bd_customergroup/batchDelete",
+        "app": "basedata"
+      },
+      "batchEnable": {
+        "url": "v2/basedata/bd_customergroup/batchEnable",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_customergroup/batchUpdate",
+        "app": "basedata"
+      },
+      "batchDisable": {
+        "url": "v2/basedata/bd_customergroup/batchDisable",
+        "app": "basedata"
+      },
+      "query": {
+        "url": "v2/basedata/bd_customergroup/query",
+        "app": "basedata"
+      },
+      "add": {
+        "url": "v2/basedata/bd_customergroup/add",
+        "app": "basedata"
+      }
+    },
+    "bd_customer": {
+      "batchDelete": {
+        "url": "v2/basedata/bd_customer/batchDelete",
+        "app": "basedata"
+      },
+      "batchUnAudit": {
+        "url": "v2/basedata/bd_customer/batchUnAudit",
+        "app": "basedata"
+      },
+      "batchEnable": {
+        "url": "v2/basedata/bd_customer/batchEnable",
+        "app": "basedata"
+      },
+      "batchAudit": {
+        "url": "v2/basedata/bd_customer/batchAudit",
+        "app": "basedata"
+      },
+      "batchSubmit": {
+        "url": "v2/basedata/bd_customer/batchSubmit",
+        "app": "basedata"
+      },
+      "batchUnSubmit": {
+        "url": "v2/basedata/bd_customer/batchUnSubmit",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_customer/batchUpdate",
+        "app": "basedata"
+      },
+      "batchDisable": {
+        "url": "v2/basedata/bd_customer/batchDisable",
+        "app": "basedata"
+      },
+      "add": {
+        "url": "v2/basedata/bd_customer/add",
+        "app": "basedata"
+      },
+      "query": {
+        "url": "v2/basedata/bd_customer/query",
+        "app": "basedata"
+      }
+    },
+    "mal_statement_data": {
+      "malStatementPushPurcheck": {
+        "url": "v2/mal/mal_statement_data/malStatementPushPurcheck",
+        "app": "mal"
+      },
+      "getList": {
+        "url": "v2/mal/mal_statement_data/getList",
+        "app": "mal"
+      },
+      "statement/fetch": {
+        "url": "v2/mal/statement/fetch",
+        "app": "mal"
+      }
+    },
+    "cal_datacheck_plan": {
+      "query": {
+        "url": "v2/cal/cal_datacheck_plan/query",
+        "app": "cal"
+      }
+    },
+    "sfc_processreviewbill": {
+      "batchDelete": {
+        "url": "v2/sfc/sfc_processreviewbill/batchDelete",
+        "app": "sfc"
+      },
+      "batchUnAudit": {
+        "url": "v2/sfc/sfc_processreviewbill/batchUnAudit",
+        "app": "sfc"
+      },
+      "batchAudit": {
+        "url": "v2/sfc/sfc_processreviewbill/batchAudit",
+        "app": "sfc"
+      },
+      "batchSubmit": {
+        "url": "v2/sfc/sfc_processreviewbill/batchSubmit",
+        "app": "sfc"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sfc/sfc_processreviewbill/batchUnSubmit",
+        "app": "sfc"
+      },
+      "batchUpdate": {
+        "url": "v2/sfc/sfc_processreviewbill/batchUpdate",
+        "app": "sfc"
+      },
+      "batchQuery": {
+        "url": "v2/sfc/sfc_processreviewbill/batchQuery",
+        "app": "sfc"
+      }
+    },
+    "sfc_processplanbill": {
+      "batchUnAudit": {
+        "url": "v2/sfc/sfc_processplanbill/batchUnAudit",
+        "app": "sfc"
+      },
+      "batchAudit": {
+        "url": "v2/sfc/sfc_processplanbill/batchAudit",
+        "app": "sfc"
+      },
+      "batchSubmit": {
+        "url": "v2/sfc/sfc_processplanbill/batchSubmit",
+        "app": "sfc"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sfc/sfc_processplanbill/batchUnSubmit",
+        "app": "sfc"
+      },
+      "batchUpdate": {
+        "url": "v2/sfc/sfc_processplanbill/batchUpdate",
+        "app": "sfc"
+      },
+      "batchQuery": {
+        "url": "v2/sfc/sfc_processplanbill/batchQuery",
+        "app": "sfc"
+      }
+    },
+    "pdm_ecobom": {
+      "batchUpdate": {
+        "url": "v2/pdm/pdm_ecobom/batchUpdate",
+        "app": "pdm"
+      },
+      "batchDelete": {
+        "url": "v2/pdm/pdm_ecobom/batchDelete",
+        "app": "pdm"
+      },
+      "batchAdd": {
+        "url": "v2/pdm/pdm_ecobom/batchAdd",
+        "app": "pdm"
+      },
+      "batchQuery": {
+        "url": "v2/pdm/pdm_ecobom/batchQuery",
+        "app": "pdm"
+      }
+    },
+    "pdm_bom_eco": {
+      "batchUpdate": {
+        "url": "v2/pdm/pdm_bom_eco/batchUpdate",
+        "app": "pdm"
+      },
+      "batchDelete": {
+        "url": "v2/pdm/pdm_bom_eco/batchDelete",
+        "app": "pdm"
+      },
+      "batchChange": {
+        "url": "v2/pdm/pdm_bom_eco/batchChange",
+        "app": "pdm"
+      },
+      "batchAudit": {
+        "url": "v2/pdm/pdm_bom_eco/batchAudit",
+        "app": "pdm"
+      },
+      "batchSubmit": {
+        "url": "v2/pdm/pdm_bom_eco/batchSubmit",
+        "app": "pdm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/pdm/pdm_bom_eco/batchUnsubmit",
+        "app": "pdm"
+      },
+      "batchAdd": {
+        "url": "v2/pdm/pdm_bom_eco/batchAdd",
+        "app": "pdm"
+      },
+      "batchQuery": {
+        "url": "v2/pdm/pdm_bom_eco/batchQuery",
+        "app": "pdm"
+      }
+    },
+    "mpdm_sfcprocessroute": {
+      "batchUpdate": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchUpdate",
+        "app": "sbd"
+      },
+      "batchDelete": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchDelete",
+        "app": "sbd"
+      },
+      "batchUnaudit": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchUnaudit",
+        "app": "sbd"
+      },
+      "batchAudit": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchAudit",
+        "app": "sbd"
+      },
+      "batchSubmit": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchSubmit",
+        "app": "sbd"
+      },
+      "batchUnsubmit": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchUnsubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchAdd",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchQuery",
+        "app": "sbd"
+      },
+      "batchQueryNew": {
+        "url": "v2/sbd/mpdm_sfcprocessroute/batchQueryNew",
+        "app": "sbd"
+      }
+    },
+    "bd_currency": {
+      "getList": {
+        "url": "v2/base/bd_currency/getList",
+        "app": "base"
+      }
+    },
+    "bd_snmainfile": {
+      "getList": {
+        "url": "v2/sbd/bd_snmainfile/getList",
+        "app": "sbd"
+      }
+    },
+    "ap_newbalance": {
+      "query": {
+        "url": "v2/ap/ap_newbalance/query",
+        "app": "ap"
+      }
+    },
+    "ap_journal": {
+      "query": {
+        "url": "v2/ap/ap_journal/query",
+        "app": "ap"
+      }
+    },
+    "ap_accrualaging": {
+      "query": {
+        "url": "v2/ap/ap_accrualaging/query",
+        "app": "ap"
+      }
+    },
+    "rdem_extsysrecord": {
+      "update": {
+        "url": "v2/rdem/rdem_extsysrecord/update",
+        "app": "rdem"
+      },
+      "createCommon": {
+        "url": "v2/rdem/rdem_extsysrecord/createCommon",
+        "app": "rdem"
+      },
+      "create": {
+        "url": "v2/rdem/rdem_extsysrecord/create",
+        "app": "rdem"
+      }
+    },
+    "pca_extsysrecord": {
+      "updateCommon": {
+        "url": "v2/pca/pca_extsysrecord/updateCommon",
+        "app": "pca"
+      }
+    },
+    "im_adjustbill": {
+      "getList": {
+        "url": "v2/im/im_adjustbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_adjustbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_adjustbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_adjustbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_adjustbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_adjustbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_adjustbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_adjustbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_adjustbill/query",
+        "app": "im"
+      }
+    },
+    "gl_autocloseperiod": {
+      "periodclose": {
+        "url": "v2/gl/gl_autocloseperiod/periodclose",
+        "app": "gl"
+      }
+    },
+    "cal_costupdateapplybill": {
+      "query": {
+        "url": "v2/cal/cal_costupdateapplybill/query",
+        "app": "cal"
+      }
+    },
+    "cad_costobject": {
+      "query": {
+        "url": "v2/cad/cad_costobject/query",
+        "app": "cad"
+      }
+    },
+    "cal_costadjustbill": {
+      "query": {
+        "url": "v2/cal/cal_costadjustbill/query",
+        "app": "cal"
+      }
+    },
+    "bd_lot": {
+      "getList": {
+        "url": "v2/sbd/bd_lot/getList",
+        "app": "sbd"
+      }
+    },
+    "om_outsourcereceipt": {
+      "batchSave": {
+        "url": "v2/om/om_outsourcereceipt/batchSave",
+        "app": "om"
+      },
+      "batchDelete": {
+        "url": "v2/om/om_outsourcereceipt/batchDelete",
+        "app": "om"
+      },
+      "batchUnAudit": {
+        "url": "v2/om/om_outsourcereceipt/batchUnAudit",
+        "app": "om"
+      },
+      "batchAudit": {
+        "url": "v2/om/om_outsourcereceipt/batchAudit",
+        "app": "om"
+      },
+      "batchSubmit": {
+        "url": "v2/om/om_outsourcereceipt/batchSubmit",
+        "app": "om"
+      },
+      "batchUnSubmit": {
+        "url": "v2/om/om_outsourcereceipt/batchUnSubmit",
+        "app": "om"
+      },
+      "batchQuery": {
+        "url": "v2/om/om_outsourcereceipt/batchQuery",
+        "app": "om"
+      }
+    },
+    "im_mdc_omfeedbill": {
+      "batchSave": {
+        "url": "v2/im/im_mdc_omfeedbill/batchSave",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_omfeedbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_omfeedbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_omfeedbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_omfeedbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_omfeedbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_omfeedbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "im_mdc_omreturnbill": {
+      "batchSave": {
+        "url": "v2/im/im_mdc_omreturnbill/batchSave",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_omreturnbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_omreturnbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_omreturnbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_omreturnbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_omreturnbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_omreturnbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "om_outsourcereturn": {
+      "batchSave": {
+        "url": "v2/om/om_outsourcereturn/batchSave",
+        "app": "om"
+      },
+      "batchDelete": {
+        "url": "v2/om/om_outsourcereturn/batchDelete",
+        "app": "om"
+      },
+      "batchUnAudit": {
+        "url": "v2/om/om_outsourcereturn/batchUnAudit",
+        "app": "om"
+      },
+      "batchAudit": {
+        "url": "v2/om/om_outsourcereturn/batchAudit",
+        "app": "om"
+      },
+      "batchSubmit": {
+        "url": "v2/om/om_outsourcereturn/batchSubmit",
+        "app": "om"
+      },
+      "batchUnSubmit": {
+        "url": "v2/om/om_outsourcereturn/batchUnSubmit",
+        "app": "om"
+      },
+      "batchQuery": {
+        "url": "v2/om/om_outsourcereturn/batchQuery",
+        "app": "om"
+      }
+    },
+    "im_mdc_omoutbill": {
+      "batchSave": {
+        "url": "v2/im/im_mdc_omoutbill/batchSave",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_mdc_omoutbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_mdc_omoutbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_omoutbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_omoutbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnsubmit": {
+        "url": "v2/im/im_mdc_omoutbill/batchUnsubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_omoutbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "bdtaxr_pay_record": {
+      "batchSaveVoucher": {
+        "url": "v2/bdtaxr/bdtaxr_pay_record/batchSaveVoucher",
+        "app": "bdtaxr"
+      },
+      "getList": {
+        "url": "v2/bdtaxr/bdtaxr_pay_record/getList",
+        "app": "bdtaxr"
+      }
+    },
+    "om_mftorder": {
+      "batchDelete": {
+        "url": "v2/om/om_mftorder/batchDelete",
+        "app": "om"
+      }
+    },
+    "im_mdc_exconsume": {
+      "batchDelete": {
+        "url": "v2/im/im_mdc_exconsume/batchDelete",
+        "app": "im"
+      }
+    },
+    "pom_mftorderreport": {
+      "batchDelete": {
+        "url": "v2/pom/pom_mftorderreport/batchDelete",
+        "app": "pom"
+      },
+      "batchUnAudit": {
+        "url": "v2/pom/pom_mftorderreport/batchUnAudit",
+        "app": "pom"
+      },
+      "batchAudit": {
+        "url": "v2/pom/pom_mftorderreport/batchAudit",
+        "app": "pom"
+      },
+      "batchSubmit": {
+        "url": "v2/pom/pom_mftorderreport/batchSubmit",
+        "app": "pom"
+      },
+      "batchUnSubmit": {
+        "url": "v2/pom/pom_mftorderreport/batchUnSubmit",
+        "app": "pom"
+      },
+      "batchAdd": {
+        "url": "v2/pom/pom_mftorderreport/batchAdd",
+        "app": "pom"
+      },
+      "batchUpdate": {
+        "url": "v2/pom/pom_mftorderreport/batchUpdate",
+        "app": "pom"
+      },
+      "batchQuery": {
+        "url": "v2/pom/pom_mftorderreport/batchQuery",
+        "app": "pom"
+      }
+    },
+    "im_mdc_mftfeedorder": {
+      "batchDelete": {
+        "url": "v2/im/im_mdc_mftfeedorder/batchDelete",
+        "app": "im"
+      },
+      "update": {
+        "url": "v2/im/im_mdc_mftfeedorder/update",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_mftfeedorder/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_mftfeedorder/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_mftfeedorder/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_mftfeedorder/batchUnSubmit",
+        "app": "im"
+      },
+      "batcheQuery": {
+        "url": "v2/im/im_mdc_mftfeedorder/batcheQuery",
+        "app": "im"
+      }
+    },
+    "im_mdc_mftreturnorder": {
+      "batchDelete": {
+        "url": "v2/im/im_mdc_mftreturnorder/batchDelete",
+        "app": "im"
+      },
+      "update": {
+        "url": "v2/im/im_mdc_mftreturnorder/update",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/im_mdc_mftreturnorder/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_mdc_mftreturnorder/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_mdc_mftreturnorder/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_mdc_mftreturnorder/batchUnSubmit",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/im_mdc_mftreturnorder/batchQuery",
+        "app": "im"
+      }
+    },
+    "gtm_declareform": {
+      "batchUnaudit": {
+        "url": "v2/gtm/gtm_declareform/batchUnaudit",
+        "app": "gtm"
+      },
+      "batchAudit": {
+        "url": "v2/gtm/gtm_declareform/batchAudit",
+        "app": "gtm"
+      },
+      "batchSubmit": {
+        "url": "v2/gtm/gtm_declareform/batchSubmit",
+        "app": "gtm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/gtm/gtm_declareform/batchUnsubmit",
+        "app": "gtm"
+      },
+      "batchAdd": {
+        "url": "v2/gtm/gtm_declareform/batchAdd",
+        "app": "gtm"
+      },
+      "batchUpdate": {
+        "url": "v2/gtm/gtm_declareform/batchUpdate",
+        "app": "gtm"
+      },
+      "getList": {
+        "url": "v2/gtm/gtm_declareform/getList",
+        "app": "gtm"
+      }
+    },
+    "im_disassemblebill": {
+      "getList": {
+        "url": "v2/im/im_disassemblebill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_disassemblebill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_disassemblebill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_disassemblebill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_disassemblebill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_disassemblebill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_disassemblebill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_disassemblebill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_disassemblebill/query",
+        "app": "im"
+      }
+    },
+    "pbd_indicator": {
+      "delete": {
+        "url": "v2/pbd/pbd_indicator/delete",
+        "app": "pbd"
+      },
+      "query": {
+        "url": "v2/pbd/pbd_indicator/query",
+        "app": "pbd"
+      },
+      "save": {
+        "url": "v2/pbd/pbd_indicator/save",
+        "app": "pbd"
+      },
+      "unaudit": {
+        "url": "v2/pbd/pbd_indicator/unaudit",
+        "app": "pbd"
+      }
+    },
+    "openapi_apilist": {
+      "queryByCloud": {
+        "url": "v2/open/openapi_apilist/queryByCloud",
+        "app": "open"
+      },
+      "queryByCreator": {
+        "url": "v2/open/openapi_apilist/queryByCreator",
+        "app": "open"
+      },
+      "queryByStatus": {
+        "url": "v2/open/openapi_apilist/queryByStatus",
+        "app": "open"
+      },
+      "queryByCosmicver": {
+        "url": "v2/open/openapi_apilist/queryByCosmicver",
+        "app": "open"
+      },
+      "getList": {
+        "url": "v2/open/openapi_apilist/getList",
+        "app": "open"
+      },
+      "queryByBizobject": {
+        "url": "v2/open/openapi_apilist/queryByBizobject",
+        "app": "open"
+      },
+      "getDetail": {
+        "url": "v2/open/openapi_apilist/getDetail",
+        "app": "open"
+      },
+      "queryByApp": {
+        "url": "v2/open/openapi_apilist/queryByApp",
+        "app": "open"
+      },
+      "queryByIsvid": {
+        "url": "v2/open/openapi_apilist/queryByIsvid",
+        "app": "open"
+      },
+      "queryByApiType": {
+        "url": "v2/open/openapi_apilist/queryByApiType",
+        "app": "open"
+      },
+      "queryByOperation": {
+        "url": "v2/open/openapi_apilist/queryByOperation",
+        "app": "open"
+      },
+      "queryByCustomsort": {
+        "url": "v2/open/openapi_apilist/queryByCustomsort",
+        "app": "open"
+      },
+      "queryByUrl": {
+        "url": "v2/open/openapi_apilist/queryByUrl",
+        "app": "open"
+      }
+    },
+    "bd_exratetable": {
+      "getByNumber": {
+        "url": "v2/base/bd_exratetable/getByNumber",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/base/bd_exratetable/add",
+        "app": "base"
+      }
+    },
+    "openapi_3rdapps": {
+      "queryByNumber": {
+        "url": "v2/open/openapi_3rdapps/queryByNumber",
+        "app": "open"
+      },
+      "getList": {
+        "url": "v2/open/openapi_3rdapps/getList",
+        "app": "open"
+      }
+    },
+    "gtm_ladingbill": {
+      "batchUnaudit": {
+        "url": "v2/gtm/gtm_ladingbill/batchUnaudit",
+        "app": "gtm"
+      },
+      "batchAudit": {
+        "url": "v2/gtm/gtm_ladingbill/batchAudit",
+        "app": "gtm"
+      },
+      "batchSubmit": {
+        "url": "v2/gtm/gtm_ladingbill/batchSubmit",
+        "app": "gtm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/gtm/gtm_ladingbill/batchUnsubmit",
+        "app": "gtm"
+      },
+      "batchAdd": {
+        "url": "v2/gtm/gtm_ladingbill/batchAdd",
+        "app": "gtm"
+      },
+      "batchUpdate": {
+        "url": "v2/gtm/gtm_ladingbill/batchUpdate",
+        "app": "gtm"
+      },
+      "getList": {
+        "url": "v2/gtm/gtm_ladingbill/getList",
+        "app": "gtm"
+      }
+    },
+    "ar_revcfmplanbill": {
+      "batchUnaudit": {
+        "url": "v2/ar/ar_revcfmplanbill/batchUnaudit",
+        "app": "ar"
+      },
+      "batchAudit": {
+        "url": "v2/ar/ar_revcfmplanbill/batchAudit",
+        "app": "ar"
+      },
+      "batchSubmit": {
+        "url": "v2/ar/ar_revcfmplanbill/batchSubmit",
+        "app": "ar"
+      },
+      "batchUnsubmit": {
+        "url": "v2/ar/ar_revcfmplanbill/batchUnsubmit",
+        "app": "ar"
+      },
+      "batchAdd": {
+        "url": "v2/ar/ar_revcfmplanbill/batchAdd",
+        "app": "ar"
+      },
+      "batchUpdate": {
+        "url": "v2/ar/ar_revcfmplanbill/batchUpdate",
+        "app": "ar"
+      },
+      "query": {
+        "url": "v2/ar/ar_revcfmplanbill/query",
+        "app": "ar"
+      }
+    },
+    "im_purreceivebill": {
+      "getList": {
+        "url": "v2/im/im_purreceivebill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_purreceivebill/batchDelete",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_purreceivebill/query",
+        "app": "im"
+      }
+    },
+    "cas_recbill": {
+      "updateSave": {
+        "url": "v2/cas/cas_recbill/updateSave",
+        "app": "cas"
+      },
+      "delete": {
+        "url": "v2/cas/cas_recbill/delete",
+        "app": "cas"
+      },
+      "unaduit": {
+        "url": "v2/cas/cas_recbill/unaduit",
+        "app": "cas"
+      },
+      "aduit": {
+        "url": "v2/cas/cas_recbill/aduit",
+        "app": "cas"
+      },
+      "recbillBatchRec": {
+        "url": "v2/cas/cas_recbill/recbillBatchRec",
+        "app": "cas"
+      },
+      "submit": {
+        "url": "v2/cas/cas_recbill/submit",
+        "app": "cas"
+      },
+      "unsubmit": {
+        "url": "v2/cas/cas_recbill/unsubmit",
+        "app": "cas"
+      },
+      "addSave": {
+        "url": "v2/cas/cas_recbill/addSave",
+        "app": "cas"
+      },
+      "query": {
+        "url": "v2/cas/cas_recbill/query",
+        "app": "cas"
+      }
+    },
+    "bd_reccondition": {
+      "query": {
+        "url": "v2/sbd/bd_reccondition/query",
+        "app": "sbd"
+      }
+    },
+    "ar_plansplit_scheme": {
+      "query": {
+        "url": "v2/ar/ar_plansplit_scheme/query",
+        "app": "ar"
+      }
+    },
+    "bd_customergroupstandard": {
+      "add": {
+        "url": "v2/basedata/bd_customergroupstandard/add",
+        "app": "basedata"
+      }
+    },
+    "bd_address": {
+      "addressAdd": {
+        "url": "v2/basedata/bd_address/addressAdd",
+        "app": "basedata"
+      },
+      "addressUpdate": {
+        "url": "v2/basedata/bd_address/addressUpdate",
+        "app": "basedata"
+      },
+      "query": {
+        "url": "v2/basedata/bd_address/query",
+        "app": "basedata"
+      },
+      "queryAddress": {
+        "url": "v2/basedata/bd_address/queryAddress",
+        "app": "basedata"
+      }
+    },
+    "ap_busbill": {
+      "batchDelete": {
+        "url": "v2/ap/ap_busbill/batchDelete",
+        "app": "ap"
+      },
+      "batchUnaudit": {
+        "url": "v2/ap/ap_busbill/batchUnaudit",
+        "app": "ap"
+      },
+      "batchAudit": {
+        "url": "v2/ap/ap_busbill/batchAudit",
+        "app": "ap"
+      },
+      "batchSubmit": {
+        "url": "v2/ap/ap_busbill/batchSubmit",
+        "app": "ap"
+      },
+      "batchUnsubmit": {
+        "url": "v2/ap/ap_busbill/batchUnsubmit",
+        "app": "ap"
+      },
+      "batchAdd": {
+        "url": "v2/ap/ap_busbill/batchAdd",
+        "app": "ap"
+      },
+      "batchUpdate": {
+        "url": "v2/ap/ap_busbill/batchUpdate",
+        "app": "ap"
+      },
+      "query": {
+        "url": "v2/ap/ap_busbill/query",
+        "app": "ap"
+      }
+    },
+    "ar_busbill": {
+      "batchDelete": {
+        "url": "v2/ar/ar_busbill/batchDelete",
+        "app": "ar"
+      },
+      "batchUnaudit": {
+        "url": "v2/ar/ar_busbill/batchUnaudit",
+        "app": "ar"
+      },
+      "batchAudit": {
+        "url": "v2/ar/ar_busbill/batchAudit",
+        "app": "ar"
+      },
+      "batchSubmit": {
+        "url": "v2/ar/ar_busbill/batchSubmit",
+        "app": "ar"
+      },
+      "batchUnsubmit": {
+        "url": "v2/ar/ar_busbill/batchUnsubmit",
+        "app": "ar"
+      },
+      "batchAdd": {
+        "url": "v2/ar/ar_busbill/batchAdd",
+        "app": "ar"
+      },
+      "batchUpdate": {
+        "url": "v2/ar/ar_busbill/batchUpdate",
+        "app": "ar"
+      },
+      "query": {
+        "url": "v2/ar/ar_busbill/query",
+        "app": "ar"
+      }
+    },
+    "cas_finalcheckout": {
+      "close": {
+        "url": "v2/cas/cas_finalcheckout/close",
+        "app": "cas"
+      },
+      "finalcheckout": {
+        "url": "v2/cas/cas_finalcheckout/finalcheckout",
+        "app": "cas"
+      }
+    },
+    "barcm_barcodemainfile": {
+      "batchAdd": {
+        "url": "v2/barcm/barcm_barcodemainfile/batchAdd",
+        "app": "barcm"
+      },
+      "query": {
+        "url": "v2/kingdee/barcm/barcm_barcodemainfile/query",
+        "app": "barcm"
+      }
+    },
+    "barcm_bcpackagerecord": {
+      "barchAdd": {
+        "url": "v2/barcm/barcm_bcpackagerecord/barchAdd",
+        "app": "barcm"
+      }
+    },
+    "barcm_bcgenesbillrecord": {
+      "batchAdd": {
+        "url": "v2/barcm/barcm_bcgenesbillrecord/batchAdd",
+        "app": "barcm"
+      }
+    },
+    "plm_plmdc_physical_file": {
+      "plm_plmdc_physical_file/query": {
+        "url": "v2/plmdc/plm_plmdc_physical_file/query",
+        "app": "plmdc"
+      }
+    },
+    "pbd_business_info": {
+      "queryDetail": {
+        "url": "v2/pbd/pbd_business_info/queryDetail",
+        "app": "pbd"
+      }
+    },
+    "bd_suppliergroup": {
+      "query": {
+        "url": "v2/basedata/bd_suppliergroup/query",
+        "app": "basedata"
+      }
+    },
+    "srm_supplier": {
+      "queryDetail": {
+        "url": "v2/srm/srm_supplier/queryDetail",
+        "app": "srm"
+      }
+    },
+    "plm_pdm_document_revision": {
+      "queryDocumentDetail": {
+        "url": "v2/plmdc/plm_pdm_document_revision/queryDocumentDetail",
+        "app": "plmdc"
+      },
+      "getLatestVisionDocumentListByFileName": {
+        "url": "v2/plmdc/plm_pdm_document_revision/getLatestVisionDocumentListByFileName",
+        "app": "plmdc"
+      },
+      "getDocumentList": {
+        "url": "v2/plmdc/plm_pdm_document_revision/getDocumentList",
+        "app": "plmdc"
+      }
+    },
+    "bos_entityobject": {
+      "monitor/queryEntityObject": {
+        "url": "v2/mdl/bos_entityobject/monitor/queryEntityObject",
+        "app": "mdl"
+      }
+    },
+    "bd_admindivision": {
+      "query_adminvision": {
+        "url": "v2/base/bd_admindivision/query_adminvision",
+        "app": "base"
+      },
+      "getFirstAdmindivisionList": {
+        "url": "v2/base/bd_admindivision/getFirstAdmindivisionList",
+        "app": "base"
+      },
+      "getAdmindivisionListByParentId": {
+        "url": "v2/base/bd_admindivision/getAdmindivisionListByParentId",
+        "app": "base"
+      }
+    },
+    "pbd_monitor_result": {
+      "query": {
+        "url": "v2/pbd/pbd_monitor_result/query",
+        "app": "pbd"
+      }
+    },
+    "bd_evagrade": {
+      "monitor/queryEvagrade": {
+        "url": "v2/basedata/bd_evagrade/monitor/queryEvagrade",
+        "app": "basedata"
+      }
+    },
+    "scax_standardhour": {
+      "unaudit": {
+        "url": "v2/scax/scax_standardhour/unaudit",
+        "app": "scax"
+      },
+      "audit": {
+        "url": "v2/scax/scax_standardhour/audit",
+        "app": "scax"
+      },
+      "submit": {
+        "url": "v2/scax/scax_standardhour/submit",
+        "app": "scax"
+      },
+      "add_bymaterialgroup": {
+        "url": "v2/scax/scax_standardhour/add_bymaterialgroup",
+        "app": "scax"
+      },
+      "add_bymaterial": {
+        "url": "v2/scax/scax_standardhour/add_bymaterial",
+        "app": "scax"
+      },
+      "query": {
+        "url": "v2/scax/scax_standardhour/query",
+        "app": "scax"
+      }
+    },
+    "cal_businesslog": {
+      "query": {
+        "url": "v2/cal/cal_businesslog/query",
+        "app": "cal"
+      }
+    },
+    "cal_costrecord": {
+      "query": {
+        "url": "v2/cal/cal_costrecord/query",
+        "app": "cal"
+      }
+    },
+    "cal_bd_calrange": {
+      "query": {
+        "url": "v2/cal/cal_bd_calrange/query",
+        "app": "cal"
+      }
+    },
+    "cal_datacheck_result": {
+      "query": {
+        "url": "v2/cal/cal_datacheck_result/query",
+        "app": "cal"
+      }
+    },
+    "pbd_check_item": {
+      "save": {
+        "url": "v2/pbd/pbd_check_item/save",
+        "app": "pbd"
+      },
+      "delete": {
+        "url": "v2/pbd/pbd_check_item/delete",
+        "app": "pbd"
+      },
+      "query": {
+        "url": "v2/pbd/pbd_check_item/query",
+        "app": "pbd"
+      }
+    },
+    "pbd_check_item_group": {
+      "save": {
+        "url": "v2/pbd/pbd_check_item_group/save",
+        "app": "pbd"
+      },
+      "query": {
+        "url": "v2/pbd/pbd_check_item_group/query",
+        "app": "pbd"
+      }
+    },
+    "qcbd_inspectionitemsgrp": {
+      "batchQuery": {
+        "url": "v2/qcbd/qcbd_inspectionitemsgrp/batchQuery",
+        "app": "qcbd"
+      }
+    },
+    "bos_reporttype": {
+      "save": {
+        "url": "v2/xkbase/bos_reporttype/save",
+        "app": "base"
+      },
+      "query": {
+        "url": "v2/xkbase/bos_reporttype/query",
+        "app": "base"
+      }
+    },
+    "bd_exrate_tree": {
+      "update": {
+        "url": "v2/base/bd_exrate_tree/update",
+        "app": "base"
+      },
+      "batchQuery": {
+        "url": "v2/base/bd_exrate_tree/batchQuery",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/base/bd_exrate_tree/add",
+        "app": "base"
+      }
+    },
+    "ococic_channelinbill": {
+      "query_channelinbill": {
+        "url": "v2/ococic/ococic_channelinbill/query_channelinbill",
+        "app": "ococic"
+      }
+    },
+    "ococic_channeloutbill": {
+      "query_channeloutbill": {
+        "url": "v2/ococic/ococic_channeloutbill/query_channeloutbill",
+        "app": "ococic"
+      }
+    },
+    "bd_materialgroup": {
+      "batchAdd": {
+        "url": "v2/basedata/bd_materialgroup/batchAdd",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_materialgroup/batchUpdate",
+        "app": "basedata"
+      },
+      "batchQuery": {
+        "url": "v2/basedata/bd_materialgroup/batchQuery",
+        "app": "basedata"
+      }
+    },
+    "bd_materialgroupdetail": {
+      "batchUpdate": {
+        "url": "v2/basedata/bd_materialgroupdetail/batchUpdate",
+        "app": "basedata"
+      }
+    },
+    "bd_multimeasureunit": {
+      "batchQuery": {
+        "url": "v2/basedata/bd_multimeasureunit/batchQuery",
+        "app": "basedata"
+      }
+    },
+    "bd_materialinventoryinfo": {
+      "batchAudit": {
+        "url": "v2/sbd/bd_materialinventoryinfo/batchAudit",
+        "app": "sbd"
+      },
+      "batchSubmit": {
+        "url": "v2/sbd/bd_materialinventoryinfo/batchSubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/bd_materialinventoryinfo/batchAdd",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_materialinventoryinfo/batchUpdate",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/bd_materialinventoryinfo/batchQuery",
+        "app": "sbd"
+      },
+      "materialInvQuery": {
+        "url": "v2/sbd/bd_materialinventoryinfo/materialInvQuery",
+        "app": "sbd"
+      }
+    },
+    "bd_material": {
+      "batchDelete": {
+        "url": "v2/basedata/bd_material/batchDelete",
+        "app": "basedata"
+      },
+      "batchUnAudit": {
+        "url": "v2/basedata/bd_material/batchUnAudit",
+        "app": "basedata"
+      },
+      "batchEnable": {
+        "url": "v2/basedata/bd_material/batchEnable",
+        "app": "basedata"
+      },
+      "batchAudit": {
+        "url": "v2/basedata/bd_material/batchAudit",
+        "app": "basedata"
+      },
+      "batchSubmit": {
+        "url": "v2/basedata/bd_material/batchSubmit",
+        "app": "basedata"
+      },
+      "batchUnSubmit": {
+        "url": "v2/basedata/bd_material/batchUnSubmit",
+        "app": "basedata"
+      },
+      "batchAdd": {
+        "url": "v2/basedata/bd_material/batchAdd",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_material/batchUpdate",
+        "app": "basedata"
+      },
+      "batchQuery": {
+        "url": "v2/basedata/bd_material/batchQuery",
+        "app": "basedata"
+      },
+      "batchDisable": {
+        "url": "v2/basedata/bd_material/batchDisable",
+        "app": "basedata"
+      }
+    },
+    "mpdm_replaceplan": {
+      "batchUpdate": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchUpdate",
+        "app": "mpdm"
+      },
+      "batchDelete": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchDelete",
+        "app": "mpdm"
+      },
+      "batchUnaudit": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchUnaudit",
+        "app": "mpdm"
+      },
+      "batchEnable": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchEnable",
+        "app": "mpdm"
+      },
+      "batchAudit": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchAudit",
+        "app": "mpdm"
+      },
+      "batchSubmit": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchSubmit",
+        "app": "mpdm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchUnsubmit",
+        "app": "mpdm"
+      },
+      "batchAdd": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchAdd",
+        "app": "mpdm"
+      },
+      "batchQuery": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchQuery",
+        "app": "mpdm"
+      },
+      "batchDisable": {
+        "url": "v2/mpdm/mpdm_replaceplan/batchDisable",
+        "app": "mpdm"
+      }
+    },
+    "scax_matstdprices": {
+      "unaudit": {
+        "url": "v2/scax/scax_matstdprices/unaudit",
+        "app": "scax"
+      },
+      "audit": {
+        "url": "v2/scax/scax_matstdprices/audit",
+        "app": "scax"
+      },
+      "submit": {
+        "url": "v2/scax/scax_matstdprices/submit",
+        "app": "scax"
+      },
+      "add": {
+        "url": "v2/scax/scax_matstdprices/add",
+        "app": "scax"
+      },
+      "query": {
+        "url": "v2/scax/scax_matstdprices/query",
+        "app": "scax"
+      }
+    },
+    "cal_bd_materialdimension": {
+      "query": {
+        "url": "v2/cal/cal_bd_materialdimension/query",
+        "app": "cal"
+      }
+    },
+    "bd_materialmftinfo": {
+      "batchSave": {
+        "url": "v2/sbd/bd_materialmftinfo/batchSave",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_materialmftinfo/batchUpdate",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/bd_materialmftinfo/batchQuery",
+        "app": "sbd"
+      }
+    },
+    "bd_materialcommon": {
+      "batchAudit": {
+        "url": "v2/basedata/bd_materialcommon/batchAudit",
+        "app": "basedata"
+      },
+      "batchSubmit": {
+        "url": "v2/basedata/bd_materialcommon/batchSubmit",
+        "app": "basedata"
+      },
+      "batchAdd": {
+        "url": "v2/basedata/bd_materialcommon/batchAdd",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_materialcommon/batchUpdate",
+        "app": "basedata"
+      },
+      "batchQuery": {
+        "url": "v2/basedata/bd_materialcommon/batchQuery",
+        "app": "basedata"
+      }
+    },
+    "cal_bd_accounttype": {
+      "query": {
+        "url": "v2/cal/cal_bd_accounttype/query",
+        "app": "cal"
+      }
+    },
+    "mpdm_materialplan": {
+      "batchAudit": {
+        "url": "v2/sbd/mpdm_materialplan/batchAudit",
+        "app": "sbd"
+      },
+      "batchSubmit": {
+        "url": "v2/sbd/mpdm_materialplan/batchSubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/mpdm_materialplan/batchAdd",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/mpdm_materialplan/batchUpdate",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/mpdm_materialplan/batchQuery",
+        "app": "sbd"
+      }
+    },
+    "bd_inspect_cfg": {
+      "delete": {
+        "url": "v2/sbd/bd_inspect_cfg/delete",
+        "app": "sbd"
+      },
+      "unAudit": {
+        "url": "v2/sbd/bd_inspect_cfg/unAudit",
+        "app": "sbd"
+      },
+      "audit": {
+        "url": "v2/sbd/bd_inspect_cfg/audit",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_inspect_cfg/batchUpdate",
+        "app": "sbd"
+      },
+      "submit": {
+        "url": "v2/sbd/bd_inspect_cfg/submit",
+        "app": "sbd"
+      },
+      "unSubmit": {
+        "url": "v2/sbd/bd_inspect_cfg/unSubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/bd_inspect_cfg/batchAdd",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/bd_inspect_cfg/batchQuery",
+        "app": "sbd"
+      }
+    },
+    "bd_materialpurchaseinfo": {
+      "batchAudit": {
+        "url": "v2/sbd/bd_materialpurchaseinfo/batchAudit",
+        "app": "sbd"
+      },
+      "batchSubmit": {
+        "url": "v2/sbd/bd_materialpurchaseinfo/batchSubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/bd_materialpurchaseinfo/batchAdd",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_materialpurchaseinfo/batchUpdate",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/bd_materialpurchaseinfo/batchQuery",
+        "app": "sbd"
+      }
+    },
+    "bd_materialsalinfo": {
+      "batchAudit": {
+        "url": "v2/sbd/bd_materialsalinfo/batchAudit",
+        "app": "sbd"
+      },
+      "batchSubmit": {
+        "url": "v2/sbd/bd_materialsalinfo/batchSubmit",
+        "app": "sbd"
+      },
+      "batchAdd": {
+        "url": "v2/sbd/bd_materialsalinfo/batchAdd",
+        "app": "sbd"
+      },
+      "batchUpdate": {
+        "url": "v2/sbd/bd_materialsalinfo/batchUpdate",
+        "app": "sbd"
+      },
+      "batchQuery": {
+        "url": "v2/sbd/bd_materialsalinfo/batchQuery",
+        "app": "sbd"
+      }
+    },
+    "pom_mftorder": {
+      "batchDelete": {
+        "url": "v2/pom/pom_mftorder/batchDelete",
+        "app": "pom"
+      },
+      "batchUnAudit": {
+        "url": "v2/pom/pom_mftorder/batchUnAudit",
+        "app": "pom"
+      },
+      "batchAudit": {
+        "url": "v2/pom/pom_mftorder/batchAudit",
+        "app": "pom"
+      },
+      "batchSubmit": {
+        "url": "v2/pom/pom_mftorder/batchSubmit",
+        "app": "pom"
+      },
+      "batchUnSubmit": {
+        "url": "v2/pom/pom_mftorder/batchUnSubmit",
+        "app": "pom"
+      },
+      "batchAdd": {
+        "url": "v2/pom/pom_mftorder/batchAdd",
+        "app": "pom"
+      },
+      "batchUpdate": {
+        "url": "v2/pom/pom_mftorder/batchUpdate",
+        "app": "pom"
+      },
+      "batchQuery": {
+        "url": "v2/pom/pom_mftorder/batchQuery",
+        "app": "pom"
+      },
+      "batchQueryNew": {
+        "url": "v2/pom/pom_mftorder/batchQueryNew",
+        "app": "pom"
+      }
+    },
+    "pom_mftstock": {
+      "batchUpdate": {
+        "url": "v2/pom/pom_mftstock/batchUpdate",
+        "app": "pom"
+      },
+      "batchUnAudit": {
+        "url": "v2/pom/pom_mftstock/batchUnAudit",
+        "app": "pom"
+      },
+      "batchAudit": {
+        "url": "v2/pom/pom_mftstock/batchAudit",
+        "app": "pom"
+      },
+      "batchSubmit": {
+        "url": "v2/pom/pom_mftstock/batchSubmit",
+        "app": "pom"
+      },
+      "batchUnSubmit": {
+        "url": "v2/pom/pom_mftstock/batchUnSubmit",
+        "app": "pom"
+      },
+      "query": {
+        "url": "v2/pom/pom_mftstock/query",
+        "app": "pom"
+      }
+    },
+    "im_deficitbill": {
+      "getList": {
+        "url": "v2/im/im_deficitbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_deficitbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_deficitbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_deficitbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_deficitbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_deficitbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_deficitbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_deficitbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_deficitbill/query",
+        "app": "im"
+      }
+    },
+    "im_surplusbill": {
+      "getList": {
+        "url": "v2/im/im_surplusbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_surplusbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_surplusbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_surplusbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_surplusbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_surplusbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_surplusbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_surplusbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_surplusbill/query",
+        "app": "im"
+      }
+    },
+    "im_transdirbill": {
+      "getList": {
+        "url": "v2/im/im_transdirbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_transdirbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_transdirbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_transdirbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_transdirbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_transdirbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_transdirbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_transdirbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_transdirbill/query",
+        "app": "im"
+      }
+    },
+    "bd_accounttable": {
+      "getList": {
+        "url": "v2/fibd/bd_accounttable/getList",
+        "app": "fibd"
+      }
+    },
+    "tdm_tax_depreciation": {
+      "batchSave": {
+        "url": "v2/tdm/tdm_tax_depreciation/batchSave",
+        "app": "tdm"
+      },
+      "getList": {
+        "url": "v2/tdm/tdm_tax_depreciation/getList",
+        "app": "tdm"
+      }
+    },
+    "tdm_actual_depreciation": {
+      "batchSave": {
+        "url": "v2/tdm/tdm_actual_depreciation/batchSave",
+        "app": "tdm"
+      },
+      "getList": {
+        "url": "v2/tdm/tdm_actual_depreciation/getList",
+        "app": "tdm"
+      }
+    },
+    "itp_proviston_taxes": {
+      "batchSave": {
+        "url": "v2/tctb/itp_proviston_taxes/batchSave",
+        "app": "tctb"
+      },
+      "updateVoucherStatus": {
+        "url": "v2/tctb/itp_proviston_taxes/updateVoucherStatus",
+        "app": "tctb"
+      },
+      "getList": {
+        "url": "v2/tctb/itp_proviston_taxes/getList",
+        "app": "tctb"
+      }
+    },
+    "xkim_sp_mftinstkbill": {
+      "batchDelete": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchUpdate",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/xkim_sp_mftinstkbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "xkim_sp_mftrtnstkbill": {
+      "batchUnAudit": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchUpdate",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/xkim_sp_mftrtnstkbill/batchQuery",
+        "app": "im"
+      }
+    },
+    "xkim_sp_mftrmorder": {
+      "batchUpdate": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchUpdate",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchAdd",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/xkim_sp_mftrmorder/batchQuery",
+        "app": "im"
+      }
+    },
+    "xkim_sp_mftpmorder": {
+      "batchUpdate": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchUpdate",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchDelete",
+        "app": "im"
+      },
+      "batchUnAudit": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchUnAudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchAdd",
+        "app": "im"
+      },
+      "batchQuery": {
+        "url": "v2/im/xkim_sp_mftpmorder/batchQuery",
+        "app": "im"
+      }
+    },
+    "im_assembbill": {
+      "getList": {
+        "url": "v2/im/im_assembbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_assembbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_assembbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_assembbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_assembbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_assembbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_assembbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_assembbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_assembbill/query",
+        "app": "im"
+      }
+    },
+    "xkoac_instatement": {
+      "unaudit": {
+        "url": "v2/xkoac/xkoac_instatement/unaudit",
+        "app": "xkoac"
+      },
+      "audit": {
+        "url": "v2/xkoac/xkoac_instatement/audit",
+        "app": "xkoac"
+      },
+      "submit": {
+        "url": "v2/xkoac/xkoac_instatement/submit",
+        "app": "xkoac"
+      },
+      "unsubmit": {
+        "url": "v2/xkoac/xkoac_instatement/unsubmit",
+        "app": "xkoac"
+      },
+      "add": {
+        "url": "v2/xkoac/xkoac_instatement/add",
+        "app": "xkoac"
+      },
+      "query": {
+        "url": "v2/xkoac/xkoac_instatement/query",
+        "app": "xkoac"
+      }
+    },
+    "xkoac_settleprice": {
+      "unaudit": {
+        "url": "v2/xkoac/xkoac_settleprice/unaudit",
+        "app": "xkoac"
+      },
+      "audit": {
+        "url": "v2/xkoac/xkoac_settleprice/audit",
+        "app": "xkoac"
+      },
+      "submit": {
+        "url": "v2/xkoac/xkoac_settleprice/submit",
+        "app": "xkoac"
+      },
+      "unsubmit": {
+        "url": "v2/xkoac/xkoac_settleprice/unsubmit",
+        "app": "xkoac"
+      },
+      "add": {
+        "url": "v2/xkoac/xkoac_settleprice/add",
+        "app": "xkoac"
+      },
+      "query": {
+        "url": "v2/xkoac/xkoac_settleprice/query",
+        "app": "xkoac"
+      }
+    },
+    "xkoac_voucher": {
+      "unaudit": {
+        "url": "v2/xkoac/xkoac_voucher/unaudit",
+        "app": "xkoac"
+      },
+      "audit": {
+        "url": "v2/xkoac/xkoac_voucher/audit",
+        "app": "xkoac"
+      },
+      "submit": {
+        "url": "v2/xkoac/xkoac_voucher/submit",
+        "app": "xkoac"
+      },
+      "unsubmit": {
+        "url": "v2/xkoac/xkoac_voucher/unsubmit",
+        "app": "xkoac"
+      },
+      "add": {
+        "url": "v2/xkoac/xkoac_voucher/add",
+        "app": "xkoac"
+      },
+      "query": {
+        "url": "v2/xkoac/xkoac_voucher/query",
+        "app": "xkoac"
+      }
+    },
+    "xkoac_businessplan": {
+      "unaudit": {
+        "url": "v2/xkoac/xkoac_businessplan/unaudit",
+        "app": "xkoac"
+      },
+      "audit": {
+        "url": "v2/xkoac/xkoac_businessplan/audit",
+        "app": "xkoac"
+      },
+      "submit": {
+        "url": "v2/xkoac/xkoac_businessplan/submit",
+        "app": "xkoac"
+      },
+      "unsubmit": {
+        "url": "v2/xkoac/xkoac_businessplan/unsubmit",
+        "app": "xkoac"
+      },
+      "add": {
+        "url": "v2/xkoac/xkoac_businessplan/add",
+        "app": "xkoac"
+      },
+      "query": {
+        "url": "v2/xkoac/xkoac_businessplan/query",
+        "app": "xkoac"
+      }
+    },
+    "xkoac_costcollecte": {
+      "unaudit": {
+        "url": "v2/xkoac/xkoac_costcollecte/unaudit",
+        "app": "xkoac"
+      },
+      "audit": {
+        "url": "v2/xkoac/xkoac_costcollecte/audit",
+        "app": "xkoac"
+      },
+      "submit": {
+        "url": "v2/xkoac/xkoac_costcollecte/submit",
+        "app": "xkoac"
+      },
+      "unsubmit": {
+        "url": "v2/xkoac/xkoac_costcollecte/unsubmit",
+        "app": "xkoac"
+      },
+      "add": {
+        "url": "v2/xkoac/xkoac_costcollecte/add",
+        "app": "xkoac"
+      },
+      "query": {
+        "url": "v2/xkoac/xkoac_costcollecte/query",
+        "app": "xkoac"
+      }
+    },
+    "bd_settlementtype": {
+      "unaudit": {
+        "url": "v2/basedata/bd_settlementtype/unaudit",
+        "app": "basedata"
+      },
+      "audit": {
+        "url": "v2/basedata/bd_settlementtype/audit",
+        "app": "basedata"
+      },
+      "submit": {
+        "url": "v2/basedata/bd_settlementtype/submit",
+        "app": "basedata"
+      },
+      "unsubmit": {
+        "url": "v2/basedata/bd_settlementtype/unsubmit",
+        "app": "basedata"
+      },
+      "add": {
+        "url": "v2/basedata/bd_settlementtype/add",
+        "app": "basedata"
+      },
+      "getList": {
+        "url": "v2/basedata/bd_settlementtype/getList",
+        "app": "basedata"
+      }
+    },
+    "plm_plmsm_lib_attributes": {
+      "queryClassAttributeDetail": {
+        "url": "v2/plmsm/plm_plmsm_lib_attributes/queryClassAttributeDetail",
+        "app": "plmsm"
+      },
+      "getClassAttributeList": {
+        "url": "v2/plmsm/plm_plmsm_lib_attributes/getClassAttributeList",
+        "app": "plmsm"
+      }
+    },
+    "gai_prompt": {
+      "getPrompInfotByNumber": {
+        "url": "v2/gai/gai_prompt/getPrompInfotByNumber",
+        "app": "gai"
+      }
+    },
+    "pmm_packageselection_org": {
+      "getList": {
+        "url": "v2/pmm/pmm_packageselection_org/getList",
+        "app": "pmm"
+      }
+    },
+    "bd_bebank": {
+      "getList": {
+        "url": "v2/basedata/bd_bebank/getList",
+        "app": "basedata"
+      }
+    },
+    "bos_adminorg": {
+      "updateById": {
+        "url": "v2/kdxk/base/bos_adminorg/updateById",
+        "app": "base"
+      },
+      "updateByNumber": {
+        "url": "v2/kdxk/base/bos_adminorg/updateByNumber",
+        "app": "base"
+      },
+      "getList": {
+        "url": "v2/base/bos_adminorg/getList",
+        "app": "base"
+      },
+      "sync": {
+        "url": "v2/base/bos_adminorg/sync",
+        "app": "base"
+      },
+      "freezeById": {
+        "url": "v2/kdxk/base/bos_adminorg/freezeById",
+        "app": "base"
+      },
+      "freezeByNumber": {
+        "url": "v2/kdxk/base/bos_adminorg/freezeByNumber",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/kdxk/base/bos_adminorg/add",
+        "app": "base"
+      },
+      "unfreezeById": {
+        "url": "v2/kdxk/base/bos_adminorg/unfreezeById",
+        "app": "base"
+      },
+      "unfreezeByNumber": {
+        "url": "v2/kdxk/base/bos_adminorg/unfreezeByNumber",
+        "app": "base"
+      },
+      "queryDetailById": {
+        "url": "v2/kdxk/base/bos_adminorg/queryDetailById",
+        "app": "base"
+      },
+      "queryOne": {
+        "url": "v2/base/bos_adminorg/queryOne",
+        "app": "base"
+      }
+    },
+    "gtm_packinglist": {
+      "batchUnaudit": {
+        "url": "v2/gtm/gtm_packinglist/batchUnaudit",
+        "app": "gtm"
+      },
+      "batchAudit": {
+        "url": "v2/gtm/gtm_packinglist/batchAudit",
+        "app": "gtm"
+      },
+      "batchSubmit": {
+        "url": "v2/gtm/gtm_packinglist/batchSubmit",
+        "app": "gtm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/gtm/gtm_packinglist/batchUnsubmit",
+        "app": "gtm"
+      },
+      "batchAdd": {
+        "url": "v2/gtm/gtm_packinglist/batchAdd",
+        "app": "gtm"
+      },
+      "batchUpdate": {
+        "url": "v2/gtm/gtm_packinglist/batchUpdate",
+        "app": "gtm"
+      },
+      "getList": {
+        "url": "v2/gtm/gtm_packinglist/getList",
+        "app": "gtm"
+      }
+    },
+    "barcm_packingbill": {
+      "batchAudit": {
+        "url": "v2/barcm/barcm_packingbill/batchAudit",
+        "app": "barcm"
+      },
+      "batchSubmit": {
+        "url": "v2/barcm/barcm_packingbill/batchSubmit",
+        "app": "barcm"
+      },
+      "batchAdd": {
+        "url": "v2/barcm/barcm_packingbill/batchAdd",
+        "app": "barcm"
+      },
+      "queryById": {
+        "url": "v2/barcm/barcm_packingbill/queryById",
+        "app": "barcm"
+      }
+    },
+    "cad_plannedoutputbill": {
+      "query": {
+        "url": "v2/cad/cad_plannedoutputbill/query",
+        "app": "cad"
+      }
+    },
+    "bd_measureunitsgroup": {
+      "getList": {
+        "url": "v2/base/bd_measureunitsgroup/getList",
+        "app": "base"
+      },
+      "query": {
+        "url": "v2/base/bd_measureunitsgroup/query",
+        "app": "base"
+      }
+    },
+    "bd_measureunits": {
+      "query": {
+        "url": "v2/base/bd_measureunits/query",
+        "app": "base"
+      }
+    },
+    "im_transapply": {
+      "getList": {
+        "url": "v2/im/im_transapply/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_transapply/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_transapply/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_transapply/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_transapply/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_transapply/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_transapply/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_transapply/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_transapply/query",
+        "app": "im"
+      }
+    },
+    "ap_finapbill": {
+      "batchDelete": {
+        "url": "v2/ap/ap_finapbill/batchDelete",
+        "app": "ap"
+      },
+      "batchUnaudit": {
+        "url": "v2/ap/ap_finapbill/batchUnaudit",
+        "app": "ap"
+      },
+      "batchAudit": {
+        "url": "v2/ap/ap_finapbill/batchAudit",
+        "app": "ap"
+      },
+      "batchSubmit": {
+        "url": "v2/ap/ap_finapbill/batchSubmit",
+        "app": "ap"
+      },
+      "batchUnsubmit": {
+        "url": "v2/ap/ap_finapbill/batchUnsubmit",
+        "app": "ap"
+      },
+      "batchAdd": {
+        "url": "v2/ap/ap_finapbill/batchAdd",
+        "app": "ap"
+      },
+      "batchUpdate": {
+        "url": "v2/ap/ap_finapbill/batchUpdate",
+        "app": "ap"
+      },
+      "query": {
+        "url": "v2/ap/ap_finapbill/query",
+        "app": "ap"
+      }
+    },
+    "ar_finarbill": {
+      "batchDelete": {
+        "url": "v2/ar/ar_finarbill/batchDelete",
+        "app": "ar"
+      },
+      "batchUnaudit": {
+        "url": "v2/ar/ar_finarbill/batchUnaudit",
+        "app": "ar"
+      },
+      "batchAudit": {
+        "url": "v2/ar/ar_finarbill/batchAudit",
+        "app": "ar"
+      },
+      "batchSubmit": {
+        "url": "v2/ar/ar_finarbill/batchSubmit",
+        "app": "ar"
+      },
+      "batchUnsubmit": {
+        "url": "v2/ar/ar_finarbill/batchUnsubmit",
+        "app": "ar"
+      },
+      "batchAdd": {
+        "url": "v2/ar/ar_finarbill/batchAdd",
+        "app": "ar"
+      },
+      "batchUpdate": {
+        "url": "v2/ar/ar_finarbill/batchUpdate",
+        "app": "ar"
+      },
+      "query": {
+        "url": "v2/ar/ar_finarbill/query",
+        "app": "ar"
+      }
+    },
+    "gl_accountbook": {
+      "getList": {
+        "url": "v2/gl/gl_accountbook/getList",
+        "app": "gl"
+      }
+    },
+    "er_dailyloanbill": {
+      "delete": {
+        "url": "v2/em/er_dailyloanbill/delete",
+        "app": "em"
+      }
+    },
+    "er_publicreimbursebill": {
+      "delete": {
+        "url": "v2/em/er_publicreimbursebill/delete",
+        "app": "em"
+      }
+    },
+    "er_dailyapplybill": {
+      "delete": {
+        "url": "v2/em/er_dailyapplybill/delete",
+        "app": "em"
+      }
+    },
+    "er_expenseitemedit": {
+      "er_expenseitemedit_save": {
+        "url": "v2/er/er_expenseitemedit/er_expenseitemedit_save",
+        "app": "er"
+      }
+    },
+    "er_repaymentbill": {
+      "delete": {
+        "url": "v2/em/er_repaymentbill/delete",
+        "app": "em"
+      }
+    },
+    "er_prepaybill": {
+      "delete": {
+        "url": "v2/em/er_prepaybill/delete",
+        "app": "em"
+      }
+    },
+    "cal_fee_sharerecord": {
+      "query": {
+        "url": "v2/cal/cal_fee_sharerecord/query",
+        "app": "cal"
+      }
+    },
+    "cal_costestimatebill": {
+      "query": {
+        "url": "v2/cal/cal_costestimatebill/query",
+        "app": "cal"
+      }
+    },
+    "cal_costestimaterecord": {
+      "query": {
+        "url": "v2/cal/cal_costestimaterecord/query",
+        "app": "cal"
+      }
+    },
+    "fa_asset_card": {
+      "update": {
+        "url": "v2/fa/fa_asset_card/update",
+        "app": "fa"
+      },
+      "getList": {
+        "url": "v2/fa/fa_asset_card/getList",
+        "app": "fa"
+      },
+      "batchDelete": {
+        "url": "v2/fa/fa_asset_card/batchDelete",
+        "app": "fa"
+      },
+      "batchUnaudit": {
+        "url": "v2/fa/fa_asset_card/batchUnaudit",
+        "app": "fa"
+      },
+      "batchAudit": {
+        "url": "v2/fa/fa_asset_card/batchAudit",
+        "app": "fa"
+      },
+      "batchSubmit": {
+        "url": "v2/fa/fa_asset_card/batchSubmit",
+        "app": "fa"
+      },
+      "batchUnsubmit": {
+        "url": "v2/fa/fa_asset_card/batchUnsubmit",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_asset_card/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_asset_card/query",
+        "app": "fa"
+      }
+    },
+    "fa_change_dept": {
+      "getList": {
+        "url": "v2/fa/fa_change_dept/getList",
+        "app": "fa"
+      },
+      "batchDelete": {
+        "url": "v2/fa/fa_change_dept/batchDelete",
+        "app": "fa"
+      },
+      "batchUnaudit": {
+        "url": "v2/fa/fa_change_dept/batchUnaudit",
+        "app": "fa"
+      },
+      "batchAudit": {
+        "url": "v2/fa/fa_change_dept/batchAudit",
+        "app": "fa"
+      },
+      "batchSubmit": {
+        "url": "v2/fa/fa_change_dept/batchSubmit",
+        "app": "fa"
+      },
+      "batchUnsubmit": {
+        "url": "v2/fa/fa_change_dept/batchUnsubmit",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_change_dept/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_change_dept/query",
+        "app": "fa"
+      }
+    },
+    "tdm_asset_data": {
+      "batchSave": {
+        "url": "v2/tdm/tdm_asset_data/batchSave",
+        "app": "tdm"
+      },
+      "getList": {
+        "url": "v2/tdm/tdm_asset_data/getList",
+        "app": "tdm"
+      }
+    },
+    "fa_clearbill": {
+      "getList": {
+        "url": "v2/fa/fa_clearbill/getList",
+        "app": "fa"
+      },
+      "batchDelete": {
+        "url": "v2/fa/fa_clearbill/batchDelete",
+        "app": "fa"
+      },
+      "batchUnaudit": {
+        "url": "v2/fa/fa_clearbill/batchUnaudit",
+        "app": "fa"
+      },
+      "batchAudit": {
+        "url": "v2/fa/fa_clearbill/batchAudit",
+        "app": "fa"
+      },
+      "batchSubmit": {
+        "url": "v2/fa/fa_clearbill/batchSubmit",
+        "app": "fa"
+      },
+      "batchUnsubmit": {
+        "url": "v2/fa/fa_clearbill/batchUnsubmit",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_clearbill/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_clearbill/query",
+        "app": "fa"
+      }
+    },
+    "fa_assetcategory": {
+      "update": {
+        "url": "v2/fa/fa_assetcategory/update",
+        "app": "fa"
+      },
+      "getList": {
+        "url": "v2/fa/fa_assetcategory/getList",
+        "app": "fa"
+      },
+      "batchEnable": {
+        "url": "v2/fa/fa_assetcategory/batchEnable",
+        "app": "fa"
+      },
+      "batchDisable": {
+        "url": "v2/fa/fa_assetcategory/batchDisable",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_assetcategory/add",
+        "app": "fa"
+      },
+      "query": {
+        "url": "v2/fa/fa_assetcategory/query",
+        "app": "fa"
+      }
+    },
+    "fa_dispatch": {
+      "batchQuery": {
+        "url": "v2/fa/fa_dispatch/batchQuery",
+        "app": "fa"
+      },
+      "batchUnAudit": {
+        "url": "v2/fa/fa_dispatch/batchUnAudit",
+        "app": "fa"
+      },
+      "batchAudit": {
+        "url": "v2/fa/fa_dispatch/batchAudit",
+        "app": "fa"
+      },
+      "batchSubmit": {
+        "url": "v2/fa/fa_dispatch/batchSubmit",
+        "app": "fa"
+      },
+      "batchUnSubmit": {
+        "url": "v2/fa/fa_dispatch/batchUnSubmit",
+        "app": "fa"
+      },
+      "add": {
+        "url": "v2/fa/fa_dispatch/add",
+        "app": "fa"
+      }
+    },
+    "cas_paybill_cossentity": {
+      "update": {
+        "url": "v2/cas/cas_paybill_cossentity/update",
+        "app": "cas"
+      },
+      "unaudit": {
+        "url": "v2/cas/cas_paybill_cossentity/unaudit",
+        "app": "cas"
+      },
+      "audit": {
+        "url": "v2/cas/cas_paybill_cossentity/audit",
+        "app": "cas"
+      },
+      "submit": {
+        "url": "v2/cas/cas_paybill_cossentity/submit",
+        "app": "cas"
+      },
+      "unsubmit": {
+        "url": "v2/cas/cas_paybill_cossentity/unsubmit",
+        "app": "cas"
+      },
+      "add": {
+        "url": "v2/cas/cas_paybill_cossentity/add",
+        "app": "cas"
+      },
+      "queryByTime": {
+        "url": "v2/cas/cas_paybill_cossentity/queryByTime",
+        "app": "cas"
+      }
+    },
+    "bos_assistantdatagroup": {
+      "add": {
+        "url": "v2/base/bos_assistantdatagroup/add",
+        "app": "base"
+      },
+      "update": {
+        "url": "v2/base/bos_assistantdatagroup/update",
+        "app": "base"
+      },
+      "getList": {
+        "url": "v2/base/bos_assistantdatagroup/getList",
+        "app": "base"
+      }
+    },
+    "bos_assistantdata_detail": {
+      "delete": {
+        "url": "v2/base/bos_assistantdata_detail/delete",
+        "app": "base"
+      },
+      "enable": {
+        "url": "v2/base/bos_assistantdata_detail/enable",
+        "app": "base"
+      },
+      "add": {
+        "url": "v2/base/bos_assistantdata_detail/add",
+        "app": "base"
+      },
+      "update": {
+        "url": "v2/base/bos_assistantdata_detail/update",
+        "app": "base"
+      },
+      "getList": {
+        "url": "v2/base/bos_assistantdata_detail/getList",
+        "app": "base"
+      },
+      "disable": {
+        "url": "v2/base/bos_assistantdata_detail/disable",
+        "app": "base"
+      }
+    },
+    "im_purinbill": {
+      "getList": {
+        "url": "v2/im/im_purinbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_purinbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_purinbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_purinbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_purinbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_purinbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_purinbill/batchUpdate",
+        "app": "im"
+      },
+      "add": {
+        "url": "v2/im/im_purinbill/add",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_purinbill/query",
+        "app": "im"
+      }
+    },
+    "iv_purchasebill": {
+      "batchDelete": {
+        "url": "v2/iv/iv_purchasebill/batchDelete",
+        "app": "iv"
+      },
+      "batchUnaudit": {
+        "url": "v2/iv/iv_purchasebill/batchUnaudit",
+        "app": "iv"
+      },
+      "batchAudit": {
+        "url": "v2/iv/iv_purchasebill/batchAudit",
+        "app": "iv"
+      },
+      "batchSubmit": {
+        "url": "v2/iv/iv_purchasebill/batchSubmit",
+        "app": "iv"
+      },
+      "batchUnsubmit": {
+        "url": "v2/iv/iv_purchasebill/batchUnsubmit",
+        "app": "iv"
+      },
+      "batchAdd": {
+        "url": "v2/iv/iv_purchasebill/batchAdd",
+        "app": "iv"
+      },
+      "batchUpdate": {
+        "url": "v2/iv/iv_purchasebill/batchUpdate",
+        "app": "iv"
+      },
+      "query": {
+        "url": "v2/iv/iv_purchasebill/query",
+        "app": "iv"
+      }
+    },
+    "conm_purcontract": {
+      "getList": {
+        "url": "v2/conm/conm_purcontract/getList",
+        "app": "conm"
+      },
+      "batchDelete": {
+        "url": "v2/conm/conm_purcontract/batchDelete",
+        "app": "conm"
+      },
+      "batchUnaudit": {
+        "url": "v2/conm/conm_purcontract/batchUnaudit",
+        "app": "conm"
+      },
+      "batchBizInvalid": {
+        "url": "v2/conm/conm_purcontract/batchBizInvalid",
+        "app": "conm"
+      },
+      "batchAudit": {
+        "url": "v2/conm/conm_purcontract/batchAudit",
+        "app": "conm"
+      },
+      "batchSubmit": {
+        "url": "v2/conm/conm_purcontract/batchSubmit",
+        "app": "conm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/conm/conm_purcontract/batchUnsubmit",
+        "app": "conm"
+      },
+      "batchAdd": {
+        "url": "v2/conm/conm_purcontract/batchAdd",
+        "app": "conm"
+      },
+      "batchUpdate": {
+        "url": "v2/conm/conm_purcontract/batchUpdate",
+        "app": "conm"
+      },
+      "batchBizValid": {
+        "url": "v2/conm/conm_purcontract/batchBizValid",
+        "app": "conm"
+      },
+      "getDetail": {
+        "url": "v2/conm/conm_purcontract/getDetail",
+        "app": "conm"
+      }
+    },
+    "pm_purapplybill": {
+      "query": {
+        "url": "v2/pm/pm_purapplybill/query",
+        "app": "pm"
+      },
+      "batchDelete": {
+        "url": "v2/pm/pm_purapplybill/batchDelete",
+        "app": "pm"
+      },
+      "batchUnaudit": {
+        "url": "v2/pm/pm_purapplybill/batchUnaudit",
+        "app": "pm"
+      },
+      "batchAudit": {
+        "url": "v2/pm/pm_purapplybill/batchAudit",
+        "app": "pm"
+      },
+      "batchSubmit": {
+        "url": "v2/pm/pm_purapplybill/batchSubmit",
+        "app": "pm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/pm/pm_purapplybill/batchUnsubmit",
+        "app": "pm"
+      },
+      "add": {
+        "url": "v2/pm/pm_purapplybill/add",
+        "app": "pm"
+      }
+    },
+    "pm_xspurorderbill": {
+      "batchDelete": {
+        "url": "v2/pm/pm_xspurorderbill/batchDelete",
+        "app": "pm"
+      }
+    },
+    "pm_purorderbill": {
+      "batchDelete": {
+        "url": "v2/pm/pm_purorderbill/batchDelete",
+        "app": "pm"
+      },
+      "batchUnaudit": {
+        "url": "v2/pm/pm_purorderbill/batchUnaudit",
+        "app": "pm"
+      },
+      "batchAudit": {
+        "url": "v2/pm/pm_purorderbill/batchAudit",
+        "app": "pm"
+      },
+      "batchSubmit": {
+        "url": "v2/pm/pm_purorderbill/batchSubmit",
+        "app": "pm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/pm/pm_purorderbill/batchUnsubmit",
+        "app": "pm"
+      },
+      "add": {
+        "url": "v2/pm/pm_purorderbill/add",
+        "app": "pm"
+      },
+      "update": {
+        "url": "v2/pm/pm_purorderbill/update",
+        "app": "pm"
+      },
+      "query": {
+        "url": "v2/pm/pm_purorderbill/query",
+        "app": "pm"
+      }
+    },
+    "pm_purrefundapplybill": {
+      "getList": {
+        "url": "v2/pm/pm_purrefundapplybill/getList",
+        "app": "pm"
+      },
+      "query": {
+        "url": "v2/pm/pm_purrefundapplybill/query",
+        "app": "pm"
+      },
+      "batchDelete": {
+        "url": "v2/pm/pm_purrefundapplybill/batchDelete",
+        "app": "pm"
+      },
+      "add": {
+        "url": "v2/pm/pm_purrefundapplybill/add",
+        "app": "pm"
+      },
+      "batchUnaudit": {
+        "url": "v2/pm/pm_purrefundapplybill/batchUnaudit",
+        "app": "pm"
+      },
+      "batchAudit": {
+        "url": "v2/pm/pm_purrefundapplybill/batchAudit",
+        "app": "pm"
+      },
+      "batchSubmit": {
+        "url": "v2/pm/pm_purrefundapplybill/batchSubmit",
+        "app": "pm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/pm/pm_purrefundapplybill/batchUnsubmit",
+        "app": "pm"
+      }
+    },
+    "pm_puracceptbill": {
+      "batchDelete": {
+        "url": "v2/pm/pm_puracceptbill/batchDelete",
+        "app": "pm"
+      }
+    },
+    "bd_finorginfo": {
+      "batchAdd": {
+        "url": "v2/basedata/bd_finorginfo/batchAdd",
+        "app": "basedata"
+      },
+      "getList": {
+        "url": "v2/basedata/bd_finorginfo/getList",
+        "app": "basedata"
+      }
+    },
+    "bd_bankcgsetting": {
+      "batchAdd": {
+        "url": "v2/basedata/bd_bankcgsetting/batchAdd",
+        "app": "basedata"
+      },
+      "getList": {
+        "url": "v2/basedata/bd_bankcgsetting/getList",
+        "app": "basedata"
+      }
+    },
+    "bd_accountbanks": {
+      "batchAdd": {
+        "url": "v2/basedata/bd_accountbanks/batchAdd",
+        "app": "basedata"
+      },
+      "accountbanksQuery": {
+        "url": "v2/basedata/bd_accountbanks/accountbanksQuery",
+        "app": "basedata"
+      }
+    },
+    "sm_salepricelistgroup": {
+      "batchAdd": {
+        "url": "v2/sm/sm_salepricelistgroup/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_salepricelistgroup/batchUpdate",
+        "app": "sm"
+      },
+      "batchQuery": {
+        "url": "v2/sm/sm_salepricelistgroup/batchQuery",
+        "app": "sm"
+      }
+    },
+    "sm_salepricelist": {
+      "batchUnAudit": {
+        "url": "v2/sm/sm_salepricelist/batchUnAudit",
+        "app": "sm"
+      },
+      "batchEnable": {
+        "url": "v2/sm/sm_salepricelist/batchEnable",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_salepricelist/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_salepricelist/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sm/sm_salepricelist/batchUnSubmit",
+        "app": "sm"
+      },
+      "batchAdd": {
+        "url": "v2/sm/sm_salepricelist/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_salepricelist/batchUpdate",
+        "app": "sm"
+      },
+      "batchQuery": {
+        "url": "v2/sm/sm_salepricelist/batchQuery",
+        "app": "sm"
+      },
+      "batchDisable": {
+        "url": "v2/sm/sm_salepricelist/batchDisable",
+        "app": "sm"
+      }
+    },
+    "im_saloutbill": {
+      "getList": {
+        "url": "v2/im/im_saloutbill/getList",
+        "app": "im"
+      },
+      "batchDelete": {
+        "url": "v2/im/im_saloutbill/batchDelete",
+        "app": "im"
+      },
+      "batchUnaudit": {
+        "url": "v2/im/im_saloutbill/batchUnaudit",
+        "app": "im"
+      },
+      "batchAudit": {
+        "url": "v2/im/im_saloutbill/batchAudit",
+        "app": "im"
+      },
+      "batchSubmit": {
+        "url": "v2/im/im_saloutbill/batchSubmit",
+        "app": "im"
+      },
+      "batchUnSubmit": {
+        "url": "v2/im/im_saloutbill/batchUnSubmit",
+        "app": "im"
+      },
+      "batchAdd": {
+        "url": "v2/im/im_saloutbill/batchAdd",
+        "app": "im"
+      },
+      "batchUpdate": {
+        "url": "v2/im/im_saloutbill/batchUpdate",
+        "app": "im"
+      },
+      "query": {
+        "url": "v2/im/im_saloutbill/query",
+        "app": "im"
+      }
+    },
+    "iv_salebill": {
+      "batchDelete": {
+        "url": "v2/iv/iv_salebill/batchDelete",
+        "app": "iv"
+      },
+      "batchUnaudit": {
+        "url": "v2/iv/iv_salebill/batchUnaudit",
+        "app": "iv"
+      },
+      "batchAudit": {
+        "url": "v2/iv/iv_salebill/batchAudit",
+        "app": "iv"
+      },
+      "batchSubmit": {
+        "url": "v2/iv/iv_salebill/batchSubmit",
+        "app": "iv"
+      },
+      "batchUnsubmit": {
+        "url": "v2/iv/iv_salebill/batchUnsubmit",
+        "app": "iv"
+      },
+      "batchAdd": {
+        "url": "v2/iv/iv_salebill/batchAdd",
+        "app": "iv"
+      },
+      "batchUpdate": {
+        "url": "v2/iv/iv_salebill/batchUpdate",
+        "app": "iv"
+      },
+      "query": {
+        "url": "v2/iv/iv_salebill/query",
+        "app": "iv"
+      }
+    },
+    "conm_salcontract": {
+      "bizchange": {
+        "url": "v2/conm/conm_salcontract/bizchange",
+        "app": "conm"
+      },
+      "batchUnAudit": {
+        "url": "v2/conm/conm_salcontract/batchUnAudit",
+        "app": "conm"
+      },
+      "batchAudit": {
+        "url": "v2/conm/conm_salcontract/batchAudit",
+        "app": "conm"
+      },
+      "batchSubmit": {
+        "url": "v2/conm/conm_salcontract/batchSubmit",
+        "app": "conm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/conm/conm_salcontract/batchUnSubmit",
+        "app": "conm"
+      },
+      "batchAdd": {
+        "url": "v2/conm/conm_salcontract/batchAdd",
+        "app": "conm"
+      },
+      "batchUpdate": {
+        "url": "v2/conm/conm_salcontract/batchUpdate",
+        "app": "conm"
+      },
+      "batchQuery": {
+        "url": "v2/conm/conm_salcontract/batchQuery",
+        "app": "conm"
+      }
+    },
+    "sm_quotationbill": {
+      "batchDelete": {
+        "url": "v2/sm/sm_quotationbill/batchDelete",
+        "app": "sm"
+      },
+      "batchUnAudit": {
+        "url": "v2/sm/sm_quotationbill/batchUnAudit",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_quotationbill/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_quotationbill/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sm/sm_quotationbill/batchUnSubmit",
+        "app": "sm"
+      },
+      "batchAdd": {
+        "url": "v2/sm/sm_quotationbill/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_quotationbill/batchUpdate",
+        "app": "sm"
+      },
+      "query": {
+        "url": "v2/sm/sm_quotationbill/query",
+        "app": "sm"
+      }
+    },
+    "sm_salorder": {
+      "bizclose": {
+        "url": "v2/sm/sm_salorder/bizclose",
+        "app": "sm"
+      },
+      "bizchange": {
+        "url": "v2/sm/sm_salorder/bizchange",
+        "app": "sm"
+      },
+      "newbizchange": {
+        "url": "v2/sm/sm_salorder/newbizchange",
+        "app": "sm"
+      },
+      "batchDelete": {
+        "url": "v2/sm/sm_salorder/batchDelete",
+        "app": "sm"
+      },
+      "batchUnaudit": {
+        "url": "v2/sm/sm_salorder/batchUnaudit",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_salorder/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_salorder/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/sm/sm_salorder/batchUnsubmit",
+        "app": "sm"
+      },
+      "batchAdd": {
+        "url": "v2/sm/sm_salorder/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_salorder/batchUpdate",
+        "app": "sm"
+      },
+      "query": {
+        "url": "v2/sm/sm_salorder/query",
+        "app": "sm"
+      }
+    },
+    "sm_xssalorder": {
+      "batchDelete": {
+        "url": "v2/sm/sm_xssalorder/batchDelete",
+        "app": "sm"
+      },
+      "batchUnAudit": {
+        "url": "v2/sm/sm_xssalorder/batchUnAudit",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_xssalorder/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_xssalorder/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnSubmit": {
+        "url": "v2/sm/sm_xssalorder/batchUnSubmit",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_xssalorder/batchUpdate",
+        "app": "sm"
+      },
+      "batchBizValid": {
+        "url": "v2/sm/sm_xssalorder/batchBizValid",
+        "app": "sm"
+      },
+      "query": {
+        "url": "v2/sm/sm_xssalorder/query",
+        "app": "sm"
+      }
+    },
+    "sm_returnapply": {
+      "batchUnaudit": {
+        "url": "v2/sm/sm_returnapply/batchUnaudit",
+        "app": "sm"
+      },
+      "batchAudit": {
+        "url": "v2/sm/sm_returnapply/batchAudit",
+        "app": "sm"
+      },
+      "batchSubmit": {
+        "url": "v2/sm/sm_returnapply/batchSubmit",
+        "app": "sm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/sm/sm_returnapply/batchUnsubmit",
+        "app": "sm"
+      },
+      "batchAdd": {
+        "url": "v2/sm/sm_returnapply/batchAdd",
+        "app": "sm"
+      },
+      "batchUpdate": {
+        "url": "v2/sm/sm_returnapply/batchUpdate",
+        "app": "sm"
+      },
+      "batchQuery": {
+        "url": "v2/sm/sm_returnapply/batchQuery",
+        "app": "sm"
+      }
+    },
+    "pm_requirapplybill": {
+      "getList": {
+        "url": "v2/pm/pm_requirapplybill/getList",
+        "app": "pm"
+      },
+      "batchDelete": {
+        "url": "v2/pm/pm_requirapplybill/batchDelete",
+        "app": "pm"
+      },
+      "batchUnaudit": {
+        "url": "v2/pm/pm_requirapplybill/batchUnaudit",
+        "app": "pm"
+      },
+      "batchAudit": {
+        "url": "v2/pm/pm_requirapplybill/batchAudit",
+        "app": "pm"
+      },
+      "batchSubmit": {
+        "url": "v2/pm/pm_requirapplybill/batchSubmit",
+        "app": "pm"
+      },
+      "batchUnsubmit": {
+        "url": "v2/pm/pm_requirapplybill/batchUnsubmit",
+        "app": "pm"
+      },
+      "add": {
+        "url": "v2/pm/pm_requirapplybill/add",
+        "app": "pm"
+      },
+      "update": {
+        "url": "v2/pm/pm_requirapplybill/update",
+        "app": "pm"
+      },
+      "getDetail": {
+        "url": "v2/pm/pm_requirapplybill/getDetail",
+        "app": "pm"
+      }
+    },
+    "pca_hoursdetail": {
+      "update": {
+        "url": "v2/pca/pca_hoursdetail/update",
+        "app": "pca"
+      },
+      "delete": {
+        "url": "v2/pca/pca_hoursdetail/delete",
+        "app": "pca"
+      },
+      "audit": {
+        "url": "v2/pca/pca_hoursdetail/audit",
+        "app": "pca"
+      },
+      "submit": {
+        "url": "v2/pca/pca_hoursdetail/submit",
+        "app": "pca"
+      },
+      "create": {
+        "url": "v2/pca/pca_hoursdetail/create",
+        "app": "pca"
+      }
+    },
+    "rdem_hoursdetail": {
+      "unaudit": {
+        "url": "v2/rdem/rdem_hoursdetail/unaudit",
+        "app": "rdem"
+      },
+      "unsubmit": {
+        "url": "v2/rdem/rdem_hoursdetail/unsubmit",
+        "app": "rdem"
+      }
+    },
+    "rdem_proj_pslsalenter": {
+      "update": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/update",
+        "app": "rdem"
+      },
+      "delete": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/delete",
+        "app": "rdem"
+      },
+      "unaudit": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/unaudit",
+        "app": "rdem"
+      },
+      "audit": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/audit",
+        "app": "rdem"
+      },
+      "submit": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/submit",
+        "app": "rdem"
+      },
+      "unsubmit": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/unsubmit",
+        "app": "rdem"
+      },
+      "create": {
+        "url": "v2/rdem/rdem_proj_pslsalenter/create",
+        "app": "rdem"
+      }
+    },
+    "bd_project": {
+      "getList": {
+        "url": "v2/basedata/bd_project/getList",
+        "app": "basedata"
+      },
+      "batchDelete": {
+        "url": "v2/basedata/bd_project/batchDelete",
+        "app": "basedata"
+      },
+      "batchUnaudit": {
+        "url": "v2/basedata/bd_project/batchUnaudit",
+        "app": "basedata"
+      },
+      "batchEnable": {
+        "url": "v2/basedata/bd_project/batchEnable",
+        "app": "basedata"
+      },
+      "batchAudit": {
+        "url": "v2/basedata/bd_project/batchAudit",
+        "app": "basedata"
+      },
+      "batchSubmit": {
+        "url": "v2/basedata/bd_project/batchSubmit",
+        "app": "basedata"
+      },
+      "batchUnsubmit": {
+        "url": "v2/basedata/bd_project/batchUnsubmit",
+        "app": "basedata"
+      },
+      "batchAdd": {
+        "url": "v2/basedata/bd_project/batchAdd",
+        "app": "basedata"
+      },
+      "batchUpdate": {
+        "url": "v2/basedata/bd_project/batchUpdate",
+        "app": "basedata"
+      },
+      "batchDisable": {
+        "url": "v2/basedata/bd_project/batchDisable",
+        "app": "basedata"
+      }
+    },
+    "rdem_projtimecoll": {
+      "update": {
+        "url": "v2/rdem/rdem_projtimecoll/update",
+        "app": "rdem"
+      },
+      "unaudit": {
+        "url": "v2/rdem/rdem_projtimecoll/unaudit",
+        "app": "rdem"
+      },
+      "submit": {
+        "url": "v2/rdem/rdem_projtimecoll/submit",
+        "app": "rdem"
+      }
+    },
+    "pca_projtimecoll": {
+      "delete": {
+        "url": "v2/pca/pca_projtimecoll/delete",
+        "app": "pca"
+      },
+      "audit": {
+        "url": "v2/pca/pca_projtimecoll/audit",
+        "app": "pca"
+      },
+      "unsubmit": {
+        "url": "v2/pca/pca_projtimecoll/unsubmit",
+        "app": "pca"
+      },
+      "create": {
+        "url": "v2/pca/pca_projtimecoll/create",
+        "app": "pca"
+      }
+    },
+    "rdem_costaccount": {
+      "query": {
+        "url": "v2/rdem/rdem_costaccount/query",
+        "app": "rdem"
+      }
+    },
+    "xkbm_budgetregulate": {
+      "batchAdd": {
+        "url": "v2/xkbm/xkbm_budgetregulate/batchAdd",
+        "app": "xkbm"
+      }
+    },
+    "xkbm_budgetadjust": {
+      "batchAdd": {
+        "url": "v2/xkbm/xkbm_budgetadjust/batchAdd",
+        "app": "xkbm"
+      }
+    },
+    "pbd_monitor_scheme": {
+      "save": {
+        "url": "v2/pbd/pbd_monitor_scheme/save",
+        "app": "pbd"
+      },
+      "delete": {
+        "url": "v2/pbd/pbd_monitor_scheme/delete",
+        "app": "pbd"
+      },
+      "unaudit": {
+        "url": "v2/pbd/pbd_monitor_scheme/unaudit",
+        "app": "pbd"
+      },
+      "query": {
+        "url": "v2/pbd/pbd_monitor_scheme/query",
+        "app": "pbd"
+      }
+    },
+    "pbd_risklevelscore": {
+      "save": {
+        "url": "v2/pbd/pbd_risklevelscore/save",
+        "app": "pbd"
+      },
+      "delete": {
+        "url": "v2/pbd/pbd_risklevelscore/delete",
+        "app": "pbd"
+      },
+      "query": {
+        "url": "v2/pbd/pbd_risklevelscore/query",
+        "app": "pbd"
+      }
+    }
+  },
+  "form_fallback_app": {
+    "pdm_mftbom": "fmm",
+    "bos_position": "xkbase",
+    "xkbos_postion_shrrelation": "base",
+    "bos_reportrelation": "base",
+    "bos_org": "base",
+    "bos_org_orgrelation_dept": "base",
+    "ccm_temp_archive_new": "ccm",
+    "scax_outsourceprices": "scax",
+    "bos_user": "base",
+    "bd_location": "sbd",
+    "im_locationtransfer": "im",
+    "bd_warelocareference": "sbd",
+    "bd_warehousegroup": "sbd",
+    "bd_warehouse": "sbd",
+    "cas_paybill": "cas",
+    "bd_paycondition": "sbd",
+    "ap_payapply": "ap",
+    "ap_plansplit_scheme": "ap",
+    "cas_agentpaybill": "cas",
+    "cas_agentreturnbill": "cas",
+    "srm_blackenterprise": "srm",
+    "tdm_account_depreciation": "tdm",
+    "bd_period": "fibd",
+    "bd_period_type": "fibd",
+    "bd_accountview": "gl",
+    "bd_element": "gl",
+    "scax_mftworkprice": "scax",
+    "fa_usestatus": "fa",
+    "srm_audit_org": "srm",
+    "bd_supplier": "basedata",
+    "srm_supplierreg": "srm",
+    "bd_operator": "sbd",
+    "bd_operatorgroup": "sbd",
+    "bd_lotcodeitem": "sbd",
+    "bd_lotcoderule": "sbd",
+    "ids_gpe_biz_request": "ids",
+    "mal_purscheme": "mal",
+    "mal_address": "mal",
+    "ids_gpe_dataset": "ids",
+    "openapi_unittest": "open",
+    "ids_gpe_predict_record": "ids",
+    "ccm_archive_apply_new": "ccm",
+    "im_mdc_mftproorder": "im",
+    "bos_devpn_entitymeta": "devnew",
+    "cal_incalbill": "cal",
+    "im_otherinbill": "im",
+    "im_otheroutbill": "im",
+    "gl_voucher": "gl",
+    "gl_vouchertype": "gl",
+    "cal_outcalbill": "cal",
+    "cal_calculateoutrpt": "cal",
+    "im_outapplybill": "im",
+    "bd_matchout_rule": "sbd",
+    "pbd_dim": "pbd",
+    "im_transinbill": "im",
+    "im_transoutbill": "im",
+    "cal_initbill": "cal",
+    "fa_asset_initcard": "fa",
+    "bos_bizpartneruser": "base",
+    "bos_org_orgrelation": "base",
+    "bos_org_typerelation": "base",
+    "sbs_billsnrelation": "sbs",
+    "tdm_stamptax_voucher": "tdm",
+    "sm_delivernotice": "sm",
+    "mal_order": "mal",
+    "im_oeminbill": "im",
+    "cal_stopsyncbillset": "cal",
+    "xkcal_sysctrlentityenable": "cal",
+    "mal_returnreq": "mal",
+    "gtm_cominvoice": "gtm",
+    "fa_periodclose": "fa",
+    "fa_changemode": "fa",
+    "cas_exchangebill": "cas",
+    "sfc_outsourcesendbill": "sfc",
+    "im_mdc_omprdinbill": "im",
+    "im_mdc_omprdoutbill": "im",
+    "sfc_outreceive": "sfc",
+    "sm_salesagency": "sm",
+    "fa_storeplace": "fa",
+    "cal_balance_updaterecord": "cal",
+    "cal_periodsettinglog": "cal",
+    "cal_sysctrlentity": "cal",
+    "bd_materialcategory": "basedata",
+    "cal_price_revbill": "cal",
+    "cal_fallprice_setting": "cal",
+    "cal_price_provbill": "cal",
+    "cad_factnedoutputbill": "cad",
+    "im_mdc_mftmanuinbill": "im",
+    "im_mdc_mftreturnbill": "im",
+    "bd_customergroup": "basedata",
+    "bd_customer": "basedata",
+    "mal_statement_data": "mal",
+    "cal_datacheck_plan": "cal",
+    "sfc_processreviewbill": "sfc",
+    "sfc_processplanbill": "sfc",
+    "pdm_ecobom": "pdm",
+    "pdm_bom_eco": "pdm",
+    "mpdm_sfcprocessroute": "sbd",
+    "bd_currency": "base",
+    "bd_snmainfile": "sbd",
+    "ap_newbalance": "ap",
+    "ap_journal": "ap",
+    "ap_accrualaging": "ap",
+    "rdem_extsysrecord": "rdem",
+    "pca_extsysrecord": "pca",
+    "im_adjustbill": "im",
+    "gl_autocloseperiod": "gl",
+    "cal_costupdateapplybill": "cal",
+    "cad_costobject": "cad",
+    "cal_costadjustbill": "cal",
+    "bd_lot": "sbd",
+    "om_outsourcereceipt": "om",
+    "im_mdc_omfeedbill": "im",
+    "im_mdc_omreturnbill": "im",
+    "om_outsourcereturn": "om",
+    "im_mdc_omoutbill": "im",
+    "bdtaxr_pay_record": "bdtaxr",
+    "om_mftorder": "om",
+    "im_mdc_exconsume": "im",
+    "pom_mftorderreport": "pom",
+    "im_mdc_mftfeedorder": "im",
+    "im_mdc_mftreturnorder": "im",
+    "gtm_declareform": "gtm",
+    "im_disassemblebill": "im",
+    "pbd_indicator": "pbd",
+    "openapi_apilist": "open",
+    "bd_exratetable": "base",
+    "openapi_3rdapps": "open",
+    "gtm_ladingbill": "gtm",
+    "ar_revcfmplanbill": "ar",
+    "im_purreceivebill": "im",
+    "cas_recbill": "cas",
+    "bd_reccondition": "sbd",
+    "ar_plansplit_scheme": "ar",
+    "bd_customergroupstandard": "basedata",
+    "bd_address": "basedata",
+    "ap_busbill": "ap",
+    "ar_busbill": "ar",
+    "cas_finalcheckout": "cas",
+    "barcm_barcodemainfile": "barcm",
+    "barcm_bcpackagerecord": "barcm",
+    "barcm_bcgenesbillrecord": "barcm",
+    "plm_plmdc_physical_file": "plmdc",
+    "pbd_business_info": "pbd",
+    "bd_suppliergroup": "basedata",
+    "srm_supplier": "srm",
+    "plm_pdm_document_revision": "plmdc",
+    "bos_entityobject": "mdl",
+    "bd_admindivision": "base",
+    "pbd_monitor_result": "pbd",
+    "bd_evagrade": "basedata",
+    "scax_standardhour": "scax",
+    "cal_businesslog": "cal",
+    "cal_costrecord": "cal",
+    "cal_bd_calrange": "cal",
+    "cal_datacheck_result": "cal",
+    "pbd_check_item": "pbd",
+    "pbd_check_item_group": "pbd",
+    "qcbd_inspectionitemsgrp": "qcbd",
+    "bos_reporttype": "base",
+    "bd_exrate_tree": "base",
+    "ococic_channelinbill": "ococic",
+    "ococic_channeloutbill": "ococic",
+    "bd_materialgroup": "basedata",
+    "bd_materialgroupdetail": "basedata",
+    "bd_multimeasureunit": "basedata",
+    "bd_materialinventoryinfo": "sbd",
+    "bd_material": "basedata",
+    "mpdm_replaceplan": "mpdm",
+    "scax_matstdprices": "scax",
+    "cal_bd_materialdimension": "cal",
+    "bd_materialmftinfo": "sbd",
+    "bd_materialcommon": "basedata",
+    "cal_bd_accounttype": "cal",
+    "mpdm_materialplan": "sbd",
+    "bd_inspect_cfg": "sbd",
+    "bd_materialpurchaseinfo": "sbd",
+    "bd_materialsalinfo": "sbd",
+    "pom_mftorder": "pom",
+    "pom_mftstock": "pom",
+    "im_deficitbill": "im",
+    "im_surplusbill": "im",
+    "im_transdirbill": "im",
+    "bd_accounttable": "fibd",
+    "tdm_tax_depreciation": "tdm",
+    "tdm_actual_depreciation": "tdm",
+    "itp_proviston_taxes": "tctb",
+    "xkim_sp_mftinstkbill": "im",
+    "xkim_sp_mftrtnstkbill": "im",
+    "xkim_sp_mftrmorder": "im",
+    "xkim_sp_mftpmorder": "im",
+    "im_assembbill": "im",
+    "xkoac_instatement": "xkoac",
+    "xkoac_settleprice": "xkoac",
+    "xkoac_voucher": "xkoac",
+    "xkoac_businessplan": "xkoac",
+    "xkoac_costcollecte": "xkoac",
+    "bd_settlementtype": "basedata",
+    "plm_plmsm_lib_attributes": "plmsm",
+    "gai_prompt": "gai",
+    "pmm_packageselection_org": "pmm",
+    "bd_bebank": "basedata",
+    "bos_adminorg": "base",
+    "gtm_packinglist": "gtm",
+    "barcm_packingbill": "barcm",
+    "cad_plannedoutputbill": "cad",
+    "bd_measureunitsgroup": "base",
+    "bd_measureunits": "base",
+    "im_transapply": "im",
+    "ap_finapbill": "ap",
+    "ar_finarbill": "ar",
+    "gl_accountbook": "gl",
+    "er_dailyloanbill": "em",
+    "er_publicreimbursebill": "em",
+    "er_dailyapplybill": "em",
+    "er_expenseitemedit": "er",
+    "er_repaymentbill": "em",
+    "er_prepaybill": "em",
+    "cal_fee_sharerecord": "cal",
+    "cal_costestimatebill": "cal",
+    "cal_costestimaterecord": "cal",
+    "fa_asset_card": "fa",
+    "fa_change_dept": "fa",
+    "tdm_asset_data": "tdm",
+    "fa_clearbill": "fa",
+    "fa_assetcategory": "fa",
+    "fa_dispatch": "fa",
+    "cas_paybill_cossentity": "cas",
+    "bos_assistantdatagroup": "base",
+    "bos_assistantdata_detail": "base",
+    "im_purinbill": "im",
+    "iv_purchasebill": "iv",
+    "conm_purcontract": "conm",
+    "pm_purapplybill": "pm",
+    "pm_xspurorderbill": "pm",
+    "pm_purorderbill": "pm",
+    "pm_purrefundapplybill": "pm",
+    "pm_puracceptbill": "pm",
+    "bd_finorginfo": "basedata",
+    "bd_bankcgsetting": "basedata",
+    "bd_accountbanks": "basedata",
+    "sm_salepricelistgroup": "sm",
+    "sm_salepricelist": "sm",
+    "im_saloutbill": "im",
+    "iv_salebill": "iv",
+    "conm_salcontract": "conm",
+    "sm_quotationbill": "sm",
+    "sm_salorder": "sm",
+    "sm_xssalorder": "sm",
+    "sm_returnapply": "sm",
+    "pm_requirapplybill": "pm",
+    "pca_hoursdetail": "pca",
+    "rdem_hoursdetail": "rdem",
+    "rdem_proj_pslsalenter": "rdem",
+    "bd_project": "basedata",
+    "rdem_projtimecoll": "rdem",
+    "pca_projtimecoll": "pca",
+    "rdem_costaccount": "rdem",
+    "xkbm_budgetregulate": "xkbm",
+    "xkbm_budgetadjust": "xkbm",
+    "pbd_monitor_scheme": "pbd",
+    "pbd_risklevelscore": "pbd"
+  }
+}

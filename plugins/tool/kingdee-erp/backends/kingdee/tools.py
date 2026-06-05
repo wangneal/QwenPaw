@@ -19,8 +19,8 @@ from .sdk import KingdeeClient, _logger as sdk_logger
 from erp_config import ConfigManager
 from erp_permissions import (
     PermissionManager,
-    check_query_permission,
-    check_write_permission,
+    check_operation_permission,
+    filter_fields_by_permission,
 )
 
 try:
@@ -264,9 +264,18 @@ async def kingdee_query_bill(
     logger.info("[Tool] kingdee_query_bill caller=%s:%s form_id=%s org=%s fields=%s",
                 ch, uid, form_id, org_id, field_keys[:60])
     pm = await _get_perm_mgr()
-    ok, err, _ = check_query_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "query")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    # 行级过滤注入：解析并合并 FilterString
+    row_filter = resolve_row_filter(pm, f"{ch}:{uid}", org_id, form_id)
+    if row_filter:
+        if filter_string:
+            filter_string = f"({filter_string}) AND ({row_filter})"
+        else:
+            filter_string = row_filter
+
     try:
         client = await _get_client()
         result = await client.execute_bill_query(
@@ -274,8 +283,28 @@ async def kingdee_query_bill(
         )
         if not result:
             return ToolResponse(content=[TextBlock(type="text", text=f"查询 {form_id} (组织:{org_id}) 无数据。{EMPTY_RESULT_SUFFIX}")])
-        table = _fmt_table(field_keys.split(","), result)
-        return ToolResponse(content=[TextBlock(type="text", text=f"查询 {form_id} (组织:{org_id})，共 {len(result)} 条：\n\n{table}")])
+
+        # 字段级权限过滤：将行数据转为 dict → 过滤 → 转回行数据
+        headers = field_keys.split(",")
+        key = f"{ch}:{uid}"
+        filtered_rows = []
+        for row in result:
+            row_dict = dict(zip(headers, row))
+            row_dict = filter_fields_by_permission(pm, key, org_id, form_id, row_dict)
+            filtered_rows.append([row_dict.get(h, "") for h in headers])
+        # 更新表头：移除 hidden 字段（过滤后不存在的字段）
+        visible_headers = [h for h in headers if h in (filtered_rows[0] if filtered_rows else {})]
+        # 重建 filtered_rows 只保留 visible 字段
+        if filtered_rows and len(visible_headers) != len(headers):
+            header_idx = {h: i for i, h in enumerate(headers)}
+            filtered_rows = [
+                [row[header_idx[h]] for h in visible_headers]
+                for row in filtered_rows
+            ]
+            headers = visible_headers
+
+        table = _fmt_table(headers, filtered_rows)
+        return ToolResponse(content=[TextBlock(type="text", text=f"查询 {form_id} (组织:{org_id})，共 {len(filtered_rows)} 条：\n\n{table}")])
     except Exception as e:
         logger.error("kingdee_query_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"查询失败: {e}")])
@@ -296,12 +325,16 @@ async def kingdee_view_bill(form_id: str, org_id: str, number: str = "", bill_id
     logger.info("[Tool] kingdee_view_bill caller=%s:%s form_id=%s org=%s number=%s",
                 ch, uid, form_id, org_id, number)
     pm = await _get_perm_mgr()
-    ok, err, _ = check_query_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "view")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
     try:
         client = await _get_client()
         result = await client.view_bill(form_id, number=number, bill_id=bill_id)
+        # 字段级权限过滤
+        if isinstance(result, dict):
+            key = f"{ch}:{uid}"
+            result = filter_fields_by_permission(pm, key, org_id, form_id, result)
         text = json.dumps(result, ensure_ascii=False, indent=2)
         return ToolResponse(content=[TextBlock(type="text", text=f"单据详情 ({form_id}, 组织:{org_id}):\n\n{text[:8000]}")])
     except Exception as e:
@@ -336,7 +369,7 @@ async def kingdee_get_report(
     logger.info("[Tool] kingdee_get_report caller=%s:%s form_id=%s org=%s scheme=%s",
                 ch, uid, form_id, org_id, scheme_id)
     pm = await _get_perm_mgr()
-    ok, err, _ = check_query_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "report")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
     try:
@@ -401,6 +434,10 @@ async def kingdee_get_kds_report(
     ch, uid = _identity()
     logger.info("[Tool] kingdee_get_kds_report caller=%s:%s report_type=%s report_number=%s year=%s period=%s",
                 ch, uid, report_type, report_number, year, period)
+    pm = await _get_perm_mgr()
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", "", org_number, "report")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
     try:
         client = await _get_client()
         parameters = {
@@ -461,7 +498,7 @@ async def kingdee_save_bill(form_id: str, model: dict, org_id: str, execute: boo
     ch, uid = _identity()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "save")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -522,7 +559,7 @@ async def kingdee_delete_bill(form_id: str, org_id: str, numbers: list = None, i
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "delete")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -574,7 +611,7 @@ async def kingdee_submit_bill(form_id: str, org_id: str, numbers: list = None, i
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "submit")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -626,7 +663,7 @@ async def kingdee_audit_bill(form_id: str, org_id: str, numbers: list = None, id
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "audit")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -674,7 +711,7 @@ async def kingdee_unaudit_bill(form_id: str, org_id: str, numbers: list = None, 
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "unaudit")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -725,7 +762,7 @@ async def kingdee_push_bill(form_id: str, push_data: dict, org_id: str, execute:
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "push")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -778,7 +815,7 @@ async def kingdee_execute_operation(
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "execute")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
@@ -844,7 +881,7 @@ async def kingdee_workflow_audit(
     ch, uid = _get_context()
     caller = f"{ch}:{uid}"
     pm = await _get_perm_mgr()
-    ok, err = check_write_permission(pm, ch, uid, "kingdee", form_id, org_id)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "workflow")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 

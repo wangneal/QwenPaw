@@ -21,9 +21,7 @@ from qwenpaw.plugins.api import PluginApi
 from erp_backend import get_registry
 from erp_config import ConfigManager
 from backends.kingdee import KingdeeBackend
-from backends.kingdee.config_fields import (
-    KINGDEE_CONFIG_FIELDS, BACKEND_NAME, BACKEND_LABEL, BACKEND_ICON,
-)
+from backends.kingdee_flagship import KingdeeFlagshipBackend
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +36,15 @@ class ERPToolPlugin:
         if not reg.get("kingdee"):
             kingdee = KingdeeBackend()
             reg.register(kingdee)
+        if not reg.get("kingdee_flagship"):
+            flagship = KingdeeFlagshipBackend()
+            reg.register(flagship)
+
+        # 各后端的 icon（从各自 config_fields 模块常量取）
+        _BACKEND_ICONS = {
+            "kingdee": "🦋",
+            "kingdee_flagship": "🌟",
+        }
 
         # 注册后端到 ConfigManager（多厂商配置管理）
         for name, backend in reg.get_all().items():
@@ -46,7 +53,7 @@ class ERPToolPlugin:
                 label=backend.display_name,
                 config_fields=backend.config_fields,
                 test_connection=backend.test_connection,
-                icon=BACKEND_ICON,
+                icon=_BACKEND_ICONS.get(name, ""),
             )
 
         # Register tools and routes from all backends

@@ -55,7 +55,15 @@ function PermissionPage() {
   const [domainInfo, setDomainInfo] = useState({});
   const [whitelistUsers, setWhitelistUsers] = useState([]);
   const [orgList, setOrgList] = useState([]);
+  const [erpBackend, setErpBackend] = useState("kingdee");
   const [form] = Form.useForm();
+
+  // 后端 API 前缀映射
+  const backendPrefixMap = {
+    kingdee: "/erp-permissions",
+    kingdee_flagship: "/erp-flagship-permissions",
+  };
+  const apiPrefix = backendPrefixMap[erpBackend] || "/erp-permissions";
 
   // 查询权限列表
   const fetchPermissions = useCallback(async () => {
@@ -73,12 +81,12 @@ function PermissionPage() {
   // 查询业务域列表
   const fetchDomains = useCallback(async () => {
     try {
-      const data = await fetchApi("/erp-permissions/meta/domains");
+      const data = await fetchApi(`${apiPrefix}/meta/domains`);
       setDomainInfo(data.systems || {});
     } catch (e) {
       console.warn("[kingdee-admin] 加载业务域失败:", e);
     }
-  }, []);
+  }, [apiPrefix]);
 
   // 查询白名单用户（PERM-08）
   const fetchWhitelist = useCallback(async () => {
@@ -97,20 +105,31 @@ function PermissionPage() {
     }
   }, []);
 
-  // 查询金蝶组织列表
+  // 查询ERP组织列表（根据后端动态切换）
   const fetchOrgs = useCallback(async () => {
     try {
-      const data = await fetchApi("/erp-permissions/meta/orgs");
+      const data = await fetchApi(`${apiPrefix}/meta/orgs`);
       const orgs = data.orgs || [];
       setOrgList(orgs);
-      if (orgs.length === 0) {
-        message.warning("未获取到金蝶组织列表，请先在「连接配置」中填写金蝶连接参数");
+      if (orgs.length === 0 && data.error) {
+        message.warning(data.error);
       }
     } catch (e) {
       console.warn("[kingdee-admin] 加载组织列表失败:", e);
-      message.warning("获取组织列表失败，请检查金蝶连接配置");
+      message.warning("获取组织列表失败，请检查ERP连接配置");
     }
-  }, []);
+  }, [apiPrefix]);
+
+  // 切换后端时重新加载元数据
+  const handleBackendChange = (backend) => {
+    setErpBackend(backend);
+  };
+
+  // 后端切换时重新加载组织和域
+  useEffect(() => {
+    fetchOrgs();
+    fetchDomains();
+  }, [erpBackend, fetchOrgs, fetchDomains]);
 
   useEffect(() => {
     fetchPermissions();
@@ -283,7 +302,16 @@ function PermissionPage() {
       Card, {
         title: React.createElement(Space, null,
           React.createElement(UserOutlined),
-          React.createElement("span", null, "金蝶权限管理")
+          React.createElement("span", null, "ERP 权限管理"),
+          React.createElement(antd.Segmented, {
+            value: erpBackend,
+            onChange: handleBackendChange,
+            options: [
+              { label: "🦋 企业版", value: "kingdee" },
+              { label: "🌟 旗舰版", value: "kingdee_flagship" },
+            ],
+            size: "small",
+          })
         ),
         extra: React.createElement(
           Space, null,
