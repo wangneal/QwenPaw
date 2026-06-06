@@ -38,6 +38,7 @@ _perm_mgr = None
 _perm_mgr_lock = asyncio.Lock()
 
 _SYSTEM_NAME = "kingdee_flagship"
+_EMPTY_RESULT_SUFFIX = "（查询结果为空，请确认搜索关键词是否正确）"
 
 # ══════════════════════════════════════════════════════════════
 # 内部辅助函数
@@ -214,8 +215,6 @@ async def kingdee_flagship_search_form(keyword: str) -> ToolResponse:
 
         if not matches:
             return ToolResponse(content=[TextBlock(type="text", text=f"未找到包含 '{keyword}' 的表单。{_EMPTY_RESULT_SUFFIX}")])
-
-_EMPTY_RESULT_SUFFIX = "（查询结果为空，请确认搜索关键词是否正确）"
 
         lines = [f"搜索 '{keyword}' 找到 {len(matches)} 个表单：\n"]
         lines.append(f"{'FormId':<35} {'名称':<20} {'说明'}")

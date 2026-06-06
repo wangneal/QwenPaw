@@ -33,28 +33,65 @@ Recommended:
 EOF
 }
 
+export starmind_WORKING_DIR="${starmind_WORKING_DIR:-${QWENPAW_WORKING_DIR:-/app/working}}"
+export starmind_SECRET_DIR="${starmind_SECRET_DIR:-${QWENPAW_SECRET_DIR:-/app/working.secret}}"
+export starmind_BACKUP_DIR="${starmind_BACKUP_DIR:-${QWENPAW_BACKUP_DIR:-/app/working.backups}}"
+export QWENPAW_WORKING_DIR="${QWENPAW_WORKING_DIR:-${starmind_WORKING_DIR}}"
+export QWENPAW_SECRET_DIR="${QWENPAW_SECRET_DIR:-${starmind_SECRET_DIR}}"
+export QWENPAW_BACKUP_DIR="${QWENPAW_BACKUP_DIR:-${starmind_BACKUP_DIR}}"
+
 # Auto-initialize if config.json is missing (bind mount with empty directory).
-if [ ! -f "${QWENPAW_WORKING_DIR}/config.json" ]; then
-  echo "No config.json found in ${QWENPAW_WORKING_DIR}"
+if [ ! -f "${starmind_WORKING_DIR}/config.json" ]; then
+  echo "No config.json found in ${starmind_WORKING_DIR}"
   echo "Running initialization..."
   qwenpaw init --defaults --accept-security
   echo "Initialization complete!"
 else
-  echo "Config found in ${QWENPAW_WORKING_DIR}, skipping initialization."
+  echo "Config found in ${starmind_WORKING_DIR}, skipping initialization."
 fi
 
-# ── ERP Agent initialization ──────────────────────────────────────────
-# Only run on first startup (when no ERP agent workspace exists).
-if [ ! -d "${QWENPAW_WORKING_DIR}/workspaces/erp-finance" ]; then
-  echo "Setting up ERP specialist agents..."
-  PERSONA_BASE="/app/plugins/tool/kingdee-erp/personas"
-  SKILL_BASE="/app/plugins/tool/kingdee-erp/skills"
-  export PERSONA_BASE SKILL_BASE
-  python3 /app/scripts/setup_erp_agents.py
-  echo "ERP agents initialized!"
-else
-  echo "ERP agents already exist, skipping initialization."
+# ── Sync built-in plugins to StarMind working directory ─────────────
+# StarMind uses starmind_WORKING_DIR/plugins/.
+# Always overwrite from /app/builtin-plugins/ so image updates take effect.
+#
+# IMPORTANT: Plugins must be placed FLAT (one level deep) under
+#   ${starmind_WORKING_DIR}/plugins/<plugin-name>/plugin.json
+# because PluginLoader.discover_plugins() only scans direct children of
+# the plugins directory for plugin.json.  The /app/builtin-plugins/ image
+# layout uses tool/ and frontend/ sub-directories for organisation, but
+# we flatten them on sync so the loader can find every plugin.
+_STARMIND_PLUGINS_DIR="${starmind_WORKING_DIR}/plugins"
+if [ -d "/app/builtin-plugins" ]; then
+  echo "Syncing built-in plugins to ${_STARMIND_PLUGINS_DIR}..."
+  # Tool plugins — flatten into plugins/<name>/
+  for plugin_dir in /app/builtin-plugins/tool/*/; do
+    [ -d "$plugin_dir" ] || continue
+    plugin_name=$(basename "$plugin_dir")
+    target="${_STARMIND_PLUGINS_DIR}/${plugin_name}"
+    # Remove old __pycache__ to avoid stale bytecode
+    if [ -d "$target" ]; then
+      find "$target" -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+      rm -rf "$target"
+    fi
+    mkdir -p "${_STARMIND_PLUGINS_DIR}"
+    cp -rf "$plugin_dir" "$target"
+    echo "  ✓ Synced tool plugin: $plugin_name"
+  done
+  # Frontend plugins — flatten into plugins/<name>/
+  for plugin_dir in /app/builtin-plugins/frontend/*/; do
+    [ -d "$plugin_dir" ] || continue
+    plugin_name=$(basename "$plugin_dir")
+    target="${_STARMIND_PLUGINS_DIR}/${plugin_name}"
+    if [ -d "$target" ]; then
+      rm -rf "$target"
+    fi
+    mkdir -p "${_STARMIND_PLUGINS_DIR}"
+    cp -rf "$plugin_dir" "$target"
+    echo "  ✓ Synced frontend plugin: $plugin_name"
+  done
 fi
+
+/app/venv/bin/python /app/scripts/sync_starmind_extensions.py
 
 export QWENPAW_PORT="${QWENPAW_PORT:-8088}"
 warn_if_auth_off_container_bind

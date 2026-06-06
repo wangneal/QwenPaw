@@ -1,0 +1,38 @@
+# 星智 StarMind 本地部署配置
+# 使用方式: docker compose -f docker-compose.local.yml up -d
+
+services:
+  starmind:
+    image: starmind:latest
+    container_name: starmind
+    ports:
+      - "8089:8088"
+    environment:
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-qwen-plus}
+      - LLM_API_KEY=${LLM_API_KEY:-sk-placeholder-for-testing}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      - LLM_API_TYPE=${LLM_API_TYPE:-openai}
+      - starmind_WORKING_DIR=/app/working
+      - starmind_SECRET_DIR=/app/working.secret
+      - starmind_BACKUP_DIR=/app/working.backups
+      # 代码模式路径白名单（可选，默认仅允许工作区目录）
+      # - QWENPAW_CODING_ALLOWED_ROOTS=/data/projects,/data/scripts
+    volumes:
+      - starmind-data:/app/working
+      - starmind-secrets:/app/working.secret
+      - starmind-backups:/app/working.backups
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  starmind-data:
+    name: starmind-data
+  starmind-secrets:
+    name: starmind-secrets
+  starmind-backups:
+    name: starmind-backups
