@@ -10,6 +10,8 @@ import hashlib
 import json
 import logging
 import os
+import threading
+import time
 from typing import Optional
 
 from agentscope.message import TextBlock
@@ -995,8 +997,11 @@ async def kingdee_query_metadata(form_id: str) -> ToolResponse:
 
 
 # ── 防跳步：预览状态注册表 ──────────────────────────────────────────────
-# 记录某调用者是否已预览过特定操作，防止模型直接传 execute=True 跳过确认
-_preview_registry: dict[str, set[str]] = {}
+# 记录某调用者是否已预览过特定操作，防止模型直接传 execute=True 跳过确认。
+# 插件可能运行在多线程/多事件循环服务中，注册和消费必须用线程锁保护。
+_PREVIEW_TTL_SECONDS = int(os.getenv("KINGDEE_ERP_PREVIEW_TTL_SECONDS", "600"))
+_preview_registry: dict[str, dict[str, float]] = {}
+_preview_registry_lock = threading.Lock()
 
 
 def _preview_key(form_id: str, org_id, **kwargs) -> str:
@@ -1012,20 +1017,50 @@ def _preview_key(form_id: str, org_id, **kwargs) -> str:
 
 def _register_preview(caller: str, key: str) -> None:
     """记录一次成功预览。"""
-    if caller not in _preview_registry:
-        _preview_registry[caller] = set()
-    _preview_registry[caller].add(key)
+    now = time.monotonic()
+    with _preview_registry_lock:
+        _cleanup_expired_previews(now)
+        _preview_registry.setdefault(caller, {})[key] = now
 
 
 def _check_previewed(caller: str, key: str) -> bool:
     """检查该调用者是否已预览过该操作，并消费预览记录。"""
-    keys = _preview_registry.get(caller, set())
-    if key not in keys:
-        return False
-    keys.remove(key)
-    if not keys:
+    now = time.monotonic()
+    with _preview_registry_lock:
+        _cleanup_expired_previews(now)
+        keys = _preview_registry.get(caller)
+        if not keys:
+            return False
+        created_at = keys.get(key)
+        if created_at is None:
+            return False
+        if now - created_at > _PREVIEW_TTL_SECONDS:
+            keys.pop(key, None)
+            if not keys:
+                _preview_registry.pop(caller, None)
+            return False
+        keys.pop(key, None)
+        if not keys:
+            _preview_registry.pop(caller, None)
+        return True
+
+
+def _cleanup_expired_previews(now: float | None = None) -> None:
+    """清理过期预览记录。调用方必须持有 _preview_registry_lock。"""
+    if now is None:
+        now = time.monotonic()
+    expired_callers = []
+    for caller, keys in _preview_registry.items():
+        expired_keys = [
+            key for key, created_at in keys.items()
+            if now - created_at > _PREVIEW_TTL_SECONDS
+        ]
+        for key in expired_keys:
+            keys.pop(key, None)
+        if not keys:
+            expired_callers.append(caller)
+    for caller in expired_callers:
         _preview_registry.pop(caller, None)
-    return True
 
 
 def _build_block_response(reason: str) -> ToolResponse:

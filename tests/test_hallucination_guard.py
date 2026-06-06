@@ -6,9 +6,11 @@ Run: python tests/test_hallucination_guard.py
 import sys
 import os
 import importlib.util
+import threading
 import types
 
 SRC_DIR = os.path.join(os.path.dirname(__file__), "..", "src")
+ROOT_DIR = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, SRC_DIR)
 
 
@@ -16,13 +18,23 @@ def _ensure_stubs():
     """Create minimal stubs so target modules can import."""
     if "agentscope.message" in sys.modules:
         return
+    class _TextBlock:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+    class _ToolResponse:
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
     as_msg = types.ModuleType("agentscope.message")
     as_msg.Msg = type("Msg", (), {})
     as_msg.ToolResultBlock = type("ToolResultBlock", (), {})
-    as_msg.TextBlock = type("TextBlock", (), {})
+    as_msg.TextBlock = _TextBlock
     sys.modules["agentscope"] = types.ModuleType("agentscope")
     sys.modules["agentscope.model"] = types.ModuleType("agentscope.model")
-    sys.modules["agentscope.tool"] = types.ModuleType("agentscope.tool")
+    as_tool = types.ModuleType("agentscope.tool")
+    as_tool.ToolResponse = _ToolResponse
+    sys.modules["agentscope.tool"] = as_tool
     sys.modules["agentscope.agent"] = types.ModuleType("agentscope.agent")
     sys.modules["agentscope.message"] = as_msg
     for mod_name in [
@@ -42,6 +54,54 @@ def _ensure_stubs():
     qc.MEDIA_UNSUPPORTED_PLACEHOLDER = ""
     qc.TRUNCATION_NOTICE_MARKER = ""
     sys.modules["qwenpaw.constant"] = qc
+    qapp = types.ModuleType("qwenpaw.app")
+    qctx = types.ModuleType("qwenpaw.app.agent_context")
+    qctx.get_current_channel = lambda: "test"
+    qctx.get_current_session_id = lambda: "session-a"
+    qctx.get_current_user_id = lambda: "user-a"
+    sys.modules["qwenpaw.app"] = qapp
+    sys.modules["qwenpaw.app.agent_context"] = qctx
+
+
+def _import_kingdee_tools():
+    """Import Kingdee tools with lightweight dependency stubs."""
+    pkg_name = "kingdee_backend_test"
+    pkg = types.ModuleType(pkg_name)
+    pkg.__path__ = []
+    sys.modules[pkg_name] = pkg
+
+    sdk = types.ModuleType(f"{pkg_name}.sdk")
+    sdk.KingdeeClient = type("KingdeeClient", (), {})
+    sdk._logger = None
+    sys.modules[f"{pkg_name}.sdk"] = sdk
+
+    erp_config = types.ModuleType("erp_config")
+    erp_config.ConfigManager = type("ConfigManager", (), {"get_config": staticmethod(lambda *_: {})})
+    sys.modules["erp_config"] = erp_config
+
+    erp_permissions = types.ModuleType("erp_permissions")
+    erp_permissions.PermissionManager = type(
+        "PermissionManager",
+        (),
+        {"list_field_mappings": lambda self: []},
+    )
+    erp_permissions.check_operation_permission = lambda *_, **__: (True, "")
+    erp_permissions.filter_fields_by_permission = lambda *args, **kwargs: args[4]
+    erp_permissions.resolve_row_filter = lambda *_, **__: ""
+    sys.modules["erp_permissions"] = erp_permissions
+
+    return _import_mod(
+        f"{pkg_name}.tools",
+        os.path.join(
+            ROOT_DIR,
+            "plugins",
+            "tool",
+            "kingdee-erp",
+            "backends",
+            "kingdee",
+            "tools.py",
+        ),
+    )
 
 
 def _import_mod(name, path):
@@ -206,6 +266,54 @@ def test_two_step_has_lock():
     assert hasattr(t, "_previewed_keys")
 
 
+def test_two_step_consumes_preview():
+    import asyncio
+    t = _base.AntiHallucinationToolMixin()
+    params = {"x": "y"}
+    assert asyncio.run(t.enforce_two_step(False, params)) is not None
+    assert asyncio.run(t.enforce_two_step(True, params)) is None
+    replay = asyncio.run(t.enforce_two_step(True, params))
+    assert replay is not None and "error" in replay
+
+
+def test_kingdee_preview_concurrent_consume_once():
+    tools = _import_kingdee_tools()
+    caller = "web:user-a:session-a"
+    key = tools._preview_key("SAL_SaleOrder", "100", numbers="SO001")
+    tools._register_preview(caller, key)
+
+    barrier = threading.Barrier(8)
+    results = []
+    errors = []
+
+    def worker():
+        try:
+            barrier.wait()
+            results.append(tools._check_previewed(caller, key))
+        except Exception as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=worker) for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert errors == []
+    assert results.count(True) == 1
+    assert results.count(False) == 7
+
+
+def test_kingdee_preview_expired_blocks():
+    tools = _import_kingdee_tools()
+    caller = "web:user-a:session-expired"
+    key = tools._preview_key("SAL_SaleOrder", "100", numbers="SO002")
+    tools._PREVIEW_TTL_SECONDS = 1
+    with tools._preview_registry_lock:
+        tools._preview_registry[caller] = {key: tools.time.monotonic() - 2}
+    assert not tools._check_previewed(caller, key)
+
+
 # ===================== P2.3/P2.4: CITATION_RULE =====================
 
 def test_citation():
@@ -235,6 +343,9 @@ if __name__ == "__main__":
         ("extract_list", test_extract_list),
         ("two_step_preview", test_two_step_preview),
         ("two_step_has_lock", test_two_step_has_lock),
+        ("two_step_consumes_preview", test_two_step_consumes_preview),
+        ("kingdee_preview_concurrent_consume_once", test_kingdee_preview_concurrent_consume_once),
+        ("kingdee_preview_expired_blocks", test_kingdee_preview_expired_blocks),
         ("citation", test_citation),
     ]
     ok = 0

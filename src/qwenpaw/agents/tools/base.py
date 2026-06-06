@@ -94,6 +94,7 @@ class AntiHallucinationToolMixin:
                     "error": "请先执行预览 (execute=False) 确认操作，"
                     "然后再执行 (execute=True)。",
                 }
+            self._previewed_keys.remove(pkey)
         return None
 
     async def declare_if_empty(
