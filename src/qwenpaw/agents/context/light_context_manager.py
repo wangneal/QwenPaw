@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import uuid
+import inspect
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Set
@@ -156,7 +157,7 @@ def _maybe_inject_empty_declaration(memory: Any) -> None:
         logger.debug("Empty-result declaration skipped", exc_info=True)
 
 
-def _maybe_self_review_citation(agent: Any, output: Any) -> None:
+async def _maybe_self_review_citation(agent: Any, output: Any) -> None:
     """检查 Agent 回复是否包含事实性声明但未标注来源，是则注入反馈。
 
     作为 ``post_reply`` hook 的一部分运行。
@@ -174,7 +175,11 @@ def _maybe_self_review_citation(agent: Any, output: Any) -> None:
             "可信度待验证。请在后续回答中标注 [来源:xxx]。"
         )
         try:
-            agent.memory.add(Msg(name="system", role="system", content=feedback))
+            result = agent.memory.add(
+                Msg(name="system", role="system", content=feedback),
+            )
+            if inspect.isawaitable(result):
+                await result
             logger.debug("Self-review: citation missing, injected feedback")
         except Exception as e:
             logger.debug("Self-review injection failed: %s", e)
@@ -1106,10 +1111,7 @@ class LightContextManager(BaseContextManager):
 
         # ---- P1.3: 空结果防幻觉声明 ----
         try:
-            agent_id = getattr(agent, "name", None)
-            if not agent_id:
-                agent_id = self.agent_id
-            agent_cfg = _get_agent_cfg(agent_id)
+            agent_cfg = _get_agent_cfg(self.agent_id)
             if (
                 hasattr(agent, "memory")
                 and getattr(agent_cfg, "empty_result_declaration", True)
@@ -1133,24 +1135,22 @@ class LightContextManager(BaseContextManager):
         """
         try:
             memory_manager = agent.memory_manager
-            if memory_manager is None:
-                return None
+            if memory_manager is not None:
+                memory = agent.memory
+                all_messages = [msg for msg, _ in memory.content]
 
-            memory = agent.memory
-            all_messages = [msg for msg, _ in memory.content]
-
-            if all_messages:
-                await memory_manager.auto_memory(
-                    all_messages=all_messages,
-                )
+                if all_messages:
+                    await memory_manager.auto_memory(
+                        all_messages=all_messages,
+                    )
         except Exception as e:
             logger.warning("post_reply hook failed: %s", e)
 
         # ---- P1.4: 引用溯源自审 ----
         try:
-            agent_cfg = _get_agent_cfg(agent.name)
+            agent_cfg = _get_agent_cfg(self.agent_id)
             if getattr(agent_cfg, "enable_self_review", False):
-                _maybe_self_review_citation(agent, output)
+                await _maybe_self_review_citation(agent, output)
         except Exception as e:
             logger.debug("Self-review hook skipped: %s", e)
 

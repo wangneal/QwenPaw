@@ -1162,6 +1162,18 @@ class AgentProfileConfig(BaseModel):
         default_factory=lambda: ["AGENTS.md", "SOUL.md", "PROFILE.md"],
         description="System prompt markdown files",
     )
+    system_prompt_mode: Literal["full", "compact"] = Field(
+        default="full",
+        description="System prompt build mode: full or compact",
+    )
+    empty_result_declaration: bool = Field(
+        default=True,
+        description="Append anti-hallucination guidance for empty tool results",
+    )
+    enable_self_review: bool = Field(
+        default=False,
+        description="Inject citation self-review feedback after factual replies",
+    )
     tools: Optional["ToolsConfig"] = Field(
         default=None,
         description="Tools configuration for this agent",
@@ -1219,6 +1231,9 @@ class AgentsConfig(BaseModel):
     system_prompt_files: List[str] = Field(
         default_factory=lambda: ["AGENTS.md", "SOUL.md", "PROFILE.md"],
     )
+    system_prompt_mode: Literal["full", "compact"] = Field(default="full")
+    empty_result_declaration: bool = Field(default=True)
+    enable_self_review: bool = Field(default=False)
     audio_mode: Literal["auto", "native"] = Field(
         default="auto",
         description=(
@@ -1880,6 +1895,13 @@ def build_fallback_agent_profile_config(
             and config.agents.system_prompt_files
             else ["AGENTS.md", "SOUL.md", "PROFILE.md"]
         ),
+        system_prompt_mode=getattr(config.agents, "system_prompt_mode", "full"),
+        empty_result_declaration=getattr(
+            config.agents,
+            "empty_result_declaration",
+            True,
+        ),
+        enable_self_review=getattr(config.agents, "enable_self_review", False),
         acp=(config.acp if hasattr(config, "acp") and config.acp else None),
     )
 
@@ -2189,6 +2211,13 @@ def migrate_legacy_config_to_multi_agent() -> bool:
             if legacy_agents.system_prompt_files
             else ["AGENTS.md", "SOUL.md", "PROFILE.md"]
         ),
+        system_prompt_mode=getattr(legacy_agents, "system_prompt_mode", "full"),
+        empty_result_declaration=getattr(
+            legacy_agents,
+            "empty_result_declaration",
+            True,
+        ),
+        enable_self_review=getattr(legacy_agents, "enable_self_review", False),
         tools=config.tools if config.tools else None,
         security=config.security if config.security else None,
     )
@@ -2252,6 +2281,9 @@ def migrate_legacy_config_to_multi_agent() -> bool:
             else "zh"
         ),
         system_prompt_files=default_agent_config.system_prompt_files,
+        system_prompt_mode=default_agent_config.system_prompt_mode,
+        empty_result_declaration=default_agent_config.empty_result_declaration,
+        enable_self_review=default_agent_config.enable_self_review,
     )
 
     # IMPORTANT: Keep channels, mcp, tools, security in root config for

@@ -69,14 +69,14 @@ function PermissionPage() {
   const fetchPermissions = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchApi("/erp-permissions/");
+      const data = await fetchApi(`${apiPrefix}/`);
       setPermissions(data.items || []);
     } catch (e) {
       message.error("加载权限列表失败: " + e.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiPrefix]);
 
   // 查询业务域列表
   const fetchDomains = useCallback(async () => {
@@ -145,7 +145,12 @@ function PermissionPage() {
       form.setFieldsValue(record);
     } else {
       form.resetFields();
-      form.setFieldsValue({ access: "readonly", domains: [], org_id: "*" });
+      form.setFieldsValue({
+        access: "readonly",
+        domains: [],
+        org_id: "*",
+        role: "viewer",
+      });
     }
     setModalOpen(true);
   };
@@ -154,7 +159,7 @@ function PermissionPage() {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      await fetchApi("/erp-permissions/", {
+      await fetchApi(`${apiPrefix}/`, {
         method: "POST",
         body: JSON.stringify({
           key: values.key,
@@ -162,6 +167,7 @@ function PermissionPage() {
           display_name: values.display_name || "",
           domains: values.domains || [],
           access: values.access || "readonly",
+          role: values.role || (values.access === "writeable" ? "operator" : "viewer"),
         }),
       });
       message.success(editing ? "权限已更新" : "权限已创建");
@@ -175,7 +181,7 @@ function PermissionPage() {
   // 删除指定组织权限
   const handleDelete = async (key, org_id) => {
     try {
-      await fetchApi(`/erp-permissions/${encodeURIComponent(key)}/${encodeURIComponent(org_id)}`, {
+      await fetchApi(`${apiPrefix}/${encodeURIComponent(key)}/${encodeURIComponent(org_id)}`, {
         method: "DELETE",
       });
       message.success("权限已删除");
@@ -261,6 +267,13 @@ function PermissionPage() {
           { color: access === "writeable" ? "green" : "default" },
           access === "writeable" ? "读写" : "只读"
         ),
+    },
+    {
+      title: "角色",
+      dataIndex: "role",
+      key: "role",
+      width: 90,
+      render: (role) => React.createElement(Tag, { color: role === "admin" ? "red" : "default" }, role || "viewer"),
     },
     {
       title: "操作",
@@ -425,6 +438,22 @@ function PermissionPage() {
             React.createElement(Radio, { value: "readonly" }, "只读"),
             React.createElement(Radio, { value: "writeable" }, "读写")
           )
+        ),
+        React.createElement(
+          Form.Item, {
+            name: "role",
+            label: "操作角色",
+            initialValue: "viewer",
+            extra: "建议按最小权限授权；高风险删除/审核仅授予 admin。",
+          },
+          React.createElement(Select, {
+            options: [
+              { label: "查看者（查询/详情/报表）", value: "viewer" },
+              { label: "操作员（含保存/提交）", value: "operator" },
+              { label: "管理者（含审核/下推）", value: "manager" },
+              { label: "管理员（全部操作）", value: "admin" },
+            ],
+          })
         )
       )
     )

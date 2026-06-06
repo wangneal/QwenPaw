@@ -21,6 +21,7 @@ from erp_permissions import (
     PermissionManager,
     check_operation_permission,
     filter_fields_by_permission,
+    resolve_row_filter,
 )
 
 try:
@@ -29,9 +30,14 @@ except ImportError:
     get_tool_config = None
 
 try:
-    from qwenpaw.app.agent_context import get_current_channel, get_current_user_id
+    from qwenpaw.app.agent_context import (
+        get_current_channel,
+        get_current_session_id,
+        get_current_user_id,
+    )
 except ImportError:
     get_current_channel = None
+    get_current_session_id = None
     get_current_user_id = None
 
 logger = logging.getLogger(__name__)
@@ -113,6 +119,17 @@ def _identity():
 def _op_tag(ch: str, uid: str) -> str:
     """Generate operator tag for audit trail in ToolResponse."""
     return f"\n\n[操作人: {ch}:{uid}]"
+
+
+def _preview_caller(ch: str, uid: str) -> str:
+    """Build a caller key scoped to the current session when available."""
+    session_id = ""
+    if get_current_session_id is not None:
+        try:
+            session_id = get_current_session_id() or ""
+        except Exception:
+            session_id = ""
+    return f"{ch}:{uid}:{session_id or '-'}"
 
 
 async def _audit(pm, ch: str, uid: str, action: str, form_id: str, target: str = "", detail: str = ""):
@@ -285,23 +302,30 @@ async def kingdee_query_bill(
             return ToolResponse(content=[TextBlock(type="text", text=f"查询 {form_id} (组织:{org_id}) 无数据。{EMPTY_RESULT_SUFFIX}")])
 
         # 字段级权限过滤：将行数据转为 dict → 过滤 → 转回行数据
-        headers = field_keys.split(",")
+        headers = [h.strip() for h in field_keys.split(",") if h.strip()]
         key = f"{ch}:{uid}"
-        filtered_rows = []
+        filtered_dicts = []
         for row in result:
             row_dict = dict(zip(headers, row))
             row_dict = filter_fields_by_permission(pm, key, org_id, form_id, row_dict)
-            filtered_rows.append([row_dict.get(h, "") for h in headers])
+            filtered_dicts.append(row_dict)
+
         # 更新表头：移除 hidden 字段（过滤后不存在的字段）
-        visible_headers = [h for h in headers if h in (filtered_rows[0] if filtered_rows else {})]
-        # 重建 filtered_rows 只保留 visible 字段
-        if filtered_rows and len(visible_headers) != len(headers):
-            header_idx = {h: i for i, h in enumerate(headers)}
-            filtered_rows = [
-                [row[header_idx[h]] for h in visible_headers]
-                for row in filtered_rows
-            ]
-            headers = visible_headers
+        visible_headers = [
+            h for h in headers
+            if any(h in row_dict for row_dict in filtered_dicts)
+        ]
+        if not visible_headers:
+            return ToolResponse(content=[TextBlock(
+                type="text",
+                text=f"查询 {form_id} (组织:{org_id}) 返回 {len(result)} 条，但字段均被权限策略隐藏。",
+            )])
+
+        filtered_rows = [
+            [row_dict.get(h, "") for h in visible_headers]
+            for row_dict in filtered_dicts
+        ]
+        headers = visible_headers
 
         table = _fmt_table(headers, filtered_rows)
         return ToolResponse(content=[TextBlock(type="text", text=f"查询 {form_id} (组织:{org_id})，共 {len(filtered_rows)} 条：\n\n{table}")])
@@ -496,7 +520,7 @@ async def kingdee_save_bill(form_id: str, model: dict, org_id: str, execute: boo
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _identity()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "save")
     if not ok:
@@ -557,7 +581,7 @@ async def kingdee_delete_bill(form_id: str, org_id: str, numbers: list = None, i
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "delete")
     if not ok:
@@ -609,7 +633,7 @@ async def kingdee_submit_bill(form_id: str, org_id: str, numbers: list = None, i
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "submit")
     if not ok:
@@ -661,7 +685,7 @@ async def kingdee_audit_bill(form_id: str, org_id: str, numbers: list = None, id
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "audit")
     if not ok:
@@ -709,7 +733,7 @@ async def kingdee_unaudit_bill(form_id: str, org_id: str, numbers: list = None, 
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "unaudit")
     if not ok:
@@ -760,7 +784,7 @@ async def kingdee_push_bill(form_id: str, push_data: dict, org_id: str, execute:
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "push")
     if not ok:
@@ -813,7 +837,7 @@ async def kingdee_execute_operation(
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "execute")
     if not ok:
@@ -879,7 +903,7 @@ async def kingdee_workflow_audit(
         return _build_invalid_form_id_response(form_id)
 
     ch, uid = _get_context()
-    caller = f"{ch}:{uid}"
+    caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "workflow")
     if not ok:
@@ -994,8 +1018,14 @@ def _register_preview(caller: str, key: str) -> None:
 
 
 def _check_previewed(caller: str, key: str) -> bool:
-    """检查该调用者是否已预览过该操作。"""
-    return key in _preview_registry.get(caller, set())
+    """检查该调用者是否已预览过该操作，并消费预览记录。"""
+    keys = _preview_registry.get(caller, set())
+    if key not in keys:
+        return False
+    keys.remove(key)
+    if not keys:
+        _preview_registry.pop(caller, None)
+    return True
 
 
 def _build_block_response(reason: str) -> ToolResponse:
@@ -1041,6 +1071,15 @@ def _load_valid_form_ids() -> set[str]:
         except Exception:
             pass
 
+    # 加载管理员维护的自定义字段映射。仍然要求精确匹配，避免前缀放行。
+    try:
+        for item in PermissionManager().list_field_mappings():
+            fid = item.get("form_id", "").strip()
+            if fid:
+                valid_ids.add(fid)
+    except Exception:
+        pass
+
     return valid_ids
 
 
@@ -1053,13 +1092,7 @@ def _is_valid_form_id(form_id: str) -> bool:
     global _valid_form_ids_cache
     if _valid_form_ids_cache is None:
         _valid_form_ids_cache = _load_valid_form_ids()
-    # 精确匹配，或前缀匹配（如 PUR_ 匹配 PUR_PurchaseOrder）
-    if form_id in _valid_form_ids_cache:
-        return True
-    prefix = form_id.split("_")[0] + "_" if "_" in form_id else ""
-    if prefix and any(fid.startswith(prefix) for fid in _valid_form_ids_cache):
-        return True
-    return False
+    return form_id in _valid_form_ids_cache
 
 
 def _build_invalid_form_id_response(form_id: str) -> ToolResponse:

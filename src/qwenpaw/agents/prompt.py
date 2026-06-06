@@ -8,6 +8,7 @@ markdown configuration files in the working directory.
 import logging
 import re
 from pathlib import Path
+from typing import Any
 
 from agentscope_runtime.engine.schemas.exception import (
     ConfigurationException,
@@ -281,6 +282,9 @@ def build_system_prompt_from_working_dir(
     if working_dir is None:
         working_dir = Path(WORKING_DIR)
 
+    config = load_config()
+    prompt_mode_config: Any = config
+
     # Load enabled files from parameter or config
     if enabled_files is None:
         # Use agent-specific config if agent_id provided
@@ -290,17 +294,23 @@ def build_system_prompt_from_working_dir(
             try:
                 agent_config = load_agent_config(agent_id)
                 enabled_files = agent_config.system_prompt_files
+                prompt_mode_config = agent_config
             except (ValueError, FileNotFoundError, ConfigurationException):
                 # Agent not found in config, fallback to global config
-                config = load_config()
                 enabled_files = config.agents.system_prompt_files
         else:
             # Fallback to global config for backward compatibility
-            config = load_config()
             enabled_files = config.agents.system_prompt_files
+    elif agent_id:
+        from ..config.config import load_agent_config
+
+        try:
+            prompt_mode_config = load_agent_config(agent_id)
+        except (ValueError, FileNotFoundError, ConfigurationException):
+            prompt_mode_config = config
 
     # P2.3: 根据配置选择 compact / full 构建器
-    if _use_compact_prompt(config):
+    if _use_compact_prompt(prompt_mode_config):
         builder = CompactPromptBuilder(
             working_dir=working_dir,
             enabled_files=enabled_files,
@@ -628,7 +638,13 @@ class CompactPromptBuilder(PromptBuilder):
 def _use_compact_prompt(config: Any) -> bool:
     """检查配置是否启用 compact 模式。"""
     try:
-        mode = getattr(config.agents, "system_prompt_mode", "full")
+        mode = getattr(config, "system_prompt_mode", None)
+        if mode is None:
+            mode = getattr(
+                getattr(config, "agents", None),
+                "system_prompt_mode",
+                "full",
+            )
         return mode == "compact"
     except Exception:
         return False

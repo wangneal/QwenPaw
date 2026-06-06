@@ -65,7 +65,7 @@ for _op_code, _op_info in OPERATIONS.items():
 # 旧 access 字段→新角色 映射表（用于 v3→v4 迁移和向后兼容）
 _ACCESS_TO_ROLE_MAP: Dict[str, str] = {
     "readonly": "viewer",
-    "writeable": "admin",
+    "writeable": "operator",
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -259,7 +259,7 @@ class PermissionManager:
                 )
                 logger.info("已添加 operations 列")
 
-            # 自动映射旧数据：access="readonly"→role="viewer"，access="writeable"→role="admin"
+            # 自动映射旧数据：access="readonly"→role="viewer"，access="writeable"→role="operator"
             for old_access, new_role in _ACCESS_TO_ROLE_MAP.items():
                 conn.execute(
                     "UPDATE user_permissions SET role = ? WHERE access = ? AND (role IS NULL OR role = 'viewer')",

@@ -463,8 +463,9 @@ class KingdeeBackend:
             # 角色解析：优先 role 字段，回退到 access 映射
             role = body.role
             if not role:
-                # 向后兼容：readonly→viewer，writeable→admin
-                role = "viewer" if body.access == "readonly" else "admin"
+                # 向后兼容：readonly→viewer，writeable→operator。
+                # 旧 access 只有两档，不能安全表达删除/审核等高风险权限。
+                role = "viewer" if body.access == "readonly" else "operator"
             # 如果 role 是内置角色且未指定 operations，使用角色默认操作码
             operations = body.operations if body.operations else None
             mgr.set_permission(
