@@ -8,7 +8,7 @@ ConfigManager 使用这些字段动态生成配置界面。
 # 后端标识
 BACKEND_NAME = "kingdee"
 BACKEND_LABEL = "金蝶云星空"
-BACKEND_ICON = "🦋"
+BACKEND_ICON = "erp"
 
 KINGDEE_CONFIG_FIELDS = [
     {

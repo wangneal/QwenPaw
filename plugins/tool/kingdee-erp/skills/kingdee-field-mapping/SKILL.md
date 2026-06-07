@@ -48,17 +48,17 @@ metadata:
 
 示例：`FAuxPropId.FFl00002`（内码），`FAuxPropId.FFl00002.FDataValue`（名称）
 
-## ⚠️ 写入时基础资料字段传值规则
+## 写入时基础资料字段传值规则
 
 **核心规则：基础资料字段必须用 JSON 对象包裹编码，不能直接传字符串或数字。**
 
 ```json
-// ✅ 正确
+// 正确写法
 "FSupplierId": {"FNumber": "S001"}
 "FMaterialId": {"FNumber": "M001"}
 "FPurchaseOrgId": {"FNumber": "100"}
 
-// ❌ 错误 — 会导致保存失败
+// 错误写法，会导致保存失败
 "FSupplierId": "S001"
 "FMaterialId": "M001"
 "FPurchaseOrgId": 100

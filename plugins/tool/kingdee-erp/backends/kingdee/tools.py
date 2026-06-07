@@ -23,7 +23,10 @@ from erp_permissions import (
     PermissionManager,
     check_operation_permission,
     filter_fields_by_permission,
+    make_org_context_key,
+    resolve_org_context,
     resolve_row_filter,
+    set_default_org_context,
 )
 
 try:
@@ -33,11 +36,13 @@ except ImportError:
 
 try:
     from qwenpaw.app.agent_context import (
+        get_current_agent_id,
         get_current_channel,
         get_current_session_id,
         get_current_user_id,
     )
 except ImportError:
+    get_current_agent_id = None
     get_current_channel = None
     get_current_session_id = None
     get_current_user_id = None
@@ -49,6 +54,36 @@ _client = None
 _client_lock = asyncio.Lock()
 _perm_mgr = None
 _perm_mgr_lock = asyncio.Lock()
+_RECENT_ENTITY_TTL_SECONDS = int(os.getenv("KINGDEE_RECENT_ENTITY_TTL_SECONDS", "1800"))
+_recent_entity_registry: dict[str, dict] = {}
+_recent_entity_lock = threading.Lock()
+
+
+_REQUIRED_KINGDEE_CONFIG = {
+    "server_url": "金蝶服务器地址(server_url)",
+    "acct_id": "账套ID(acct_id)",
+    "user_name": "用户名(user_name)",
+    "app_id": "应用ID(app_id)",
+    "app_secret": "应用密钥(app_secret)",
+}
+
+
+def _validate_kingdee_config(cfg: dict | None) -> dict:
+    if not cfg:
+        raise RuntimeError(
+            "金蝶连接配置未填写。请在 WebUI 管理页面的 ERP 连接配置中填写金蝶 WebAPI 连接信息。"
+        )
+    missing = [
+        label for key, label in _REQUIRED_KINGDEE_CONFIG.items()
+        if not str(cfg.get(key, "")).strip()
+    ]
+    if missing:
+        raise RuntimeError(
+            "金蝶连接配置不完整，缺少必填项: "
+            + "、".join(missing)
+            + "。请在 WebUI 管理页面的 ERP 连接配置中补齐后重试。"
+        )
+    return cfg
 
 
 async def _get_client():
@@ -76,10 +111,7 @@ async def _get_client():
                 except Exception as e:
                     logger.debug("get_tool_config 回退失败: %s", e)
 
-        if not cfg:
-            raise RuntimeError(
-                "金蝶插件未配置。请在管理页面 → 连接配置 中填写金蝶 WebAPI 连接信息。"
-            )
+        cfg = _validate_kingdee_config(cfg)
         _client = KingdeeClient(
             server_url=cfg["server_url"], acct_id=cfg["acct_id"],
             user_name=cfg["user_name"], app_id=cfg["app_id"],
@@ -118,6 +150,23 @@ def _identity():
         return ("unknown", "unknown")
 
 
+def _agent_id() -> str:
+    if get_current_agent_id is None:
+        return ""
+    try:
+        return get_current_agent_id() or ""
+    except (RuntimeError, ValueError, AttributeError):
+        return ""
+
+
+def _org_error_response(err: str) -> ToolResponse:
+    return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+
+def _resolve_org(pm: PermissionManager, ch: str, uid: str, org_id: str):
+    return resolve_org_context(pm, ch, uid, "kingdee", org_id, _agent_id())
+
+
 def _op_tag(ch: str, uid: str) -> str:
     """Generate operator tag for audit trail in ToolResponse."""
     return f"\n\n[操作人: {ch}:{uid}]"
@@ -150,16 +199,16 @@ async def _audit(pm, ch: str, uid: str, action: str, form_id: str, target: str =
 
 def _get_context():
     """获取当前调用者身份（渠道:用户ID）。"""
-    ch = ""
-    uid = ""
+    ch = "unknown"
+    uid = "unknown"
     if get_current_channel:
         try:
-            ch = get_current_channel() or ""
+            ch = get_current_channel() or "unknown"
         except Exception:
             pass
     if get_current_user_id:
         try:
-            uid = get_current_user_id() or ""
+            uid = get_current_user_id() or "unknown"
         except Exception:
             pass
     return ch, uid
@@ -172,25 +221,24 @@ def _build_write_preview(action: str, form_id: str, org_id, details: dict, warni
     代码层面第一次调用永远只返回预览，不可能执行写入。
     """
     lines = [
-        "⚠️ 写入操作预览（尚未执行）",
+        "写入操作预览",
         "",
-        f"📋 操作类型：{action}",
-        f"📄 目标表单：{form_id}",
-        f"🏢 组织ID：{org_id}",
+        f"操作类型: {action}",
+        f"FormId: {form_id}",
+        f"组织: {org_id}",
         "",
-        "📝 操作详情：",
+        "参数:",
     ]
     for k, v in details.items():
-        lines.append(f"  • {k}：{v}")
+        lines.append(f"- {k}: {v}")
 
     if warning:
-        lines.extend(["", f"🚨 {warning}"])
+        lines.extend(["", f"风险提示: {warning}"])
 
     lines.extend([
         "",
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-        "如确认执行，请再次调用本工具并设置 execute=True",
-        "如需修改，请调整参数后重新调用（execute=False）",
+        "执行要求: 仅在用户明确确认后，使用相同工具并设置 execute=True 执行。",
+        "修改要求: 调整参数后使用 execute=False 重新生成预览。",
     ])
 
     return ToolResponse(content=[TextBlock(type="text", text="\n".join(lines))])
@@ -213,6 +261,188 @@ def _fmt_table(headers, rows):
         lines.append("| " + " | ".join(cells) + " |")
     lines.append(sep)
     return "\n".join(lines)
+
+
+def _kd_bool(value) -> Optional[bool]:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    if isinstance(value, str):
+        v = value.strip().lower()
+        if v in {"true", "1", "yes", "y", "success"}:
+            return True
+        if v in {"false", "0", "no", "n", "fail", "failed"}:
+            return False
+    return None
+
+
+def _status_error_summary(status: dict) -> str:
+    parts = []
+    for key in ("ErrorCode", "MsgCode", "Message", "ErrMessage"):
+        value = status.get(key)
+        if value not in (None, ""):
+            parts.append(f"{key}={value}")
+
+    errors = status.get("Errors")
+    if errors:
+        error_parts = []
+        if not isinstance(errors, list):
+            errors = [errors]
+        for item in errors[:5]:
+            item = _as_json_obj(item)
+            if isinstance(item, dict):
+                msg = (
+                    item.get("Message") or item.get("ErrMessage") or
+                    item.get("FieldName") or item.get("MessageCode") or
+                    json.dumps(item, ensure_ascii=False)
+                )
+                error_parts.append(str(msg))
+            else:
+                error_parts.append(str(item))
+        parts.append("Errors=" + "；".join(error_parts))
+
+    return "；".join(parts) or "ResponseStatus.IsSuccess=false"
+
+
+def _kingdee_response_failure(result) -> Optional[str]:
+    """Return Kingdee business failure text when WebAPI response marks failure."""
+    for item in _walk_json(result):
+        if not isinstance(item, dict):
+            continue
+        status = item.get("ResponseStatus")
+        if status is None and "IsSuccess" in item:
+            status = item
+        status = _as_json_obj(status)
+        if not isinstance(status, dict):
+            continue
+
+        is_success = _kd_bool(status.get("IsSuccess"))
+        has_errors = bool(status.get("Errors"))
+        error_code = str(status.get("ErrorCode") or "").strip()
+        if is_success is False or (is_success is None and (has_errors or error_code)):
+            return _status_error_summary(status)
+    return None
+
+
+async def _finish_kingdee_write(
+    pm,
+    ch: str,
+    uid: str,
+    result,
+    success_text: str,
+    failure_text: str,
+    audit_action: str,
+    form_id: str,
+    target: str = "",
+    detail: str = "",
+    remember_recent: bool = False,
+    recent_org_id: str = "",
+    recent_caller: str = "",
+) -> ToolResponse:
+    text = json.dumps(result, ensure_ascii=False, indent=2)
+    failure = _kingdee_response_failure(result)
+    if failure:
+        fail_detail = (detail + f" | failure={failure}").strip(" |")
+        await _audit(pm, ch, uid, f"{audit_action}_failed", form_id, target=target, detail=fail_detail[:500])
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text=f"{failure_text}：{failure}\n\n金蝶返回：\n{text}{_op_tag(ch, uid)}",
+        )])
+
+    if remember_recent:
+        _remember_recent_entity(
+            recent_caller or _preview_caller(ch, uid),
+            form_id=form_id,
+            org_id=recent_org_id,
+            action=audit_action,
+            result=result,
+        )
+    await _audit(pm, ch, uid, audit_action, form_id, target=target, detail=detail)
+    return ToolResponse(content=[TextBlock(
+        type="text",
+        text=f"{success_text}:\n\n{text}{_op_tag(ch, uid)}",
+    )])
+
+
+def _build_kingdee_query_failure(action: str, result) -> Optional[ToolResponse]:
+    failure = _kingdee_response_failure(result)
+    if not failure:
+        return None
+    text = json.dumps(result, ensure_ascii=False, indent=2)
+    return ToolResponse(content=[TextBlock(
+        type="text",
+        text=f"{action}失败：{failure}\n\n金蝶返回：\n{text[:8000]}",
+    )])
+
+
+def _extract_success_entities(result) -> list[dict]:
+    entities = []
+    seen = set()
+    for item in _walk_json(result):
+        if not isinstance(item, dict):
+            continue
+        raw_entities = item.get("SuccessEntitys") or item.get("SuccessEntities")
+        if raw_entities and not isinstance(raw_entities, list):
+            raw_entities = [raw_entities]
+        for raw in raw_entities or []:
+            raw = _as_json_obj(raw)
+            if not isinstance(raw, dict):
+                continue
+            entity_id = _first_dict_value(raw, ("Id", "ID", "FId", "FID", "id"))
+            number = _first_dict_value(raw, ("Number", "FNumber", "BillNo", "FBillNo", "number"))
+            key = (str(entity_id or ""), str(number or ""))
+            if (key[0] or key[1]) and key not in seen:
+                entities.append({"id": key[0], "number": key[1]})
+                seen.add(key)
+
+        entity_id = _first_dict_value(item, ("Id", "ID", "FId", "FID", "id"))
+        number = _first_dict_value(item, ("Number", "FNumber", "BillNo", "FBillNo", "number"))
+        key = (str(entity_id or ""), str(number or ""))
+        if (key[0] or key[1]) and key not in seen and ("ResponseStatus" in item or "Result" in item):
+            entities.append({"id": key[0], "number": key[1]})
+            seen.add(key)
+    return entities
+
+
+def _remember_recent_entity(caller: str, form_id: str, org_id: str, action: str, result) -> None:
+    entities = _extract_success_entities(result)
+    if len(entities) != 1:
+        return
+    now = time.monotonic()
+    with _recent_entity_lock:
+        _cleanup_recent_entities(now)
+        _recent_entity_registry[caller] = {
+            "created_at": now,
+            "form_id": form_id,
+            "org_id": org_id,
+            "action": action,
+            "entity": entities[0],
+        }
+
+
+def _get_recent_entity(caller: str):
+    now = time.monotonic()
+    with _recent_entity_lock:
+        _cleanup_recent_entities(now)
+        item = _recent_entity_registry.get(caller)
+        return dict(item) if item else None
+
+
+def _clear_recent_entity(caller: str) -> None:
+    with _recent_entity_lock:
+        _recent_entity_registry.pop(caller, None)
+
+
+def _cleanup_recent_entities(now: float | None = None) -> None:
+    if now is None:
+        now = time.monotonic()
+    expired = [
+        caller for caller, item in _recent_entity_registry.items()
+        if now - item.get("created_at", 0) > _RECENT_ENTITY_TTL_SECONDS
+    ]
+    for caller in expired:
+        _recent_entity_registry.pop(caller, None)
 
 
 # ======== 组织发现工具 ========
@@ -258,13 +488,13 @@ async def kingdee_list_user_orgs() -> ToolResponse:
 # ======== 查询工具 ========
 
 async def kingdee_query_bill(
-    form_id: str, field_keys: str, org_id: str,
+    form_id: str, field_keys: str, org_id: str = "",
     filter_string: str = "", order_string: str = "",
     top_row_count: int = 100,
 ) -> ToolResponse:
     """查询金蝶单据数据（销售订单、采购订单、物料、客户等）。
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 不确定FormId时，必须先调用kingdee_search_form搜索，不得猜测
     2. 不确定字段名时，必须先调用kingdee_query_metadata查询，不得猜测
     3. 不得编造或猜测过滤值（如客户名、供应商名），不确定时先用模糊查询确认
@@ -274,15 +504,21 @@ async def kingdee_query_bill(
     Args:
         form_id: 单据FormId（如 SAL_SaleOrder, AR_Receivable, BD_Material）。不得猜测，不确定时先调用kingdee_search_form
         field_keys: 查询字段，逗号分隔（如 FDate,FCustId.FName,FQty）。不得猜测，不确定时先调用kingdee_query_metadata
-        org_id: 组织ID（必填，先调用 kingdee_list_user_orgs 获取可用组织，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         filter_string: 过滤条件（如 FDate >= '2026-05-01'）。过滤值必须是精确值，不确定时先模糊查询确认
         order_string: 排序（如 FDate DESC）
         top_row_count: 最大返回行数
     """
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
     ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     logger.info("[Tool] kingdee_query_bill caller=%s:%s form_id=%s org=%s fields=%s",
                 ch, uid, form_id, org_id, field_keys[:60])
-    pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "query")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -300,6 +536,15 @@ async def kingdee_query_bill(
         result = await client.execute_bill_query(
             form_id, field_keys, filter_string, order_string, top_row_count,
         )
+        failure_response = _build_kingdee_query_failure(f"查询 {form_id}", result)
+        if failure_response:
+            return failure_response
+        if not isinstance(result, list):
+            text = json.dumps(result, ensure_ascii=False, indent=2)
+            return ToolResponse(content=[TextBlock(
+                type="text",
+                text=f"查询 {form_id} 失败：金蝶返回格式不是列表，无法作为业务行数据处理。\n\n金蝶返回：\n{text[:8000]}",
+            )])
         if not result:
             return ToolResponse(content=[TextBlock(type="text", text=f"查询 {form_id} (组织:{org_id}) 无数据。{EMPTY_RESULT_SUFFIX}")])
 
@@ -336,27 +581,36 @@ async def kingdee_query_bill(
         return ToolResponse(content=[TextBlock(type="text", text=f"查询失败: {e}")])
 
 
-async def kingdee_view_bill(form_id: str, org_id: str, number: str = "", bill_id: str = "") -> ToolResponse:
+async def kingdee_view_bill(form_id: str, org_id: str = "", number: str = "", bill_id: str = "") -> ToolResponse:
     """查看金蝶单据完整详情。
 
-    ⚠️ 防幻觉规则：单据编号必须来自查询结果或用户明确提供，不得编造或猜测。
+    工具约束：单据编号必须来自查询结果或用户明确提供，不得编造或猜测。
 
     Args:
         form_id: 单据FormId（不得猜测，不确定时先调用kingdee_search_form）
-        org_id: 组织ID（必填，来自kingdee_list_user_orgs查询结果，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         number: 单据编号（必须来自查询结果或用户明确提供，不得猜测）
         bill_id: 单据内码（与number二选一，必须来自查询结果）
     """
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
     ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     logger.info("[Tool] kingdee_view_bill caller=%s:%s form_id=%s org=%s number=%s",
                 ch, uid, form_id, org_id, number)
-    pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "view")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
     try:
         client = await _get_client()
         result = await client.view_bill(form_id, number=number, bill_id=bill_id)
+        failure_response = _build_kingdee_query_failure(f"查看 {form_id}", result)
+        if failure_response:
+            return failure_response
         # 字段级权限过滤
         if isinstance(result, dict):
             key = f"{ch}:{uid}"
@@ -369,13 +623,13 @@ async def kingdee_view_bill(form_id: str, org_id: str, number: str = "", bill_id
 
 
 async def kingdee_get_report(
-    form_id: str, org_id: str, scheme_id: str = "",
+    form_id: str, org_id: str = "", scheme_id: str = "",
     field_keys: str = "", start_row: int = 0, limit: int = 2000,
     quickly_conditions: str = "",
 ) -> ToolResponse:
     """查询金蝶报表数据。
 
-    ⚠️ 防幻觉规则：form_id和scheme_id不得猜测，不确定时查看报表文档或询问用户。
+    工具约束：form_id和scheme_id不得猜测，不确定时查看报表文档或询问用户。
 
     支持两种模式：
     1. 标准报表（利润表、资产负债表等）：提供 field_keys，通过 Model 传参
@@ -383,7 +637,7 @@ async def kingdee_get_report(
 
     Args:
         form_id: 报表FormId（不得猜测，如 GLR_AccoutBalance, HS_INOUTSTOCKSUMMARYRPT, STK_StockDetailRpt）
-        org_id: 组织ID（必填，来自kingdee_list_user_orgs查询结果，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         scheme_id: 过滤方案ID（分页账表必填，查 T_BAS_FILTERSCHEME.FSCHEMEID）
         field_keys: 查询字段（标准报表用，逗号分隔）
         start_row: 起始行
@@ -391,10 +645,16 @@ async def kingdee_get_report(
         quickly_conditions: 快速过滤条件JSON（分页账表用）
             格式: [{"FieldName":"BeginDate","FieldValue":"2026-01-01"},{"FieldName":"EndDate","FieldValue":"2026-12-31"}]
     """
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
     ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     logger.info("[Tool] kingdee_get_report caller=%s:%s form_id=%s org=%s scheme=%s",
                 ch, uid, form_id, org_id, scheme_id)
-    pm = await _get_perm_mgr()
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "report")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -416,6 +676,9 @@ async def kingdee_get_report(
             }
             result = await client.get_report_data(form_id, params)
 
+        failure_response = _build_kingdee_query_failure(f"报表查询 {form_id}", result)
+        if failure_response:
+            return failure_response
         text = json.dumps(result, ensure_ascii=False, indent=2)
         return ToolResponse(content=[TextBlock(type="text", text=f"报表 ({form_id}, 组织:{org_id}):\n\n{text[:8000]}")])
     except Exception as e:
@@ -452,15 +715,18 @@ async def kingdee_get_kds_report(
         cycle_type: 周期类型（1=会计期间, 2=日报, 3=周报, 4=月报, 5=季报, 6=半年报, 7=年报, 8=旬报, 10=自定义）
         year: 年份（如 2025）
         period: 期间（如 3 表示第3期）
-        org_number: 组织编号（部分报表需要）
+        org_number: 组织编号（可选；不传时使用当前用户的默认组织）
         scope_type_number: 合并方案编号（部分报表需要，如 HXX001）
         scope_number: 合并范围编号（部分报表需要，如 001）
         data_type: 数据格式（Json/Excel/Itemdata），默认 Json
     """
     ch, uid = _identity()
-    logger.info("[Tool] kingdee_get_kds_report caller=%s:%s report_type=%s report_number=%s year=%s period=%s",
-                ch, uid, report_type, report_number, year, period)
     pm = await _get_perm_mgr()
+    org_number, org_err = _resolve_org(pm, ch, uid, org_number)
+    if org_err:
+        return _org_error_response(org_err)
+    logger.info("[Tool] kingdee_get_kds_report caller=%s:%s report_type=%s report_number=%s year=%s period=%s org=%s",
+                ch, uid, report_type, report_number, year, period, org_number)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", "", org_number, "report")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -486,6 +752,9 @@ async def kingdee_get_kds_report(
             parameters["ScopeNumber"] = scope_number
 
         result = await client.get_kds_report_data(parameters)
+        failure_response = _build_kingdee_query_failure(f"合并报表查询 {report_number}", result)
+        if failure_response:
+            return failure_response
         text = json.dumps(result, ensure_ascii=False, indent=2)
         return ToolResponse(content=[TextBlock(type="text", text=f"合并报表 ({report_number}, 类型:{report_type}):\n\n{text[:8000]}")])
     except Exception as e:
@@ -495,18 +764,18 @@ async def kingdee_get_kds_report(
 
 # ======== 写入工具 ========
 
-async def kingdee_save_bill(form_id: str, model: dict, org_id: str, execute: bool = False) -> ToolResponse:
+async def kingdee_save_bill(form_id: str, model: dict, org_id: str = "", execute: bool = False) -> ToolResponse:
     """保存/新增金蝶单据。
 
     双步调用（强制）：
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行保存
     - 用户确认后第二次调用 execute=True：执行实际保存
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 所有编码值（供应商/物料/组织/部门）必须先通过查询工具获取，禁止猜测或编造
     2. 基础资料字段必须用JSON对象包裹编码，如 {"FSupplierId": {"FNumber": "S001"}}，禁止直接传字符串
     3. 写入前必须先调用kingdee_query_metadata确认字段类型和传值规则
-    4. 用户指令模糊时（如"帮我新增订单"），必须追问具体参数（供应商、物料、数量等），不得自行填充缺失值
+    4. 用户指令缺少必填字段时，必须追问具体参数（供应商、物料、数量等），不得自行填充缺失值
 
     Args:
         form_id: 单据FormId（不得猜测，不确定时先调用kingdee_search_form）
@@ -514,7 +783,7 @@ async def kingdee_save_bill(form_id: str, model: dict, org_id: str, execute: boo
                如 {"FSupplierId": {"FNumber": "S001"}}，禁止直接传字符串。
                单据类型用FNUMBER大写，用户用FUserID，联系人用FCONTACTNUMBER。
                详见 kingdee-write-safety 技能。
-        org_id: 组织ID（必填，来自kingdee_list_user_orgs查询结果，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         execute: 是否执行保存。默认False返回预览，True时执行实际操作
     """
     # FormId 校验
@@ -524,6 +793,9 @@ async def kingdee_save_bill(form_id: str, model: dict, org_id: str, execute: boo
     ch, uid = _identity()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "save")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -551,29 +823,33 @@ async def kingdee_save_bill(form_id: str, model: dict, org_id: str, execute: boo
     try:
         client = await _get_client()
         result = await client.save_bill(form_id, model)
-        await _audit(pm, ch, uid, "save", form_id, detail=str(result)[:200])
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"保存成功 ({form_id}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"保存成功 ({form_id}, 组织:{org_id})",
+            f"保存失败 ({form_id}, 组织:{org_id})",
+            "save", form_id, detail=str(result)[:200],
+            remember_recent=True, recent_org_id=org_id, recent_caller=caller,
+        )
     except Exception as e:
         logger.error("kingdee_save_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"保存失败: {e}")])
 
 
-async def kingdee_delete_bill(form_id: str, org_id: str, numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
+async def kingdee_delete_bill(form_id: str, org_id: str = "", numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
     """删除金蝶单据。
 
     双步调用（强制）：
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行删除
     - 用户确认后第二次调用 execute=True：执行实际删除
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 单据编号必须来自查询结果或用户明确提供，不得猜测
     2. 仅限未审核单据
     3. 删除不可逆，预览时会显示不可逆警告
 
     Args:
         form_id: 单据FormId（不得猜测，不确定时先调用kingdee_search_form）
-        org_id: 组织ID（必填，来自kingdee_list_user_orgs查询结果，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         numbers: 单据编号列表（必须来自查询结果或用户明确提供）
         ids: 单据内码（与numbers二选一，必须来自查询结果）
         execute: 是否执行删除。默认False返回预览，True时执行实际操作
@@ -585,10 +861,14 @@ async def kingdee_delete_bill(form_id: str, org_id: str, numbers: list = None, i
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "delete")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
+    target = ",".join(numbers or []) if numbers else ids
     pkey = _preview_key(form_id, org_id, numbers=str(numbers), ids=ids)
 
     if not execute:
@@ -604,28 +884,84 @@ async def kingdee_delete_bill(form_id: str, org_id: str, numbers: list = None, i
     try:
         client = await _get_client()
         result = await client.delete_bill(form_id, numbers=numbers, ids=ids)
-        await _audit(pm, ch, uid, "delete", form_id, target=target)
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"删除成功 ({form_id}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"删除成功 ({form_id}, 组织:{org_id})",
+            f"删除失败 ({form_id}, 组织:{org_id})",
+            "delete", form_id, target=target,
+        )
     except Exception as e:
         logger.error("kingdee_delete_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"删除失败: {e}")])
 
 
-async def kingdee_submit_bill(form_id: str, org_id: str, numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
+async def kingdee_delete_recent_entity(
+    expected_form_id: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """删除当前会话最近一次成功保存的唯一业务对象。
+
+    用于删除当前会话最近一次新增或保存错误的唯一记录。只使用工具层记录的
+    同一 channel/user/session 最近成功保存实体，不允许 LLM 推断编号或内码。
+    仍然强制走 execute=False 预览 -> execute=True 确认执行。
+    """
+    ch, uid = _identity()
+    caller = _preview_caller(ch, uid)
+    recent = _get_recent_entity(caller)
+    if not recent:
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text="没有可安全删除的最近新增/保存记录。请明确提供表单ID和单据编号或内码后再删除。",
+        )])
+
+    form_id = recent.get("form_id", "")
+    if expected_form_id and expected_form_id != form_id:
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text=f"最近记录的表单是 {form_id}，与期望表单 {expected_form_id} 不一致，已阻止删除。",
+        )])
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    effective_org_id = org_id or recent.get("org_id", "")
+    entity = recent.get("entity") or {}
+    entity_id = str(entity.get("id") or "").strip()
+    number = str(entity.get("number") or "").strip()
+    if not entity_id and not number:
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text="最近保存记录没有返回可删除的内码或编号，已阻止删除。请先查询确认目标记录。",
+        )])
+
+    response = await kingdee_delete_bill(
+        form_id=form_id,
+        org_id=effective_org_id,
+        ids=entity_id,
+        numbers=[] if entity_id else [number],
+        execute=execute,
+    )
+    if execute:
+        text = "\n".join(getattr(block, "text", "") for block in getattr(response, "content", []))
+        if text.startswith("删除成功"):
+            _clear_recent_entity(caller)
+    return response
+
+
+async def kingdee_submit_bill(form_id: str, org_id: str = "", numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
     """提交金蝶单据审批。
 
     双步调用（强制）：
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行提交
     - 用户确认后第二次调用 execute=True：执行实际提交
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 单据编号必须来自查询结果或用户明确提供，不得猜测
-    2. 用户指令模糊时（如"提交那个订单"），必须追问具体单号
+    2. 用户指令缺少单据编号或内码时，必须追问具体目标
 
     Args:
         form_id: 单据FormId（不得猜测）
-        org_id: 组织ID（必填）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         numbers: 单据编号列表（必须来自查询结果）
         ids: 单据内码（与numbers二选一）
         execute: 是否执行提交。默认False返回预览
@@ -637,10 +973,14 @@ async def kingdee_submit_bill(form_id: str, org_id: str, numbers: list = None, i
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "submit")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
+    target = ",".join(numbers or []) if numbers else ids
     pkey = _preview_key(form_id, org_id, numbers=str(numbers), ids=ids)
 
     if not execute:
@@ -655,29 +995,32 @@ async def kingdee_submit_bill(form_id: str, org_id: str, numbers: list = None, i
     try:
         client = await _get_client()
         result = await client.submit_bill(form_id, numbers=numbers, ids=ids)
-        await _audit(pm, ch, uid, "submit", form_id, target=target)
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"提交成功 ({form_id}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"提交成功 ({form_id}, 组织:{org_id})",
+            f"提交失败 ({form_id}, 组织:{org_id})",
+            "submit", form_id, target=target,
+        )
     except Exception as e:
         logger.error("kingdee_submit_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"提交失败: {e}")])
 
 
-async def kingdee_audit_bill(form_id: str, org_id: str, numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
+async def kingdee_audit_bill(form_id: str, org_id: str = "", numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
     """审核金蝶单据。
 
     双步调用（强制）：
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行审核
     - 用户确认后第二次调用 execute=True：执行实际审核
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 单据编号必须来自查询结果或用户明确提供，不得猜测
     2. 审核后不可修改，需反审核后才能修改
-    3. 用户指令模糊时，必须追问具体单号
+    3. 用户指令缺少单据编号或内码时，必须追问具体目标
 
     Args:
         form_id: 单据FormId（不得猜测）
-        org_id: 组织ID（必填）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         numbers: 单据编号列表（必须来自查询结果）
         ids: 单据内码（与numbers二选一）
         execute: 是否执行审核。默认False返回预览
@@ -689,10 +1032,14 @@ async def kingdee_audit_bill(form_id: str, org_id: str, numbers: list = None, id
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "audit")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
+    target = ",".join(numbers or []) if numbers else ids
     pkey = _preview_key(form_id, org_id, numbers=str(numbers), ids=ids)
 
     if not execute:
@@ -708,15 +1055,18 @@ async def kingdee_audit_bill(form_id: str, org_id: str, numbers: list = None, id
     try:
         client = await _get_client()
         result = await client.audit_bill(form_id, numbers=numbers, ids=ids)
-        await _audit(pm, ch, uid, "audit", form_id, target=target)
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"审核成功 ({form_id}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"审核成功 ({form_id}, 组织:{org_id})",
+            f"审核失败 ({form_id}, 组织:{org_id})",
+            "audit", form_id, target=target,
+        )
     except Exception as e:
         logger.error("kingdee_audit_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"审核失败: {e}")])
 
 
-async def kingdee_unaudit_bill(form_id: str, org_id: str, numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
+async def kingdee_unaudit_bill(form_id: str, org_id: str = "", numbers: list = None, ids: str = "", execute: bool = False) -> ToolResponse:
     """反审核金蝶单据。
 
     双步调用（强制）：
@@ -725,7 +1075,7 @@ async def kingdee_unaudit_bill(form_id: str, org_id: str, numbers: list = None, 
 
     Args:
         form_id: 单据FormId（不得猜测）
-        org_id: 组织ID（必填）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         numbers: 单据编号列表（必须来自查询结果）
         ids: 单据内码（与numbers二选一）
         execute: 是否执行反审核。默认False返回预览
@@ -737,10 +1087,14 @@ async def kingdee_unaudit_bill(form_id: str, org_id: str, numbers: list = None, 
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "unaudit")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
 
+    target = ",".join(numbers or []) if numbers else ids
     pkey = _preview_key(form_id, org_id, numbers=str(numbers), ids=ids)
 
     if not execute:
@@ -755,30 +1109,33 @@ async def kingdee_unaudit_bill(form_id: str, org_id: str, numbers: list = None, 
     try:
         client = await _get_client()
         result = await client.unaudit_bill(form_id, numbers=numbers, ids=ids)
-        await _audit(pm, ch, uid, "unaudit", form_id, target=target)
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"反审核成功 ({form_id}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"反审核成功 ({form_id}, 组织:{org_id})",
+            f"反审核失败 ({form_id}, 组织:{org_id})",
+            "unaudit", form_id, target=target,
+        )
     except Exception as e:
         logger.error("kingdee_unaudit_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"反审核失败: {e}")])
 
 
-async def kingdee_push_bill(form_id: str, push_data: dict, org_id: str, execute: bool = False) -> ToolResponse:
+async def kingdee_push_bill(form_id: str, push_data: dict, org_id: str = "", execute: bool = False) -> ToolResponse:
     """下推金蝶单据（如销售订单→销售出库单）。
 
     双步调用（强制）：
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行下推
     - 用户确认后第二次调用 execute=True：执行实际下推
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 必须说明源单→目标单的转换关系
     2. 源单编号和目标表单ID必须来自查询结果，不得猜测
-    3. 用户指令模糊时，必须追问下推到什么目标单据
+    3. 用户指令缺少目标单据或转换参数时，必须追问具体参数
 
     Args:
         form_id: 源单FormId（不得猜测，不确定时先调用kingdee_search_form）
         push_data: 下推数据（必须包含源单内码，来自查询结果）
-        org_id: 组织ID（必填，来自kingdee_list_user_orgs查询结果，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         execute: 是否执行下推。默认False返回预览，True时执行实际操作
     """
     # FormId 校验
@@ -788,6 +1145,9 @@ async def kingdee_push_bill(form_id: str, push_data: dict, org_id: str, execute:
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "push")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -806,16 +1166,19 @@ async def kingdee_push_bill(form_id: str, push_data: dict, org_id: str, execute:
     try:
         client = await _get_client()
         result = await client.push_bill(form_id, push_data)
-        await _audit(pm, ch, uid, "push", form_id, detail=str(push_data)[:200])
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"下推成功 ({form_id}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"下推成功 ({form_id}, 组织:{org_id})",
+            f"下推失败 ({form_id}, 组织:{org_id})",
+            "push", form_id, detail=str(push_data)[:200],
+        )
     except Exception as e:
         logger.error("kingdee_push_bill error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"下推失败: {e}")])
 
 
 async def kingdee_execute_operation(
-    form_id: str, op_number: str, op_data: dict, org_id: str, execute: bool = False,
+    form_id: str, op_number: str, op_data: dict, org_id: str = "", execute: bool = False,
 ) -> ToolResponse:
     """执行金蝶自定义操作（禁用、启用等）。
 
@@ -823,15 +1186,15 @@ async def kingdee_execute_operation(
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行操作
     - 用户确认后第二次调用 execute=True：执行实际操作
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. op_number 和 op_data 不得猜测
-    2. 用户指令模糊时，必须追问具体操作
+    2. 用户指令缺少操作编码或操作数据时，必须追问具体参数
 
     Args:
         form_id: 单据FormId（不得猜测）
         op_number: 操作编号（不得猜测）
         op_data: 操作数据（不得编造）
-        org_id: 组织ID（必填）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         execute: 是否执行操作。默认False返回预览
     """
     # FormId 校验
@@ -841,6 +1204,9 @@ async def kingdee_execute_operation(
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "execute")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -863,20 +1229,692 @@ async def kingdee_execute_operation(
     try:
         client = await _get_client()
         result = await client.execute_operation(form_id, op_number, op_data)
-        await _audit(pm, ch, uid, "execute_op", form_id, target=op_number)
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"操作成功 ({form_id}.{op_number}, 组织:{org_id}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"操作成功 ({form_id}.{op_number}, 组织:{org_id})",
+            f"操作失败 ({form_id}.{op_number}, 组织:{org_id})",
+            "execute_op", form_id, target=op_number,
+        )
     except Exception as e:
         logger.error("kingdee_execute_operation error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"操作失败: {e}")])
 
 
+async def kingdee_allocate_base_data(
+    pk_ids: str,
+    target_org_ids: str,
+    form_id: str = "BD_Customer",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """企业版：基础资料分配（Allocate），默认用于客户 BD_Customer。
+
+    双步调用（强制）：
+    - 第一次调用 execute=False（默认）：仅返回操作预览，不执行分配
+    - 用户确认后第二次调用 execute=True：执行实际分配
+
+    Args:
+        pk_ids: 被分配基础资料内码集合，逗号分隔，如 "100001,100002"。必须来自查询结果或用户明确提供。
+        target_org_ids: 目标组织内码集合，逗号分隔，如 "200001,200002"。必须来自查询结果或用户明确提供。
+        form_id: 基础资料表单ID，默认 BD_Customer
+        org_id: 当前权限组织（可选；不传时使用当前用户的默认组织）
+        execute: 是否执行分配。默认False返回预览，True时执行实际操作
+    """
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    pk_ids_norm, pk_err = _normalize_inner_id_list(pk_ids, "被分配基础资料内码")
+    if pk_err:
+        return ToolResponse(content=[TextBlock(type="text", text=pk_err)])
+    target_org_ids_norm, orgs_err = _normalize_inner_id_list(target_org_ids, "目标组织内码")
+    if orgs_err:
+        return ToolResponse(content=[TextBlock(type="text", text=orgs_err)])
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "allocate")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    caller = _preview_caller(ch, uid)
+    pkey = _preview_key(form_id, org_id, action="allocate", pk_ids=pk_ids_norm, target_org_ids=target_org_ids_norm)
+
+    if not execute:
+        details = {
+            "基础资料表单": form_id,
+            "被分配内码": pk_ids_norm,
+            "目标组织内码": target_org_ids_norm,
+        }
+        _register_preview(caller, pkey)
+        return _build_write_preview("基础资料分配", form_id, org_id, details)
+
+    if not _check_previewed(caller, pkey):
+        return _build_block_response("未检测到基础资料分配预览记录。")
+
+    try:
+        client = await _get_client()
+        result = await client.allocate_base_data(form_id, pk_ids_norm, target_org_ids_norm)
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"基础资料分配成功 ({form_id}, 组织:{org_id})",
+            f"基础资料分配失败 ({form_id}, 组织:{org_id})",
+            "allocate", form_id, target=pk_ids_norm, detail=f"TOrgIds={target_org_ids_norm}",
+        )
+    except Exception as e:
+        logger.error("kingdee_allocate_base_data error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"基础资料分配失败: {e}")])
+
+
+async def kingdee_cancel_allocate_base_data(
+    pk_ids: str,
+    target_org_ids: str,
+    form_id: str = "BD_Customer",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """企业版：基础资料取消分配（CancelAllocate），默认用于客户 BD_Customer。"""
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    pk_ids_norm, pk_err = _normalize_inner_id_list(pk_ids, "被分配基础资料内码")
+    if pk_err:
+        return ToolResponse(content=[TextBlock(type="text", text=pk_err)])
+    target_org_ids_norm, orgs_err = _normalize_inner_id_list(target_org_ids, "目标组织内码")
+    if orgs_err:
+        return ToolResponse(content=[TextBlock(type="text", text=orgs_err)])
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "allocate")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    caller = _preview_caller(ch, uid)
+    pkey = _preview_key(form_id, org_id, action="cancel_allocate", pk_ids=pk_ids_norm, target_org_ids=target_org_ids_norm)
+
+    if not execute:
+        details = {
+            "基础资料表单": form_id,
+            "取消分配内码": pk_ids_norm,
+            "目标组织内码": target_org_ids_norm,
+        }
+        _register_preview(caller, pkey)
+        return _build_write_preview("基础资料取消分配", form_id, org_id, details)
+
+    if not _check_previewed(caller, pkey):
+        return _build_block_response("未检测到基础资料取消分配预览记录。")
+
+    try:
+        client = await _get_client()
+        result = await client.cancel_allocate_base_data(form_id, pk_ids_norm, target_org_ids_norm)
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"基础资料取消分配成功 ({form_id}, 组织:{org_id})",
+            f"基础资料取消分配失败 ({form_id}, 组织:{org_id})",
+            "cancel_allocate", form_id, target=pk_ids_norm, detail=f"TOrgIds={target_org_ids_norm}",
+        )
+    except Exception as e:
+        logger.error("kingdee_cancel_allocate_base_data error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"基础资料取消分配失败: {e}")])
+
+
+async def kingdee_group_save_base_data(
+    name: str,
+    number: str = "",
+    form_id: str = "BD_Customer",
+    group_field_key: str = "",
+    group_pk_id: int = 0,
+    parent_id: int = 0,
+    description: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """企业版：基础资料分组保存（GroupSave），默认用于客户 BD_Customer。
+
+    Args:
+        name: 分组名称，必填。
+        number: 分组编码。新增分组时必填且必须唯一；修改分组时可不传。
+        form_id: 基础资料表单ID，默认 BD_Customer。
+        group_field_key: 分组字段Key；不传时由金蝶取默认分组字段。
+        group_pk_id: 分组内码。修改分组时必填；0 表示新增。
+        parent_id: 父分组内码；0 表示根级。
+        description: 备注。
+        org_id: 当前权限组织（可选；不传时使用当前用户的默认组织）。
+        execute: 是否执行保存。默认False返回预览，True时执行实际操作。
+    """
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+    name = (name or "").strip()
+    number = (number or "").strip()
+    group_field_key = (group_field_key or "").strip()
+    description = description or ""
+
+    if not name:
+        return ToolResponse(content=[TextBlock(type="text", text="分组名称 FName 不能为空。")])
+    group_pk_id, err = _normalize_int(group_pk_id, "分组内码 GroupPkId")
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    parent_id, err = _normalize_int(parent_id, "父分组内码 FParentId")
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    if group_pk_id == 0 and not number:
+        return ToolResponse(content=[TextBlock(type="text", text="新增分组时分组编码 FNumber 不能为空。")])
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "save")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    group_data = {
+        "GroupFieldKey": group_field_key,
+        "GroupPkId": group_pk_id,
+        "FParentId": parent_id,
+        "FNumber": number,
+        "FName": name,
+        "FDescription": description,
+    }
+    caller = _preview_caller(ch, uid)
+    pkey = _preview_key(form_id, org_id, action="group_save", group_data=json.dumps(group_data, sort_keys=True, ensure_ascii=False))
+
+    if not execute:
+        details = {
+            "基础资料表单": form_id,
+            "分组字段": group_field_key or "(默认)",
+            "分组内码": group_pk_id,
+            "父分组内码": parent_id,
+            "分组编码": number,
+            "分组名称": name,
+        }
+        _register_preview(caller, pkey)
+        return _build_write_preview("基础资料分组保存", form_id, org_id, details)
+
+    if not _check_previewed(caller, pkey):
+        return _build_block_response("未检测到基础资料分组保存预览记录。")
+
+    try:
+        client = await _get_client()
+        result = await client.group_save_base_data(form_id, group_data)
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"基础资料分组保存成功 ({form_id}, 组织:{org_id})",
+            f"基础资料分组保存失败 ({form_id}, 组织:{org_id})",
+            "group_save", form_id, target=str(group_pk_id or number), detail=f"name={name}",
+        )
+    except Exception as e:
+        logger.error("kingdee_group_save_base_data error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"基础资料分组保存失败: {e}")])
+
+
+async def kingdee_query_group_info(
+    form_id: str = "BD_Customer",
+    group_field_key: str = "",
+    group_pk_ids: str = "",
+    ids: str = "",
+    org_id: str = "",
+) -> ToolResponse:
+    """企业版：基础资料分组信息查询（QueryGroupInfo），默认用于客户 BD_Customer。"""
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    group_pk_ids_norm, err = _normalize_inner_id_list(group_pk_ids, "分组内码 GroupPkIds", allow_empty=True)
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    ids_norm, err = _normalize_inner_id_list(ids, "单据内码 Ids", allow_empty=True)
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "query")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    try:
+        client = await _get_client()
+        result = await client.query_group_info(form_id, group_field_key, group_pk_ids_norm, ids_norm)
+        failure_response = _build_kingdee_query_failure(f"基础资料分组信息查询 {form_id}", result)
+        if failure_response:
+            await _audit(pm, ch, uid, "query_group_info_failed", form_id, target=group_pk_ids_norm or ids_norm, detail=_kingdee_response_failure(result) or "")
+            return failure_response
+        await _audit(pm, ch, uid, "query_group_info", form_id, target=group_pk_ids_norm or ids_norm)
+        text = json.dumps(result, ensure_ascii=False, indent=2)
+        return ToolResponse(content=[TextBlock(type="text", text=f"基础资料分组信息 ({form_id}, 组织:{org_id}):\n\n{text[:8000]}")])
+    except Exception as e:
+        logger.error("kingdee_query_group_info error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"基础资料分组信息查询失败: {e}")])
+
+
+async def kingdee_query_group_by_business_key(
+    group_name: str = "",
+    group_number: str = "",
+    group_pk_id: str = "",
+    form_id: str = "BD_Customer",
+    group_field_key: str = "",
+    org_id: str = "",
+) -> ToolResponse:
+    """按分组编码、名称或内码查询基础资料分组，默认用于客户 BD_Customer。
+
+    QueryGroupInfo 只接受分组内码或单据内码。本工具先按明确业务标识解析
+    分组内码，再调用 QueryGroupInfo，避免模型猜测内码或误用 ids 参数。
+    """
+    group_pk_id_norm, err = _normalize_inner_id_list(
+        group_pk_id,
+        "分组内码 GroupPkIds",
+        allow_empty=True,
+    )
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    if group_pk_id_norm:
+        return await kingdee_query_group_info(
+            form_id=form_id,
+            group_field_key=group_field_key,
+            group_pk_ids=group_pk_id_norm,
+            org_id=org_id,
+        )
+
+    if not group_name and not group_number:
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text="请提供分组编码、分组名称或分组内码。",
+        )])
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    effective_org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(
+        pm,
+        ch,
+        uid,
+        "kingdee",
+        form_id,
+        effective_org_id,
+        "query",
+    )
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    try:
+        client = await _get_client()
+        group_result = await client.query_group_info(
+            form_id,
+            group_field_key,
+        )
+        failure_response = _build_kingdee_query_failure(
+            f"分组查询 {form_id}",
+            group_result,
+        )
+        if failure_response:
+            return failure_response
+        candidates = _collect_group_candidates(group_result)
+        group_id, match_err = _match_group(
+            candidates,
+            group_name,
+            group_number,
+            label="分组",
+        )
+        if match_err:
+            return ToolResponse(content=[TextBlock(type="text", text=match_err)])
+        return await kingdee_query_group_info(
+            form_id=form_id,
+            group_field_key=group_field_key,
+            group_pk_ids=group_id,
+            org_id=effective_org_id,
+        )
+    except Exception as e:
+        logger.error(
+            "kingdee_query_group_by_business_key error: %s",
+            e,
+            exc_info=True,
+        )
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text=f"按业务标识查询分组失败: {e}",
+        )])
+
+
+async def kingdee_group_delete_base_data(
+    group_pk_ids: str,
+    form_id: str = "BD_Customer",
+    group_field_key: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """企业版：基础资料分组删除（GroupDelete），默认用于客户 BD_Customer。"""
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    group_pk_ids_norm, err = _normalize_inner_id_list(group_pk_ids, "分组内码 GroupPkIds")
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "delete")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    caller = _preview_caller(ch, uid)
+    pkey = _preview_key(form_id, org_id, action="group_delete", group_field_key=group_field_key, group_pk_ids=group_pk_ids_norm)
+
+    if not execute:
+        details = {
+            "基础资料表单": form_id,
+            "分组字段": group_field_key or "(默认)",
+            "分组内码": group_pk_ids_norm,
+        }
+        _register_preview(caller, pkey)
+        return _build_write_preview("基础资料分组删除", form_id, org_id, details, warning="删除分组可能影响基础资料分类结构，请确认目标分组内码无误。")
+
+    if not _check_previewed(caller, pkey):
+        return _build_block_response("未检测到基础资料分组删除预览记录。")
+
+    try:
+        client = await _get_client()
+        result = await client.group_delete_base_data(form_id, group_field_key, group_pk_ids_norm)
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"基础资料分组删除成功 ({form_id}, 组织:{org_id})",
+            f"基础资料分组删除失败 ({form_id}, 组织:{org_id})",
+            "group_delete", form_id, target=group_pk_ids_norm,
+        )
+    except Exception as e:
+        logger.error("kingdee_group_delete_base_data error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"基础资料分组删除失败: {e}")])
+
+
+async def kingdee_create_group_under_parent(
+    name: str,
+    number: str,
+    parent_name: str = "",
+    parent_number: str = "",
+    parent_group_id: int = 0,
+    form_id: str = "BD_Customer",
+    group_field_key: str = "",
+    description: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """按父分组名称/编码新增基础资料子分组，默认用于客户 BD_Customer。
+
+    该工具内部查询父分组内码，避免 LLM 猜测 GroupPkId。
+    如果用户明确给出父分组内码，可使用 parent_group_id 直接指定。
+    """
+    parent_group_id, id_err = _normalize_int(parent_group_id, "父分组内码 parent_group_id")
+    if id_err:
+        return ToolResponse(content=[TextBlock(type="text", text=id_err)])
+    if parent_group_id < 0:
+        return ToolResponse(content=[TextBlock(type="text", text="父分组内码 parent_group_id 不能小于0。")])
+    if parent_group_id:
+        return await kingdee_group_save_base_data(
+            name=name, number=number, form_id=form_id,
+            group_field_key=group_field_key, parent_id=parent_group_id,
+            description=description, org_id=org_id, execute=execute,
+        )
+
+    if not parent_name and not parent_number:
+        return await kingdee_group_save_base_data(
+            name=name, number=number, form_id=form_id,
+            group_field_key=group_field_key, parent_id=0,
+            description=description, org_id=org_id, execute=execute,
+        )
+
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    effective_org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, effective_org_id, "query")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, effective_org_id, "save")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    try:
+        client = await _get_client()
+        group_result = await client.query_group_info(form_id, group_field_key)
+        failure_response = _build_kingdee_query_failure(f"父分组查询 {form_id}", group_result)
+        if failure_response:
+            return failure_response
+        candidates = _collect_group_candidates(group_result)
+        parent_id, match_err = _match_group(candidates, parent_name, parent_number)
+        if match_err:
+            return ToolResponse(content=[TextBlock(type="text", text=match_err)])
+        return await kingdee_group_save_base_data(
+            name=name, number=number, form_id=form_id,
+            group_field_key=group_field_key, parent_id=int(parent_id),
+            description=description, org_id=effective_org_id, execute=execute,
+        )
+    except Exception as e:
+        logger.error("kingdee_create_group_under_parent error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"按父分组新增失败: {e}")])
+
+
+async def kingdee_delete_group_by_business_key(
+    group_name: str = "",
+    group_number: str = "",
+    group_pk_id: str = "",
+    form_id: str = "BD_Customer",
+    group_field_key: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """按分组编码/名称删除基础资料分组，默认用于客户 BD_Customer。
+
+    优先使用显式分组内码；未传内码时查询分组列表并精确匹配编码或名称。
+    名称不唯一时会阻止执行并要求用户改用编码或内码。
+    """
+    group_pk_id_norm, err = _normalize_inner_id_list(group_pk_id, "分组内码 GroupPkIds", allow_empty=True)
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    if group_pk_id_norm:
+        return await kingdee_group_delete_base_data(
+            group_pk_ids=group_pk_id_norm,
+            form_id=form_id,
+            group_field_key=group_field_key,
+            org_id=org_id,
+            execute=execute,
+        )
+
+    if not group_name and not group_number:
+        return ToolResponse(content=[TextBlock(type="text", text="请提供分组编码、分组名称或分组内码。")])
+    if not _is_valid_form_id(form_id):
+        return _build_invalid_form_id_response(form_id)
+
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    effective_org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, effective_org_id, "query")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, effective_org_id, "delete")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    try:
+        client = await _get_client()
+        group_result = await client.query_group_info(form_id, group_field_key)
+        failure_response = _build_kingdee_query_failure(f"分组查询 {form_id}", group_result)
+        if failure_response:
+            return failure_response
+        candidates = _collect_group_candidates(group_result)
+        group_id, match_err = _match_group(candidates, group_name, group_number, label="分组")
+        if match_err:
+            return ToolResponse(content=[TextBlock(type="text", text=match_err)])
+        return await kingdee_group_delete_base_data(
+            group_pk_ids=group_id,
+            form_id=form_id,
+            group_field_key=group_field_key,
+            org_id=effective_org_id,
+            execute=execute,
+        )
+    except Exception as e:
+        logger.error("kingdee_delete_group_by_business_key error: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"按分组业务键删除失败: {e}")])
+
+
+async def kingdee_allocate_customers_to_orgs(
+    customer_numbers: str = "",
+    customer_names: str = "",
+    customer_ids: str = "",
+    target_org_numbers: str = "",
+    target_org_names: str = "",
+    target_org_ids: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """按客户编码/名称和组织编码/名称完成客户分配。
+
+    优先使用显式内码；未传内码时自动查询客户和组织内码。
+    """
+    return await _allocate_customers_by_business_key(
+        cancel=False,
+        customer_numbers=customer_numbers,
+        customer_names=customer_names,
+        customer_ids=customer_ids,
+        target_org_numbers=target_org_numbers,
+        target_org_names=target_org_names,
+        target_org_ids=target_org_ids,
+        org_id=org_id,
+        execute=execute,
+    )
+
+
+async def kingdee_cancel_allocate_customers_to_orgs(
+    customer_numbers: str = "",
+    customer_names: str = "",
+    customer_ids: str = "",
+    target_org_numbers: str = "",
+    target_org_names: str = "",
+    target_org_ids: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    """按客户编码/名称和组织编码/名称完成客户取消分配。"""
+    return await _allocate_customers_by_business_key(
+        cancel=True,
+        customer_numbers=customer_numbers,
+        customer_names=customer_names,
+        customer_ids=customer_ids,
+        target_org_numbers=target_org_numbers,
+        target_org_names=target_org_names,
+        target_org_ids=target_org_ids,
+        org_id=org_id,
+        execute=execute,
+    )
+
+
+async def _allocate_customers_by_business_key(
+    cancel: bool,
+    customer_numbers: str = "",
+    customer_names: str = "",
+    customer_ids: str = "",
+    target_org_numbers: str = "",
+    target_org_names: str = "",
+    target_org_ids: str = "",
+    org_id: str = "",
+    execute: bool = False,
+) -> ToolResponse:
+    form_id = "BD_Customer"
+    ch, uid = _identity()
+    pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
+    ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "allocate")
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    customer_ids_norm, err = _normalize_inner_id_list(customer_ids, "客户内码", allow_empty=True)
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+    target_org_ids_norm, err = _normalize_inner_id_list(target_org_ids, "目标组织内码", allow_empty=True)
+    if err:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
+
+    try:
+        client = await _get_client()
+        if not customer_ids_norm:
+            customer_ids_norm, err = await _resolve_master_data_ids(
+                client, "BD_Customer", "FCUSTID", "FNumber", "FName",
+                customer_numbers, customer_names, "客户",
+            )
+            if err:
+                return ToolResponse(content=[TextBlock(type="text", text=err)])
+        if not target_org_ids_norm:
+            target_org_ids_norm, err = await _resolve_org_inner_ids(
+                client, target_org_numbers, target_org_names,
+            )
+            if err:
+                return ToolResponse(content=[TextBlock(type="text", text=err)])
+    except Exception as e:
+        logger.error("resolve customer/org ids failed: %s", e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"客户或组织内码解析失败: {e}")])
+
+    caller = _preview_caller(ch, uid)
+    action = "cancel_allocate_customer" if cancel else "allocate_customer"
+    pkey = _preview_key(form_id, org_id, action=action, customer_ids=customer_ids_norm, target_org_ids=target_org_ids_norm)
+    action_label = "客户取消分配" if cancel else "客户分配"
+
+    if not execute:
+        details = {
+            "客户内码": customer_ids_norm,
+            "目标组织内码": target_org_ids_norm,
+        }
+        _register_preview(caller, pkey)
+        return _build_write_preview(action_label, form_id, org_id, details)
+
+    if not _check_previewed(caller, pkey):
+        return _build_block_response(f"未检测到{action_label}预览记录。")
+
+    try:
+        client = await _get_client()
+        if cancel:
+            result = await client.cancel_allocate_base_data(form_id, customer_ids_norm, target_org_ids_norm)
+        else:
+            result = await client.allocate_base_data(form_id, customer_ids_norm, target_org_ids_norm)
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"{action_label}成功 ({form_id}, 组织:{org_id})",
+            f"{action_label}失败 ({form_id}, 组织:{org_id})",
+            action, form_id, target=customer_ids_norm, detail=f"TOrgIds={target_org_ids_norm}",
+        )
+    except Exception as e:
+        logger.error("%s error: %s", action, e, exc_info=True)
+        return ToolResponse(content=[TextBlock(type="text", text=f"{action_label}失败: {e}")])
+
+
 async def kingdee_workflow_audit(
         form_id: str,
-        org_id: int,
-        numbers: list[str],
-        audit_result: str,
-        user_id: str,
+        org_id: str = "",
+        numbers: list[str] = None,
+        audit_result: str = "",
+        user_id: str = "",
         opinion: str = "",
         execute: bool = False
     ) -> ToolResponse:
@@ -886,14 +1924,14 @@ async def kingdee_workflow_audit(
     - 第一次调用 execute=False（默认）：仅返回操作预览，不执行审批
     - 用户确认后第二次调用 execute=True：执行实际审批
 
-    ⚠️ 防幻觉规则：
+    工具约束：
     1. 审批类型（通过/驳回/终止）必须由用户明确指定，不得自行决定
     2. 审批人user_id必须来自查询结果或用户明确提供，不得猜测
-    3. org_id必填，必须来自kingdee_list_user_orgs查询结果
+    3. org_id 可选，不传时使用当前用户的默认组织
 
     Args:
         form_id: 单据FormId（不得猜测，不确定时先调用kingdee_search_form）
-        org_id: 组织ID（必填，来自kingdee_list_user_orgs查询结果，不得编造）
+        org_id: 组织ID（可选；不传时使用当前用户的默认组织）
         numbers: 单据编号列表（必须来自查询结果或用户明确提供）
         audit_result: 审批结果（通过/驳回/终止，必须由用户明确指定）
         user_id: 审批人内码（必须来自查询结果或用户明确提供，不得猜测）
@@ -907,6 +1945,9 @@ async def kingdee_workflow_audit(
     ch, uid = _get_context()
     caller = _preview_caller(ch, uid)
     pm = await _get_perm_mgr()
+    org_id, org_err = _resolve_org(pm, ch, uid, org_id)
+    if org_err:
+        return _org_error_response(org_err)
     ok, err = check_operation_permission(pm, ch, uid, "kingdee", form_id, org_id, "workflow")
     if not ok:
         return ToolResponse(content=[TextBlock(type="text", text=err)])
@@ -935,30 +1976,59 @@ async def kingdee_workflow_audit(
         client = await _get_client()
         result = await client.workflow_audit(form_id, numbers, user_id, approval_type)
         target = ",".join(numbers)
-        await _audit(pm, ch, uid, "workflow_audit", form_id, target=target, detail=f"type={type_label}")
-        text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"工作流审批{type_label} ({form_id}, {target}):\n\n{text}{_op_tag(ch, uid)}")])
+        return await _finish_kingdee_write(
+            pm, ch, uid, result,
+            f"工作流审批{type_label}成功 ({form_id}, {target})",
+            f"工作流审批{type_label}失败 ({form_id}, {target})",
+            "workflow_audit", form_id, target=target, detail=f"type={type_label}",
+        )
     except Exception as e:
         logger.error("kingdee_workflow_audit error: %s", e, exc_info=True)
         return ToolResponse(content=[TextBlock(type="text", text=f"工作流审批失败: {e}")])
 
 
 async def kingdee_switch_org(org_number: str) -> ToolResponse:
-    """切换金蝶组织。
+    """切换并保存当前用户的默认金蝶组织。
 
     Args:
         org_number: 组织编号
     """
     ch, uid = _identity()
     logger.info("[Tool] kingdee_switch_org caller=%s:%s org=%s", ch, uid, org_number)
+    pm = await _get_perm_mgr()
+    agent_id = _agent_id()
+    context_key = make_org_context_key(ch, uid, agent_id)
+    old_org = pm.get_default_org(context_key, "kingdee")
+    ok, err = set_default_org_context(pm, ch, uid, "kingdee", org_number, agent_id)
+    if not ok:
+        return ToolResponse(content=[TextBlock(type="text", text=err)])
     try:
         client = await _get_client()
         result = await client.switch_org(org_number)
         text = json.dumps(result, ensure_ascii=False, indent=2)
-        return ToolResponse(content=[TextBlock(type="text", text=f"组织切换成功:\n\n{text}")])
+        failure = _kingdee_response_failure(result)
+        if failure:
+            if old_org:
+                pm.set_default_org(context_key, "kingdee", old_org)
+            else:
+                pm.clear_default_org(context_key, "kingdee")
+            await _audit(pm, ch, uid, "switch_org_failed", "", org_number, failure)
+            return ToolResponse(content=[TextBlock(
+                type="text",
+                text=f"切换失败：{failure}\n\n默认组织未变更。\n\n金蝶返回：\n{text}{_op_tag(ch, uid)}",
+            )])
+        await _audit(pm, ch, uid, "switch_org", "", org_number, f"设置默认组织 {org_number}")
+        return ToolResponse(content=[TextBlock(
+            type="text",
+            text=f"已将当前默认组织设置为: {org_number}\n\n后续操作如不指定 org_id，将一直使用该默认组织。\n\n{text}",
+        )])
     except Exception as e:
+        if old_org:
+            pm.set_default_org(context_key, "kingdee", old_org)
+        else:
+            pm.clear_default_org(context_key, "kingdee")
         logger.error("kingdee_switch_org error: %s", e, exc_info=True)
-        return ToolResponse(content=[TextBlock(type="text", text=f"切换失败: {e}")])
+        return ToolResponse(content=[TextBlock(type="text", text=f"切换失败: {e}\n\n默认组织未变更。")])
 
 
 # ======== 元数据工具 ========
@@ -989,6 +2059,9 @@ async def kingdee_query_metadata(form_id: str) -> ToolResponse:
 
         client = await _get_client()
         result = await client.query_business_info(form_id)
+        failure_response = _build_kingdee_query_failure(f"元数据查询 {form_id}", result)
+        if failure_response:
+            return failure_response
         text = json.dumps(result, ensure_ascii=False, indent=2)
         return ToolResponse(content=[TextBlock(type="text", text=f"表单元数据 ({form_id}):\n\n{text[:8000]}")])
     except Exception as e:
@@ -1067,8 +2140,215 @@ def _build_block_response(reason: str) -> ToolResponse:
     """构建操作被阻止的响应。"""
     return ToolResponse(content=[TextBlock(
         type="text",
-        text=f"🚫 操作已阻止：{reason}\n\n请先以 execute=False 调用获取操作预览，确认后再以 execute=True 执行。"
+        text=(
+            f"操作已阻止: {reason}\n\n"
+            "必须先以 execute=False 获取操作预览。收到明确确认后，才可以以 execute=True 执行。"
+        )
     )])
+
+
+def _normalize_inner_id_list(value, label: str, allow_empty: bool = False):
+    """Normalize comma-separated Kingdee integer ids and reject unsafe values."""
+    if value is None:
+        return ("", None) if allow_empty else ("", f"{label}不能为空。")
+    if isinstance(value, (list, tuple, set)):
+        raw_items = [str(v).strip() for v in value]
+    else:
+        raw_items = [item.strip() for item in str(value).split(",")]
+
+    items = [item for item in raw_items if item]
+    if not items:
+        return ("", None) if allow_empty else ("", f"{label}不能为空。")
+    if not all(item.isdigit() for item in items):
+        return "", f"{label}只能包含数字内码，多个内码用英文逗号分隔。"
+    if not allow_empty and all(int(item) == 0 for item in items):
+        return "", f"{label}不能为0，必须使用真实内码。"
+    return ",".join(items), None
+
+
+def _normalize_int(value, label: str, default: int = 0):
+    if value in (None, ""):
+        return default, None
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default, f"{label}必须是整数。"
+    if parsed < 0:
+        return default, f"{label}不能小于0。"
+    return parsed, None
+
+
+def _split_values(value) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        raw_items = [str(v).strip() for v in value]
+    else:
+        raw_items = [item.strip() for item in str(value).split(",")]
+    return [item for item in raw_items if item]
+
+
+def _quote_kd(value: str) -> str:
+    return "'" + str(value).replace("'", "''") + "'"
+
+
+def _build_exact_filter(number_field: str, numbers: list[str], name_field: str = "", names: list[str] = "") -> str:
+    clauses = []
+    if numbers:
+        clauses.append(f"{number_field} IN ({','.join(_quote_kd(v) for v in numbers)})")
+    if name_field and names:
+        clauses.append(f"{name_field} IN ({','.join(_quote_kd(v) for v in names)})")
+    return " OR ".join(f"({c})" for c in clauses)
+
+
+def _as_json_obj(value):
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (TypeError, ValueError):
+            return value
+    return value
+
+
+def _walk_json(value):
+    value = _as_json_obj(value)
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from _walk_json(child)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _walk_json(item)
+
+
+def _first_dict_value(data: dict, keys: tuple[str, ...]):
+    lower_map = {str(k).lower(): v for k, v in data.items()}
+    for key in keys:
+        if key in data:
+            return data[key]
+        if key.lower() in lower_map:
+            return lower_map[key.lower()]
+    return ""
+
+
+def _collect_group_candidates(result) -> list[dict]:
+    candidates = []
+    root = _as_json_obj(result)
+    if isinstance(root, dict) and "Result" in root:
+        root = root["Result"]
+    if isinstance(root, dict) and "NeedReturnData" in root:
+        root = _as_json_obj(root["NeedReturnData"])
+
+    for item in _walk_json(root):
+        group_id = _first_dict_value(item, ("GroupPkId", "FGroupId", "FGroupID", "FId", "FID", "Id", "id"))
+        name = _first_dict_value(item, ("FName", "Name", "name", "GroupName", "groupName"))
+        number = _first_dict_value(item, ("FNumber", "Number", "number", "GroupNumber", "groupNumber"))
+        if group_id or name or number:
+            candidates.append({
+                "id": str(group_id) if group_id not in (None, "") else "",
+                "name": str(name) if name not in (None, "") else "",
+                "number": str(number) if number not in (None, "") else "",
+            })
+    return candidates
+
+
+def _match_group(candidates: list[dict], parent_name: str = "", parent_number: str = "", label: str = "父分组"):
+    parent_name = (parent_name or "").strip()
+    parent_number = (parent_number or "").strip()
+    matches = []
+    for item in candidates:
+        if parent_number:
+            if item["number"] == parent_number:
+                matches.append(item)
+        elif parent_name and item["name"] == parent_name:
+            matches.append(item)
+    matches = [m for m in matches if m.get("id")]
+    if not matches:
+        return "", f"未找到匹配的{label}。"
+    unique = {m["id"]: m for m in matches}
+    if len(unique) > 1:
+        rows = [[m["id"], m.get("number", ""), m.get("name", "")] for m in unique.values()]
+        return "", f"{label}匹配到多条，请指定分组编码或分组内码：\n\n" + _fmt_table(["分组内码", "编码", "名称"], rows)
+    return next(iter(unique.values()))["id"], None
+
+
+async def _resolve_master_data_ids(
+    client, form_id: str, id_field: str, number_field: str, name_field: str,
+    numbers, names, label: str,
+):
+    number_values = _split_values(numbers)
+    name_values = _split_values(names)
+    if not number_values and not name_values:
+        return "", f"请提供{label}编码、名称或内码。"
+
+    filter_string = _build_exact_filter(number_field, number_values, name_field, name_values)
+    field_keys = f"{id_field},{number_field},{name_field}"
+    rows = await client.execute_bill_query(
+        form_id, field_keys, filter_string=filter_string,
+        top_row_count=max(100, len(number_values) + len(name_values) + 20),
+        use_cache=False,
+    )
+    failure = _kingdee_response_failure(rows)
+    if failure:
+        return "", f"{label}查询失败：{failure}"
+    if not isinstance(rows, list):
+        return "", f"{label}查询失败：金蝶返回格式不是列表，无法解析内码。"
+
+    by_number = {str(row[1]): row for row in rows if len(row) >= 3}
+    by_name: dict[str, list] = {}
+    for row in rows:
+        if len(row) >= 3:
+            by_name.setdefault(str(row[2]), []).append(row)
+
+    selected = []
+    missing = []
+    ambiguous = []
+    for number in number_values:
+        row = by_number.get(number)
+        if row:
+            selected.append(row)
+        else:
+            missing.append(f"编码 {number}")
+    for name in name_values:
+        rows_for_name = by_name.get(name, [])
+        if len(rows_for_name) == 1:
+            selected.append(rows_for_name[0])
+        elif len(rows_for_name) > 1:
+            ambiguous.append(name)
+        else:
+            missing.append(f"名称 {name}")
+
+    if missing:
+        return "", f"未找到{label}: {', '.join(missing)}。"
+    if ambiguous:
+        return "", f"{label}名称不唯一，请改用编码: {', '.join(ambiguous)}。"
+
+    ids = []
+    seen = set()
+    for row in selected:
+        item_id = str(row[0])
+        if item_id and item_id not in seen:
+            ids.append(item_id)
+            seen.add(item_id)
+    if not ids:
+        return "", f"未解析到{label}内码。"
+    return ",".join(ids), None
+
+
+async def _resolve_org_inner_ids(client, org_numbers, org_names):
+    errors = []
+    for form_id, id_field in (("ORG_Organizations", "FORGID"), ("BD_Org", "FORGID")):
+        try:
+            ids, err = await _resolve_master_data_ids(
+                client, form_id, id_field, "FNumber", "FName",
+                org_numbers, org_names, "目标组织",
+            )
+            if not err:
+                return ids, None
+            errors.append(err)
+        except Exception as e:
+            errors.append(f"{form_id}: {e}")
+    return "", "目标组织内码解析失败：" + "；".join(errors)
 
 
 # ── FormId 白名单校验 ───────────────────────────────────────────────────
@@ -1134,8 +2414,10 @@ def _build_invalid_form_id_response(form_id: str) -> ToolResponse:
     """构建 FormId 不合法的响应。"""
     return ToolResponse(content=[TextBlock(
         type="text",
-        text=f"🚫 表单ID '{form_id}' 不合法：系统中不存在此表单。\n\n"
-             f"请使用 kingdee_query_metadata 工具查询有效的表单ID，不要猜测或编造。"
+        text=(
+            f"表单ID '{form_id}' 不合法: 系统中不存在此表单。\n\n"
+            "必须使用 kingdee_search_form 或 kingdee_query_metadata 获取有效 FormId 后再执行。"
+        )
     )])
 
 
@@ -1143,9 +2425,9 @@ def _build_invalid_form_id_response(form_id: str) -> ToolResponse:
 # 防止模型对空结果编造回答
 
 EMPTY_RESULT_SUFFIX = (
-    "\n\n⚠️ 系统中未找到匹配数据，请核实查询条件。"
-    "不要基于此空结果编造或推测任何数据内容。"
-    "如需调整查询条件请重新调用查询工具。"
+    "\n\n系统中未找到匹配数据。"
+    "该结果不得作为已有业务数据处理。"
+    "如需调整查询条件，必须重新调用查询工具。"
 )
 
 async def kingdee_search_form(keyword: str) -> ToolResponse:
@@ -1251,10 +2533,10 @@ async def kingdee_product_qa(
 
     if not token:
         return ToolResponse(content=[TextBlock(type="text", text=(
-            "未配置金蝶云社区 Token。请按以下步骤获取：\n"
+            "未配置金蝶云社区 Token。配置步骤：\n"
             "1. 访问 https://vip.kingdee.com 并登录\n"
-            "2. 点击右上角头像 → 个人主页 → 编辑资料\n"
-            "3. 找到「个人访问令牌」区域 → 新建令牌\n"
+            "2. 进入右上角头像 -> 个人主页 -> 编辑资料\n"
+            "3. 找到「个人访问令牌」区域 -> 新建令牌\n"
             "4. 复制 token（格式如 kdt_xxxxxxxx...）\n"
             "5. 在连接配置中填写「金蝶云社区 Token」"
         ))])
@@ -1367,7 +2649,7 @@ async def kingdee_product_qa(
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
             return ToolResponse(content=[TextBlock(type="text", text=(
-                "Token 无效 or 已过期。请重新提供有效的 token。"
+                "Token 无效或已过期。请重新提供有效的 token。"
             ))])
         return ToolResponse(content=[TextBlock(type="text", text=f"请求失败: HTTP {e.code}")])
     except urllib.error.URLError as e:
@@ -1387,12 +2669,12 @@ async def kingdee_list_digest_templates(template_id: str = "") -> ToolResponse:
                 return ToolResponse(content=[TextBlock(type="text", text=f"未找到模板 ID 为 '{template_id}' 的报表模板。")])
             
             lines = [
-                f"### 📋 报表模板详情：{tpl['name']} ({tpl['id']})",
+                f"### 报表模板详情: {tpl['name']} ({tpl['id']})",
                 f"- **说明**: {tpl['description']}",
                 f"- **执行周期 (Cron)**: `{tpl['cron']}`",
                 f"- **相关表单 (FormId)**: `{tpl['form_id']}`",
                 "",
-                "**提示词模板 (Prompt Template)：**",
+                "**提示词模板:**",
                 "```text",
                 tpl['prompt'],
                 "```"
@@ -1401,8 +2683,8 @@ async def kingdee_list_digest_templates(template_id: str = "") -> ToolResponse:
         else:
             templates = list_templates()
             lines = [
-                "### 📋 可用的高管报表摘要模板",
-                "在为高管生成定时或即时报表时，您可以参考以下模板。通过传入 `template_id` 参数可查看单个模板的详细提示词。",
+                "### 可用的高管报表摘要模板",
+                "传入 `template_id` 参数可查看单个模板的完整提示词。",
                 "",
                 "| 模板 ID | 报表名称 | 执行周期 | 相关表单 | 说明 |",
                 "| :--- | :--- | :--- | :--- | :--- |"

@@ -1,0 +1,1415 @@
+{
+  "timestamp": "2026-06-07T20:35:37",
+  "base_url": "http://127.0.0.1:8089",
+  "user_id": "uat-user-273484c2",
+  "channel": "console",
+  "duration_seconds": 285.2,
+  "total": 25,
+  "passed": 25,
+  "failed": 0,
+  "pass_rate": 100.0,
+  "results": [
+    {
+      "name": "Agent 注册列表",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 16,
+      "detail": "全部 ERP Agent 已注册",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents"
+      },
+      "response": {
+        "agents": [
+          {
+            "id": "default",
+            "name": "Default",
+            "description": "default agent | - **名字：** *（挑个你喜欢的）* - **定位：** *（AI？机器人？使魔？机器里的幽灵？还是更怪的？）* - **风格：** *（你给人什么感觉？犀利？温暖？混乱？冷静？）* - **其他** *（用户设置的其他内容）*",
+            "workspace_dir": "/app/working/workspaces/default",
+            "enabled": true,
+            "active_model": {
+              "provider_id": "local",
+              "model": "deepseek-v4-flash-free"
+            }
+          },
+          {
+            "id": "StarMind_QA_Agent_0.2",
+            "name": "QA Agent",
+            "description": "Builtin Q&A helper for QwenPaw setup, local config under QWENPAW_WORKING_DIR, and documentation. Prefer reading files before answering; use absolute paths for code outside this workspace. | - **名字：** QA Agent（内置问答助手） - **定位：** QwenPaw 官方内置 agent，专门处理与 QwenPaw 相关的问答 - **风格：** 清晰、克制、以文档与本地配置为准；少套话，多可核实的内容 - **Agent ID：** `QwenPaw_QA_Agent_0.2`（多 agent 系统中的固定标识）",
+            "workspace_dir": "/app/working/workspaces/StarMind_QA_Agent_0.2",
+            "enabled": true,
+            "active_model": null
+          },
+          {
+            "id": "erp-finance",
+            "name": "财务助手",
+            "description": "**ERP-Finance**：稳定 Agent ID 为 `erp-finance`。负责金蝶云星空财务域数据查询与操作，覆盖总账、应收、应付、固定资产、发票、费用报销、报表等模块，权限域映射为 `finance → [GL_, AR_, AP_, FA_, IV_, ER_, CA_, CB_, CR_, GFS_, GLR_, HS_, KPI_]`。",
+            "workspace_dir": "/app/working/workspaces/erp-finance",
+            "enabled": true,
+            "active_model": {
+              "provider_id": "local",
+              "model": "deepseek-v4-flash-free"
+            }
+          },
+          {
+            "id": "erp-sales",
+            "name": "销售助手",
+            "description": "**ERP-Sales**：稳定 Agent ID 为 `erp-sales`。负责金蝶云星空销售域数据查询与操作，覆盖销售订单、出库、退货、报价、合同、价目表、CRM、分销等业务，权限域映射为 `sales → [SAL_, CRM_, DRP_, CMK_, ECC_, SPT_, SCM_]`。",
+            "workspace_dir": "/app/working/workspaces/erp-sales",
+            "enabled": true,
+            "active_model": {
+              "provider_id": "local",
+              "model": "deepseek-v4-flash-free"
+            }
+          },
+          {
+            "id": "erp-inventory",
+            "name": "库存助手",
+            "description": "**ERP-Inventory**：稳定 Agent ID 为 `erp-inventory`。负责金蝶云星空库存域数据查询与操作，覆盖入库、出库、调拨、即时库存、物料管理、质量管理等业务，权限域映射为 `inventory → [STK_, QM_, QT_]`。",
+            "workspace_dir": "/app/working/workspaces/erp-inventory",
+            "enabled": true,
+            "active_model": {
+              "provider_id": "local",
+              "model": "deepseek-v4-flash-free"
+            }
+          },
+          {
+            "id": "erp-purchase",
+            "name": "采购助手",
+            "description": "**ERP-Purchase**：稳定 Agent ID 为 `erp-purchase`。负责金蝶云星空采购域数据查询与操作，覆盖采购申请、采购订单、收料通知、供应商管理、VMI等业务，权限域映射为 `procurement → [PUR_, SCP_, SVM_, SCM_]`。",
+            "workspace_dir": "/app/working/workspaces/erp-purchase",
+            "enabled": true,
+            "active_model": {
+              "provider_id": "local",
+              "model": "deepseek-v4-flash-free"
+            }
+          },
+          {
+            "id": "erp-executive",
+            "name": "高管决策助手",
+            "description": "**ERP-Executive**：稳定 Agent ID 为 `erp-executive`。负责为企业管理层提供经营数据分析和决策支持，整合财务、销售、库存、采购等多维度数据，权限域为全部（管理层可查看全量数据）。",
+            "workspace_dir": "/app/working/workspaces/erp-executive",
+            "enabled": true,
+            "active_model": {
+              "provider_id": "local",
+              "model": "deepseek-v4-flash-free"
+            }
+          }
+        ]
+      },
+      "evidence": {
+        "agent_ids": [
+          "default",
+          "StarMind_QA_Agent_0.2",
+          "erp-finance",
+          "erp-sales",
+          "erp-inventory",
+          "erp-purchase",
+          "erp-executive"
+        ]
+      }
+    },
+    {
+      "name": "default 工具注册",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 9,
+      "detail": "默认 Agent 具备路由工具",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents/default/tools"
+      },
+      "response": {
+        "tool_count": 56,
+        "erp_enabled_count": 31
+      },
+      "evidence": {
+        "enabled_erp_tools": [
+          "kingdee_list_user_orgs",
+          "kingdee_query_bill",
+          "kingdee_view_bill",
+          "kingdee_get_report",
+          "kingdee_get_kds_report",
+          "kingdee_save_bill",
+          "kingdee_delete_bill",
+          "kingdee_submit_bill",
+          "kingdee_audit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_push_bill",
+          "kingdee_execute_operation",
+          "kingdee_workflow_audit",
+          "kingdee_switch_org",
+          "kingdee_query_metadata",
+          "kingdee_search_form",
+          "kingdee_product_qa",
+          "kingdee_list_digest_templates",
+          "erp_unified_query",
+          "erp_compare_data",
+          "kingdee_allocate_base_data",
+          "kingdee_cancel_allocate_base_data",
+          "kingdee_group_save_base_data",
+          "kingdee_query_group_info",
+          "kingdee_group_delete_base_data",
+          "kingdee_create_group_under_parent",
+          "kingdee_allocate_customers_to_orgs",
+          "kingdee_cancel_allocate_customers_to_orgs",
+          "kingdee_delete_recent_entity",
+          "kingdee_delete_group_by_business_key",
+          "kingdee_query_group_by_business_key"
+        ],
+        "tool_names_sample": [
+          "execute_shell_command",
+          "read_file",
+          "write_file",
+          "edit_file",
+          "grep_search",
+          "glob_search",
+          "browser_use",
+          "desktop_screenshot",
+          "view_image",
+          "view_video",
+          "send_file_to_user",
+          "get_current_time",
+          "set_user_timezone",
+          "get_token_usage",
+          "delegate_external_agent",
+          "list_agents",
+          "chat_with_agent",
+          "submit_to_agent",
+          "check_agent_task",
+          "spawn_subagent"
+        ]
+      }
+    },
+    {
+      "name": "erp-finance 工具注册",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 28,
+      "detail": "ERP 工具完整启用且描述无表情符号",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents/erp-finance/tools"
+      },
+      "response": {
+        "tool_count": 56,
+        "erp_enabled_count": 31
+      },
+      "evidence": {
+        "enabled_erp_tools": [
+          "kingdee_query_bill",
+          "kingdee_view_bill",
+          "kingdee_get_report",
+          "kingdee_get_kds_report",
+          "kingdee_query_metadata",
+          "kingdee_search_form",
+          "kingdee_list_user_orgs",
+          "kingdee_save_bill",
+          "kingdee_delete_bill",
+          "kingdee_submit_bill",
+          "kingdee_audit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_push_bill",
+          "kingdee_execute_operation",
+          "kingdee_switch_org",
+          "kingdee_workflow_audit",
+          "kingdee_product_qa",
+          "kingdee_list_digest_templates",
+          "erp_unified_query",
+          "erp_compare_data",
+          "kingdee_allocate_base_data",
+          "kingdee_cancel_allocate_base_data",
+          "kingdee_group_save_base_data",
+          "kingdee_query_group_info",
+          "kingdee_group_delete_base_data",
+          "kingdee_create_group_under_parent",
+          "kingdee_allocate_customers_to_orgs",
+          "kingdee_cancel_allocate_customers_to_orgs",
+          "kingdee_delete_recent_entity",
+          "kingdee_delete_group_by_business_key",
+          "kingdee_query_group_by_business_key"
+        ],
+        "tool_names_sample": [
+          "execute_shell_command",
+          "read_file",
+          "write_file",
+          "edit_file",
+          "grep_search",
+          "glob_search",
+          "browser_use",
+          "desktop_screenshot",
+          "view_image",
+          "view_video",
+          "send_file_to_user",
+          "get_current_time",
+          "set_user_timezone",
+          "get_token_usage",
+          "delegate_external_agent",
+          "list_agents",
+          "chat_with_agent",
+          "submit_to_agent",
+          "check_agent_task",
+          "spawn_subagent"
+        ]
+      }
+    },
+    {
+      "name": "erp-sales 工具注册",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 30,
+      "detail": "ERP 工具完整启用且描述无表情符号",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents/erp-sales/tools"
+      },
+      "response": {
+        "tool_count": 56,
+        "erp_enabled_count": 31
+      },
+      "evidence": {
+        "enabled_erp_tools": [
+          "kingdee_query_bill",
+          "kingdee_view_bill",
+          "kingdee_get_report",
+          "kingdee_get_kds_report",
+          "kingdee_query_metadata",
+          "kingdee_search_form",
+          "kingdee_list_user_orgs",
+          "kingdee_save_bill",
+          "kingdee_delete_bill",
+          "kingdee_submit_bill",
+          "kingdee_audit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_push_bill",
+          "kingdee_execute_operation",
+          "kingdee_switch_org",
+          "kingdee_workflow_audit",
+          "kingdee_product_qa",
+          "kingdee_list_digest_templates",
+          "erp_unified_query",
+          "erp_compare_data",
+          "kingdee_allocate_base_data",
+          "kingdee_cancel_allocate_base_data",
+          "kingdee_group_save_base_data",
+          "kingdee_query_group_info",
+          "kingdee_group_delete_base_data",
+          "kingdee_create_group_under_parent",
+          "kingdee_allocate_customers_to_orgs",
+          "kingdee_cancel_allocate_customers_to_orgs",
+          "kingdee_delete_recent_entity",
+          "kingdee_delete_group_by_business_key",
+          "kingdee_query_group_by_business_key"
+        ],
+        "tool_names_sample": [
+          "execute_shell_command",
+          "read_file",
+          "write_file",
+          "edit_file",
+          "grep_search",
+          "glob_search",
+          "browser_use",
+          "desktop_screenshot",
+          "view_image",
+          "view_video",
+          "send_file_to_user",
+          "get_current_time",
+          "set_user_timezone",
+          "get_token_usage",
+          "delegate_external_agent",
+          "list_agents",
+          "chat_with_agent",
+          "submit_to_agent",
+          "check_agent_task",
+          "spawn_subagent"
+        ]
+      }
+    },
+    {
+      "name": "erp-purchase 工具注册",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 22,
+      "detail": "ERP 工具完整启用且描述无表情符号",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents/erp-purchase/tools"
+      },
+      "response": {
+        "tool_count": 56,
+        "erp_enabled_count": 31
+      },
+      "evidence": {
+        "enabled_erp_tools": [
+          "kingdee_query_bill",
+          "kingdee_view_bill",
+          "kingdee_get_report",
+          "kingdee_get_kds_report",
+          "kingdee_query_metadata",
+          "kingdee_search_form",
+          "kingdee_list_user_orgs",
+          "kingdee_save_bill",
+          "kingdee_delete_bill",
+          "kingdee_submit_bill",
+          "kingdee_audit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_push_bill",
+          "kingdee_execute_operation",
+          "kingdee_switch_org",
+          "kingdee_workflow_audit",
+          "kingdee_product_qa",
+          "kingdee_list_digest_templates",
+          "erp_unified_query",
+          "erp_compare_data",
+          "kingdee_allocate_base_data",
+          "kingdee_cancel_allocate_base_data",
+          "kingdee_group_save_base_data",
+          "kingdee_query_group_info",
+          "kingdee_group_delete_base_data",
+          "kingdee_create_group_under_parent",
+          "kingdee_allocate_customers_to_orgs",
+          "kingdee_cancel_allocate_customers_to_orgs",
+          "kingdee_delete_recent_entity",
+          "kingdee_delete_group_by_business_key",
+          "kingdee_query_group_by_business_key"
+        ],
+        "tool_names_sample": [
+          "execute_shell_command",
+          "read_file",
+          "write_file",
+          "edit_file",
+          "grep_search",
+          "glob_search",
+          "browser_use",
+          "desktop_screenshot",
+          "view_image",
+          "view_video",
+          "send_file_to_user",
+          "get_current_time",
+          "set_user_timezone",
+          "get_token_usage",
+          "delegate_external_agent",
+          "list_agents",
+          "chat_with_agent",
+          "submit_to_agent",
+          "check_agent_task",
+          "spawn_subagent"
+        ]
+      }
+    },
+    {
+      "name": "erp-inventory 工具注册",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 21,
+      "detail": "ERP 工具完整启用且描述无表情符号",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents/erp-inventory/tools"
+      },
+      "response": {
+        "tool_count": 56,
+        "erp_enabled_count": 31
+      },
+      "evidence": {
+        "enabled_erp_tools": [
+          "kingdee_query_bill",
+          "kingdee_view_bill",
+          "kingdee_get_report",
+          "kingdee_get_kds_report",
+          "kingdee_query_metadata",
+          "kingdee_search_form",
+          "kingdee_list_user_orgs",
+          "kingdee_save_bill",
+          "kingdee_delete_bill",
+          "kingdee_submit_bill",
+          "kingdee_audit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_push_bill",
+          "kingdee_execute_operation",
+          "kingdee_switch_org",
+          "kingdee_workflow_audit",
+          "kingdee_product_qa",
+          "kingdee_list_digest_templates",
+          "erp_unified_query",
+          "erp_compare_data",
+          "kingdee_allocate_base_data",
+          "kingdee_cancel_allocate_base_data",
+          "kingdee_group_save_base_data",
+          "kingdee_query_group_info",
+          "kingdee_group_delete_base_data",
+          "kingdee_create_group_under_parent",
+          "kingdee_allocate_customers_to_orgs",
+          "kingdee_cancel_allocate_customers_to_orgs",
+          "kingdee_delete_recent_entity",
+          "kingdee_delete_group_by_business_key",
+          "kingdee_query_group_by_business_key"
+        ],
+        "tool_names_sample": [
+          "execute_shell_command",
+          "read_file",
+          "write_file",
+          "edit_file",
+          "grep_search",
+          "glob_search",
+          "browser_use",
+          "desktop_screenshot",
+          "view_image",
+          "view_video",
+          "send_file_to_user",
+          "get_current_time",
+          "set_user_timezone",
+          "get_token_usage",
+          "delegate_external_agent",
+          "list_agents",
+          "chat_with_agent",
+          "submit_to_agent",
+          "check_agent_task",
+          "spawn_subagent"
+        ]
+      }
+    },
+    {
+      "name": "erp-executive 工具注册",
+      "category": "agent_registration",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 22,
+      "detail": "ERP 工具完整启用且描述无表情符号",
+      "request": {
+        "method": "GET",
+        "path": "/api/agents/erp-executive/tools"
+      },
+      "response": {
+        "tool_count": 56,
+        "erp_enabled_count": 31
+      },
+      "evidence": {
+        "enabled_erp_tools": [
+          "kingdee_query_bill",
+          "kingdee_view_bill",
+          "kingdee_get_report",
+          "kingdee_get_kds_report",
+          "kingdee_query_metadata",
+          "kingdee_search_form",
+          "kingdee_list_user_orgs",
+          "kingdee_save_bill",
+          "kingdee_delete_bill",
+          "kingdee_submit_bill",
+          "kingdee_audit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_push_bill",
+          "kingdee_execute_operation",
+          "kingdee_switch_org",
+          "kingdee_workflow_audit",
+          "kingdee_product_qa",
+          "kingdee_list_digest_templates",
+          "erp_unified_query",
+          "erp_compare_data",
+          "kingdee_allocate_base_data",
+          "kingdee_cancel_allocate_base_data",
+          "kingdee_group_save_base_data",
+          "kingdee_query_group_info",
+          "kingdee_group_delete_base_data",
+          "kingdee_create_group_under_parent",
+          "kingdee_allocate_customers_to_orgs",
+          "kingdee_cancel_allocate_customers_to_orgs",
+          "kingdee_delete_recent_entity",
+          "kingdee_delete_group_by_business_key",
+          "kingdee_query_group_by_business_key"
+        ],
+        "tool_names_sample": [
+          "execute_shell_command",
+          "read_file",
+          "write_file",
+          "edit_file",
+          "grep_search",
+          "glob_search",
+          "browser_use",
+          "desktop_screenshot",
+          "view_image",
+          "view_video",
+          "send_file_to_user",
+          "get_current_time",
+          "set_user_timezone",
+          "get_token_usage",
+          "delegate_external_agent",
+          "list_agents",
+          "chat_with_agent",
+          "submit_to_agent",
+          "check_agent_task",
+          "spawn_subagent"
+        ]
+      }
+    },
+    {
+      "name": "权限创建",
+      "category": "permission_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 22,
+      "detail": "已为 UAT 用户创建两个组织权限",
+      "request": [
+        {
+          "key": "console:uat-user-273484c2",
+          "org_id": "100",
+          "display_name": "UAT 用户组织 100",
+          "domains": [
+            "sales",
+            "purchase",
+            "inventory",
+            "finance"
+          ],
+          "role": "admin",
+          "operations": [
+            "query",
+            "save",
+            "delete",
+            "submit",
+            "audit",
+            "unaudit",
+            "push",
+            "allocate",
+            "execute",
+            "workflow"
+          ]
+        },
+        {
+          "key": "console:uat-user-273484c2",
+          "org_id": "200",
+          "display_name": "UAT 用户组织 200",
+          "domains": [
+            "sales",
+            "purchase"
+          ],
+          "role": "operator",
+          "operations": [
+            "query",
+            "save",
+            "allocate"
+          ]
+        }
+      ],
+      "response": [
+        {
+          "status": "ok",
+          "key": "console:uat-user-273484c2",
+          "org_id": "100",
+          "role": "admin"
+        },
+        {
+          "status": "ok",
+          "key": "console:uat-user-273484c2",
+          "org_id": "200",
+          "role": "operator"
+        }
+      ],
+      "evidence": {}
+    },
+    {
+      "name": "权限查询",
+      "category": "permission_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 6,
+      "detail": "查询到组织权限: ['100', '200']",
+      "request": {
+        "method": "GET",
+        "key": "console:uat-user-273484c2"
+      },
+      "response": {
+        "items": [
+          {
+            "key": "console:uat-user-273484c2",
+            "display_name": "UAT 用户组织 100",
+            "org_id": "100",
+            "domains": [
+              "sales",
+              "purchase",
+              "inventory",
+              "finance"
+            ],
+            "access": "readonly",
+            "role": "admin",
+            "operations": [
+              "query",
+              "save",
+              "delete",
+              "submit",
+              "audit",
+              "unaudit",
+              "push",
+              "allocate",
+              "execute",
+              "workflow"
+            ],
+            "org_name": "100"
+          },
+          {
+            "key": "console:uat-user-273484c2",
+            "display_name": "UAT 用户组织 200",
+            "org_id": "200",
+            "domains": [
+              "sales",
+              "purchase"
+            ],
+            "access": "readonly",
+            "role": "operator",
+            "operations": [
+              "query",
+              "save",
+              "allocate"
+            ],
+            "org_name": "200"
+          }
+        ]
+      },
+      "evidence": {}
+    },
+    {
+      "name": "用户操作权限查询",
+      "category": "permission_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 6,
+      "detail": "sales/100 操作码: ['query', 'save', 'delete', 'submit', 'audit', 'unaudit', 'push', 'allocate', 'execute', 'workflow']",
+      "request": {
+        "method": "GET",
+        "path": "/api/erp-permissions/console:uat-user-273484c2/operations"
+      },
+      "response": {
+        "key": "console:uat-user-273484c2",
+        "org_id": "100",
+        "domain": "sales",
+        "operations": [
+          "query",
+          "save",
+          "delete",
+          "submit",
+          "audit",
+          "unaudit",
+          "push",
+          "allocate",
+          "execute",
+          "workflow"
+        ]
+      },
+      "evidence": {}
+    },
+    {
+      "name": "默认组织按 Agent 隔离",
+      "category": "permission_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 40,
+      "detail": "读取结果: {'erp-sales': '100', 'erp-purchase': '200'}",
+      "request": [
+        [
+          "erp-sales",
+          "100"
+        ],
+        [
+          "erp-purchase",
+          "200"
+        ]
+      ],
+      "response": {
+        "writes": [
+          {
+            "agent_id": "erp-sales",
+            "status": 200,
+            "data": {
+              "status": "ok",
+              "channel": "console",
+              "user_id": "uat-user-273484c2",
+              "agent_id": "erp-sales",
+              "context_key": "agent=erp-sales|channel=console|user=uat-user-273484c2",
+              "system_name": "kingdee",
+              "org_id": "100",
+              "org_name": "100"
+            }
+          },
+          {
+            "agent_id": "erp-purchase",
+            "status": 200,
+            "data": {
+              "status": "ok",
+              "channel": "console",
+              "user_id": "uat-user-273484c2",
+              "agent_id": "erp-purchase",
+              "context_key": "agent=erp-purchase|channel=console|user=uat-user-273484c2",
+              "system_name": "kingdee",
+              "org_id": "200",
+              "org_name": "200"
+            }
+          }
+        ],
+        "reads": [
+          {
+            "agent_id": "erp-sales",
+            "status": 200,
+            "data": {
+              "channel": "console",
+              "user_id": "uat-user-273484c2",
+              "agent_id": "erp-sales",
+              "context_key": "agent=erp-sales|channel=console|user=uat-user-273484c2",
+              "system_name": "kingdee",
+              "org_id": "100",
+              "org_name": "100"
+            }
+          },
+          {
+            "agent_id": "erp-purchase",
+            "status": 200,
+            "data": {
+              "channel": "console",
+              "user_id": "uat-user-273484c2",
+              "agent_id": "erp-purchase",
+              "context_key": "agent=erp-purchase|channel=console|user=uat-user-273484c2",
+              "system_name": "kingdee",
+              "org_id": "200",
+              "org_name": "200"
+            }
+          }
+        ]
+      },
+      "evidence": {
+        "org_by_agent": {
+          "erp-sales": "100",
+          "erp-purchase": "200"
+        }
+      }
+    },
+    {
+      "name": "WebUI/Console 默认不绕过未授权组织",
+      "category": "permission_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 7,
+      "detail": "未授权组织被拒绝",
+      "request": {
+        "org_id": "999",
+        "channel": "console",
+        "user_id": "uat-user-273484c2",
+        "agent_id": "erp-sales"
+      },
+      "response": {
+        "status": "error",
+        "message": "您没有组织 999 的权限（身份: console:uat-user-273484c2）。\n您有权限的组织: 100, 200\n管理员联系方式: admin@company.com",
+        "channel": "console",
+        "user_id": "uat-user-273484c2",
+        "agent_id": "erp-sales",
+        "context_key": "agent=erp-sales|channel=console|user=uat-user-273484c2"
+      },
+      "evidence": {}
+    },
+    {
+      "name": "默认 Agent 销售路由",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 49093,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "default",
+        "session_id": "uat-203052-route-sales",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "查询最近 3 条销售订单，列出单号、客户、日期。",
+        "expected_keywords": [
+          "erp-sales",
+          "销售",
+          "chat_with_agent",
+          "权限",
+          "组织",
+          "金蝶"
+        ]
+      },
+      "response": "erp-sales 尚未配置组织权限。我直接通过金蝶工具查询。**阻断原因**：金蝶连接配置不完整，缺少账套ID、用户名、应用ID、应用密钥等必填项，无法连接到金蝶系统执行查询。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补齐金蝶云星空的连接信息（账套ID、用户名、应用ID、应用密钥），配置完成后即可查询销售订单数据。",
+      "evidence": {
+        "event_count": 249,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "chat_with_agent",
+          "kingdee_list_user_orgs",
+          "kingdee_query_bill",
+          "kingdee_query_metadata"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "默认 Agent 采购路由",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 27055,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "default",
+        "session_id": "uat-203052-route-purchase",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "查询最近 3 条采购订单，列出单号、供应商、日期。",
+        "expected_keywords": [
+          "erp-purchase",
+          "采购",
+          "chat_with_agent",
+          "权限",
+          "组织",
+          "金蝶"
+        ]
+      },
+      "response": "采购助手需要确认一个信息：\n\n请提供您要查询的**采购组织编号或名称**，以便查询最近 3 条采购订单。",
+      "evidence": {
+        "event_count": 74,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "chat_with_agent"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": false
+      }
+    },
+    {
+      "name": "默认 Agent 库存路由",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 64046,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "default",
+        "session_id": "uat-203052-route-inventory",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "查询物料 M001 的即时库存。",
+        "expected_keywords": [
+          "erp-inventory",
+          "库存",
+          "chat_with_agent",
+          "权限",
+          "组织",
+          "金蝶"
+        ]
+      },
+      "response": "当前系统有组织权限可用。我来直接查询物料 M001 的即时库存。当前金蝶系统的连接配置不完整，缺少账套ID、用户名、应用ID和应用密钥等必填项，无法查询即时库存数据。\n\n**阻断原因**：金蝶连接配置不完整，缺少账套ID、用户名、应用ID、应用密钥。\n\n**下一步动作**：请在 QwenPaw WebUI 管理页面的 ERP 连接配置中补充完整的金蝶连接信息（账套ID、用户名、应用ID、应用密钥）后重试。",
+      "evidence": {
+        "event_count": 208,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "chat_with_agent",
+          "kingdee_list_user_orgs",
+          "kingdee_query_bill",
+          "kingdee_query_metadata",
+          "kingdee_search_form"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "销售 Agent 查询闭环",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 13700,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-sales-query",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "查询最近 3 条销售订单，列出单号、客户、日期。",
+        "expected_keywords": [
+          "SAL_SaleOrder",
+          "销售",
+          "组织",
+          "权限",
+          "配置",
+          "查询"
+        ]
+      },
+      "response": "**阻断原因**：金蝶连接配置不完整，缺少账套ID(acct_id)、用户名(user_name)、应用ID(app_id)、应用密钥(app_secret)等必填项。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补齐上述信息后，再重新发起查询。",
+      "evidence": {
+        "event_count": 80,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_list_user_orgs",
+          "kingdee_query_bill"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "采购 Agent 新增供应商预览",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 21561,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-purchase",
+        "session_id": "uat-203052-supplier-flow",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "新增一个供应商，编码 UAT-SUP-001，名称 UAT测试供应商。",
+        "expected_keywords": [
+          "写入操作预览",
+          "预览",
+          "execute=True",
+          "确认",
+          "BD_Supplier",
+          "供应商"
+        ]
+      },
+      "response": "现在查询供应商表单字段元数据和当前用户组织信息。先查询系统中是否已存在该编码的供应商。**阻断原因**：金蝶连接配置不完整，缺少账套ID(acct_id)、用户名(user_name)、应用ID(app_id)、应用密钥(app_secret)等必填项，无法连接金蝶系统执行查询和新增操作。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补齐上述必填参数后重新尝试。配置完成后，\n- **操作类型**：新增供应商\n- **供应商编码**：UAT-SUP-001\n- **供应商名称**：UAT测试供应商\n- **FormId**：BD_Supplier",
+      "evidence": {
+        "event_count": 353,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_audit_bill",
+          "kingdee_delete_bill",
+          "kingdee_get_kds_report",
+          "kingdee_get_report",
+          "kingdee_list_digest_templates",
+          "kingdee_list_user_orgs",
+          "kingdee_product_qa",
+          "kingdee_push_bill",
+          "kingdee_query_bill",
+          "kingdee_query_metadata",
+          "kingdee_save_bill",
+          "kingdee_search_form",
+          "kingdee_submit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_view_bill",
+          "kingdee_workflow_audit"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "采购 Agent 刚新增错了删除闭环",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 13364,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-purchase",
+        "session_id": "uat-203052-supplier-flow",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "刚才供应商建错了，删掉吧。",
+        "expected_keywords": [
+          "删除",
+          "预览",
+          "刚才",
+          "最近",
+          "未找到",
+          "确认",
+          "execute=True"
+        ]
+      },
+      "response": "之前新增供应商的操作因金蝶连接配置不完整未能成功执行，系统中并未实际创建该供应商记录。**说明**：目前金蝶连接配置仍不完整（缺少账套ID、用户名、应用ID、应用密钥），无法连接金蝶系统。由于之前的新增操作也因同样原因未能执行，系统**实际上并未创建**编码为 UAT-SUP-001 的供应商记录，因此无需删除。\n\n**下一步动作**：请先在 WebUI 管理页面的 ERP 连接配置中补齐必填参数，配置完成后如需确认供应商是否已创建，我再进行查询验证。",
+      "evidence": {
+        "event_count": 64,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_query_bill"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "销售 Agent 客户分组下级新增",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 37139,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-group-flow",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "新增客户分组，编码 UAT-GROUP-01，名称 UAT华东客户，放在国内客户下级。",
+        "expected_keywords": [
+          "kingdee_create_group_under_parent",
+          "分组",
+          "QueryGroupInfo",
+          "GroupSave",
+          "父分组",
+          "预览",
+          "国内客户"
+        ]
+      },
+      "response": "**阻断原因**：金蝶连接配置不完整，缺少账套ID、用户名、应用ID、应用密钥等配置项，导致无法查询客户分组信息（如\"国内客户\"的内码）。当前配置仅支持部分基础查询。\n\n**下一步动作**：\n1. 请在 WebUI 管理页面的 ERP 连接配置中补充 `acct_id`（账套ID）、`user_name`（用户名）、`app_id`（应用ID）、`app_secret`（应用密钥）后重试。\n2. 或者，如果您知道\"国内客户\"分组在系统中的内码（GroupPkId），请提供，\n3. 如果暂时无法获取父分组内码，也可以选择先将分组创建在根级（不挂靠在任何父分组下），待配置补齐后再调整归属关系。\n\n请问您方便提供\"国内客户\"的分组内码，还是先补齐连接配置，或者先创建在根级？",
+      "evidence": {
+        "event_count": 454,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_audit_bill",
+          "kingdee_create_group_under_parent",
+          "kingdee_delete_bill",
+          "kingdee_get_kds_report",
+          "kingdee_get_report",
+          "kingdee_group_save_base_data",
+          "kingdee_list_digest_templates",
+          "kingdee_list_user_orgs",
+          "kingdee_product_qa",
+          "kingdee_push_bill",
+          "kingdee_query_bill",
+          "kingdee_query_group_by_business_key",
+          "kingdee_query_group_info",
+          "kingdee_query_metadata",
+          "kingdee_save_bill",
+          "kingdee_search_form",
+          "kingdee_submit_bill",
+          "kingdee_unaudit_bill",
+          "kingdee_view_bill",
+          "kingdee_workflow_audit"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "销售 Agent 客户分组编码消歧",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 13583,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-group-flow",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "父分组编码是 CN-CUST，请新增客户分组，编码 UAT-GROUP-02，名称 UAT华南客户，放在这个分组下级。",
+        "expected_keywords": [
+          "分组编码",
+          "CN-CUST",
+          "GroupSave",
+          "预览",
+          "父分组"
+        ]
+      },
+      "response": "由于 ERP 连接配置尚不完整，无法通过分组编码自动查询\"CN-CUST\"的内码。不过基础的**分组保存**接口是可用的，只需要您提供父分组的内码（GroupPkId）。\n\n请问您是否知道编码为 **CN-CUST** 的\"国内客户\"分组在系统中的内码（GroupPkId）？如果您知道，",
+      "evidence": {
+        "event_count": 70,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_create_group_under_parent"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": false
+      }
+    },
+    {
+      "name": "销售 Agent 客户分组查询",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 8837,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-group-query",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "查询客户分组编码 UAT-GROUP-01 的分组信息。",
+        "expected_keywords": [
+          "kingdee_query_group_by_business_key",
+          "QueryGroupInfo",
+          "分组",
+          "UAT-GROUP-01",
+          "查询"
+        ]
+      },
+      "response": "**阻断原因**：金蝶连接配置不完整，缺少必填项（账套ID、用户名、应用ID、应用密钥），无法查询分组信息。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补充完整的金蝶云星空连接信息后，重新发起查询。",
+      "evidence": {
+        "event_count": 32,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_query_group_by_business_key"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "销售 Agent 客户分组删除预览",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 8424,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-group-delete",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "删除客户分组编码 UAT-GROUP-01。",
+        "expected_keywords": [
+          "GroupDelete",
+          "删除",
+          "分组",
+          "预览",
+          "execute=True",
+          "确认"
+        ]
+      },
+      "response": "**阻断原因**：金蝶连接配置不完整，缺少账套ID、用户名、应用ID、应用密钥等必填项，无法查询分组信息及执行删除操作。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补齐上述必填项后重试。",
+      "evidence": {
+        "event_count": 32,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_query_group_by_business_key"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "销售 Agent 客户分配预览",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 11036,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-allocate-flow",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "把客户编码 CUST001 分配到组织 200。",
+        "expected_keywords": [
+          "Allocate",
+          "分配",
+          "客户",
+          "组织",
+          "预览",
+          "execute=True",
+          "CUST001"
+        ]
+      },
+      "response": "**阻断原因**：金蝶连接配置不完整，缺少必填项（账套ID、用户名、应用ID、应用密钥），无法完成客户编码查询和组织编码查询，因此无法执行分配操作。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补齐上述必填项后，再尝试执行客户分配操作。",
+      "evidence": {
+        "event_count": 45,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_allocate_customers_to_orgs"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "销售 Agent 客户取消分配预览",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 8602,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-cancel-allocate-flow",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "取消客户编码 CUST001 分配到组织 200。",
+        "expected_keywords": [
+          "CancelAllocate",
+          "取消分配",
+          "客户",
+          "组织",
+          "预览",
+          "execute=True",
+          "CUST001"
+        ]
+      },
+      "response": "**阻断原因**：金蝶连接配置不完整，缺少账套ID、用户名、应用ID、应用密钥等必填项，无法执行取消分配操作。\n\n**下一步动作**：请在 WebUI 管理页面的 ERP 连接配置中补齐上述必填项后重试。",
+      "evidence": {
+        "event_count": 45,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_cancel_allocate_customers_to_orgs"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": true
+      }
+    },
+    {
+      "name": "非法 FormId 防幻觉",
+      "category": "chat_api",
+      "passed": true,
+      "status": 200,
+      "duration_ms": 8535,
+      "detail": "聊天接口返回符合业务闭环预期",
+      "request": {
+        "agent_id": "erp-sales",
+        "session_id": "uat-203052-invalid-form",
+        "user_id": "uat-user-273484c2",
+        "channel": "console",
+        "prompt": "查询 BAD_FORM 的数据。",
+        "expected_keywords": [
+          "不合法",
+          "BAD_FORM",
+          "kingdee_search_form",
+          "不存在",
+          "FormId"
+        ]
+      },
+      "response": "**查询结果**：系统中未找到包含 \"BAD_FORM\" 的表单。请确认表单ID是否正确，例如：\n\n- 销售订单：SAL_SaleOrder\n- 销售出库单：SAL_SaleOutStock\n- 销售退货单：SAL_ReturnStock\n- 销售报价单：SAL_SaleQuotation\n- 销售合同：SAL_SaleContract\n\n如需查询其他表单，请提供正确的 FormId 或描述具体业务对象。",
+      "evidence": {
+        "event_count": 26,
+        "objects": [
+          "content",
+          "message",
+          "response"
+        ],
+        "statuses": [
+          "completed",
+          "created",
+          "in_progress"
+        ],
+        "tool_mentions": [
+          "kingdee_search_form"
+        ],
+        "errors": [],
+        "blocking_patterns": [],
+        "environment_blocked": false
+      }
+    }
+  ]
+}

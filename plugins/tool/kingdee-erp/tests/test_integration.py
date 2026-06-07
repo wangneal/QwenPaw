@@ -212,7 +212,9 @@ class TestFrontendBackendIntegration:
         detail = detail_resp.json()
         assert detail["id"] == "sales_daily"
         assert "prompt" in detail
-        assert "昨日的销售订单汇总" in detail["prompt"]
+        assert "任务: 生成销售日报。" in detail["prompt"]
+        assert "查询要求:" in detail["prompt"]
+        assert "输出要求:" in detail["prompt"]
 
         # 3. 测试不存在的模板返回错误信息
         bad_resp = self.client.get("/erp/digest/templates/invalid_id")

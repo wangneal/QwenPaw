@@ -30,6 +30,15 @@ def _is_enabled_env(name: str, default: bool = True) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _flagship_enabled() -> bool:
+    """Return whether Kingdee Flagship Edition tools should be exposed."""
+    return _is_enabled_env("KINGDEE_ENABLE_FLAGSHIP_TOOLS", False)
+
+
+def _is_flagship_tool(name: str) -> bool:
+    return name.startswith("kingdee_flagship_")
+
+
 def _agent_ids() -> list[str]:
     config = load_config()
     profiles = getattr(config.agents, "profiles", {}) or {}
@@ -65,18 +74,18 @@ KINGDEE_RUNTIME_TOOL_SPECS = [
     _tool_spec(
         "kingdee_flagship_describe_form",
         "旗舰版：查询表单的 V2 API 请求参数定义，调用 V2 API 前先用此工具了解参数",
-        "🔧",
+        "erp",
     ),
     _tool_spec(
         "kingdee_flagship_request_v2",
         "旗舰版 V2 RESTful API 通用请求，先用 describe_form 查看参数格式再调用",
-        "🔧",
+        "erp",
     ),
-    _tool_spec("kingdee_flagship_list_user_orgs", "旗舰版：查询用户有权限的组织列表", "🔧"),
-    _tool_spec("kingdee_flagship_search_form", "旗舰版：模糊搜索表单，返回匹配的 FormId 列表", "🔧"),
-    _tool_spec("kingdee_flagship_switch_org", "旗舰版：切换当前默认组织（本地记录）", "🔧"),
-    _tool_spec("erp_unified_query", "跨ERP统一查询：同时查询多个ERP系统并合并结果", "🌐"),
-    _tool_spec("erp_compare_data", "跨ERP数据比对：对比两个ERP系统中的同类数据差异", "⚖️"),
+    _tool_spec("kingdee_flagship_list_user_orgs", "旗舰版：查询用户有权限的组织列表", "erp"),
+    _tool_spec("kingdee_flagship_search_form", "旗舰版：模糊搜索表单，返回匹配的 FormId 列表", "erp"),
+    _tool_spec("kingdee_flagship_switch_org", "旗舰版：切换当前默认组织（本地记录）", "erp"),
+    _tool_spec("erp_unified_query", "跨ERP统一查询：同时查询多个ERP系统并合并结果", "erp"),
+    _tool_spec("erp_compare_data", "跨ERP数据比对：对比两个ERP系统中的同类数据差异", "erp"),
 ]
 
 
@@ -105,6 +114,8 @@ def _collect_plugin_tool_specs() -> dict[str, dict[str, Any]]:
             if not isinstance(tool, dict) or not tool.get("name"):
                 continue
             name = tool["name"]
+            if _is_flagship_tool(name) and not _flagship_enabled():
+                continue
             specs[name] = {
                 "name": name,
                 "description": tool.get("description", ""),
@@ -116,6 +127,8 @@ def _collect_plugin_tool_specs() -> dict[str, dict[str, Any]]:
 
         if manifest.get("id") == "qwenpaw-kd-tool" or plugin_dir.name == "kingdee-erp":
             for spec in KINGDEE_RUNTIME_TOOL_SPECS:
+                if _is_flagship_tool(spec["name"]) and not _flagship_enabled():
+                    continue
                 specs.setdefault(spec["name"], spec)
 
     return specs
@@ -135,6 +148,7 @@ def sync_plugin_tools() -> None:
         changed = False
         added = 0
         enabled = 0
+        disabled = 0
         for name, spec in specs.items():
             should_enable = bool(spec.get("enabled", True))
             current = agent_cfg.tools.builtin_tools.get(name)
@@ -158,18 +172,25 @@ def sync_plugin_tools() -> None:
                 current.enabled = True
                 changed = True
                 enabled += 1
-            if not current.description and spec.get("description"):
+            if spec.get("description") and current.description != spec["description"]:
                 current.description = spec["description"]
                 changed = True
-            if not current.icon and spec.get("icon"):
+            if spec.get("icon") and current.icon != spec["icon"]:
                 current.icon = spec["icon"]
                 changed = True
+
+        if not _flagship_enabled():
+            for name, current in agent_cfg.tools.builtin_tools.items():
+                if _is_flagship_tool(name) and current.enabled:
+                    current.enabled = False
+                    changed = True
+                    disabled += 1
 
         if changed:
             save_agent_config(agent_id, agent_cfg)
         print(
-            f"  ✓ Agent {agent_id}: plugin tools checked {len(specs)}, "
-            f"added {added}, enabled {enabled}"
+            f"  Agent {agent_id}: plugin tools checked {len(specs)}, "
+            f"added {added}, enabled {enabled}, disabled {disabled}"
         )
 
 
@@ -190,7 +211,7 @@ def sync_skills() -> None:
             enable_result = service.enable_skill(skill.name)
             if enable_result.get("success"):
                 enabled += 1
-        print(f"  ✓ Agent {agent_id}: installed/verified {installed}, enabled {enabled}")
+        print(f"  Agent {agent_id}: installed/verified {installed}, enabled {enabled}")
 
 
 def main() -> None:

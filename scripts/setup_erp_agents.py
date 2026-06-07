@@ -30,28 +30,28 @@ AGENTS = [
         "id": "erp-finance",
         "name": "财务助手",
         "persona_dir": "erp-finance",
-        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-finance-fields", "kingdee-product-qa", "humanizer-zh"],
+        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-finance-fields", "kingdee-product-qa"],
         "description": "金蝶财务域专家 — 总账、应收、应付、固定资产、报表",
     },
     {
         "id": "erp-sales",
         "name": "销售助手",
         "persona_dir": "erp-sales",
-        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-sales-fields", "kingdee-product-qa", "humanizer-zh"],
+        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-sales-fields", "kingdee-product-qa"],
         "description": "金蝶销售域专家 — 销售订单、出库、价格、客户",
     },
     {
         "id": "erp-inventory",
         "name": "库存助手",
         "persona_dir": "erp-inventory",
-        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-inventory-fields", "kingdee-product-qa", "humanizer-zh"],
+        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-inventory-fields", "kingdee-product-qa"],
         "description": "金蝶库存域专家 — 出入库、盘点、库存查询",
     },
     {
         "id": "erp-purchase",
         "name": "采购助手",
         "persona_dir": "erp-purchase",
-        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-procurement-fields", "kingdee-product-qa", "humanizer-zh"],
+        "skills": ["kingdee-query-guide", "kingdee-field-mapping", "kingdee-write-safety", "kingdee-procurement-fields", "kingdee-product-qa"],
         "description": "金蝶采购域专家 — 采购订单、入库、供应商管理",
     },
     {
@@ -61,14 +61,16 @@ AGENTS = [
         "skills": [
             "kingdee-query-guide", "kingdee-field-mapping",
             "erp-cross-system-reconciliation", "erp-cross-system-correlation",
-            "erp-cross-system-monthly", "erp-cross-system-push", "erp-executive-digest", "kingdee-product-qa", "humanizer-zh",
+            "erp-cross-system-monthly", "erp-cross-system-push", "erp-executive-digest", "kingdee-product-qa",
         ],
         "description": "ERP 高管决策助手 — 跨域汇总、多系统对账、经营分析",
     },
 ]
 
+DEPRECATED_ERP_SKILLS = {"humanizer-zh"}
+
 # 金蝶工具列表（需要为每个专业 agent 启用）
-KINGDEE_TOOLS = [
+KINGDEE_TOOL_FALLBACKS = [
     "kingdee_query_bill",
     "kingdee_view_bill",
     "kingdee_get_report",
@@ -93,6 +95,99 @@ KINGDEE_TOOLS = [
 
 # 从默认 agent 配置复制的工具配置（金蝶连接信息）
 CONFIG_TOOLS = ["kingdee_query_bill"]
+FLAGSHIP_TOOL_PREFIX = "kingdee_flagship_"
+
+
+def load_erp_tool_metadata() -> dict[str, dict]:
+    """Load ERP tool metadata from plugin manifest, with name fallbacks.
+
+    The Kingdee plugin evolves faster than this deployment helper. Reading
+    plugin.json prevents newly added tools from being omitted from specialist
+    agents during initialization.
+    """
+    manifest_candidates = []
+    env_manifest = os.environ.get("KINGDEE_PLUGIN_MANIFEST", "").strip()
+    if env_manifest:
+        manifest_candidates.append(Path(env_manifest))
+    manifest_candidates.extend([
+        Path("/app/builtin-plugins/tool/kingdee-erp/plugin.json"),
+        Path(__file__).resolve().parents[1] / "plugins" / "tool" / "kingdee-erp" / "plugin.json",
+    ])
+
+    tools: dict[str, dict] = {}
+    seen = set()
+    for manifest_path in manifest_candidates:
+        if not manifest_path.exists():
+            continue
+        try:
+            data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            print(f"  警告: 读取工具清单失败 {manifest_path}: {exc}")
+            continue
+        for item in data.get("meta", {}).get("tools", []):
+            name = item.get("name") if isinstance(item, dict) else ""
+            if name and name not in seen:
+                tools[name] = {
+                    "name": name,
+                    "description": str(item.get("description", "")).strip(),
+                    "icon": str(item.get("icon", "erp")).strip() or "erp",
+                    "requires_config": bool(item.get("requires_config", True)),
+                }
+                seen.add(name)
+        if tools:
+            break
+
+    for name in KINGDEE_TOOL_FALLBACKS:
+        if name not in seen:
+            tools[name] = {
+                "name": name,
+                "description": "",
+                "icon": "erp",
+                "requires_config": True,
+            }
+            seen.add(name)
+    return tools
+
+
+def load_erp_tool_names() -> list[str]:
+    """Load ERP tool names from plugin manifest, with integration fallbacks."""
+    return list(load_erp_tool_metadata().keys())
+
+
+def apply_tool_metadata(entry: dict, tool_name: str, metadata: dict | None) -> None:
+    """Synchronize user-facing tool metadata from the plugin manifest."""
+    entry["name"] = tool_name
+    entry["display_to_user"] = True
+    entry.setdefault("async_execution", False)
+    if not metadata:
+        entry.setdefault("icon", "erp")
+        return
+    if metadata.get("description"):
+        entry["description"] = metadata["description"]
+    entry["icon"] = metadata.get("icon") or "erp"
+    entry["requires_config"] = bool(metadata.get("requires_config", True))
+
+
+def should_enable_flagship_tools() -> bool:
+    """Return whether flagship-version tools should be enabled."""
+    return os.environ.get("KINGDEE_ENABLE_FLAGSHIP_TOOLS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def disable_flagship_tools_for_enterprise(builtin: dict) -> int:
+    """Disable flagship-only tools for Enterprise Edition deployments."""
+    if should_enable_flagship_tools():
+        return 0
+    disabled = 0
+    for tool_name, entry in builtin.items():
+        if tool_name.startswith(FLAGSHIP_TOOL_PREFIX) and entry.get("enabled", False):
+            entry["enabled"] = False
+            disabled += 1
+    return disabled
 
 # 默认 Agent 的 ERP 路由规则
 ROUTING_SECTION = """
@@ -120,6 +215,13 @@ ROUTING_SECTION = """
 3. 将专业 Agent 的回复直接返回给用户
 4. 如果用户的问题不涉及 ERP，正常回答即可
 
+### 输出约束
+
+1. 只输出面向用户的最终答复、操作摘要、阻断原因和下一步动作。
+2. 不得输出内部思考、工具选择推理、执行计划草稿或英文推理句。
+3. 用户未要求英文时，答复使用中文；工具名、FormId、字段名、错误码可保留原文。
+4. 不得使用 emoji、表情符号或装饰性图标。
+
 ### 示例
 
 用户: "帮我查一下上个月的应收款余额"
@@ -131,6 +233,56 @@ ROUTING_SECTION = """
 用户: "今天天气怎么样？"
 → 直接回答（非 ERP 问题，不需要路由）
 """
+
+ROUTING_OUTPUT_CONSTRAINTS = """
+
+## ERP 路由输出约束
+
+1. 只输出面向用户的最终答复、操作摘要、阻断原因和下一步动作。
+2. 不得输出内部思考、工具选择推理、执行计划草稿或英文推理句。
+3. 用户未要求英文时，答复使用中文；工具名、FormId、字段名、错误码可保留原文。
+4. 不得使用 emoji、表情符号或装饰性图标。
+"""
+
+ERP_RUNTIME_OUTPUT_CONTRACT = """# ERP 运行期输出契约
+
+以下规则优先级高于其他 ERP 业务说明，适用于所有用户可见输出。
+
+## 用户可见输出
+
+1. 只输出最终答复、操作摘要、阻断原因、下一步动作和必要的确认问题。
+2. 在分析意图、选择工具、准备参数、等待工具返回、整理工具结果时，不得输出任何过程性文字。
+3. 不得复述“用户想要……”“我需要……”“让我……”“首先……”“根据规则……”等内部推理。
+4. 不得输出英文推理句，例如 The user wants、I need、I should、Let me、looking at the tool。
+5. 不得输出工具选择理由、执行计划草稿、调试说明或模型自述。
+6. 不得使用 emoji、表情符号或装饰性图标。
+
+## 工具调用行为
+
+1. 需要工具时，直接调用工具；调用前不向用户解释工具选择过程。
+2. 工具返回后，只基于工具结果输出业务结论或阻断说明。
+3. 工具返回配置错误、权限错误或金蝶业务错误时，不得包装为成功。
+
+## 标准输出结构
+
+查询成功时：
+
+**查询结果**：说明查询对象、组织、时间范围和关键数据。
+**数据来源**：列出工具名、FormId、单据号或记录标识。
+
+写入、删除、分配、取消分配、审核、反审核、下推等操作处于预览阶段时：
+
+**操作预览**：说明操作类型、业务对象、关键编码、目标组织和影响范围。
+**执行状态**：预览模式，尚未写入金蝶。
+**下一步动作**：请用户确认后再执行。
+
+被配置、权限或业务规则阻断时：
+
+**阻断原因**：说明明确原因。
+**下一步动作**：说明需要补充的配置、权限或业务参数。
+"""
+
+ERP_RUNTIME_MARKER = "# ERP 运行期输出契约"
 
 
 # ── 工具函数 ────────────────────────────────────────────────
@@ -156,6 +308,26 @@ def read_json(path: str) -> dict:
 def write_json(path: str, data: dict):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def ensure_erp_runtime_contract(path: Path) -> bool:
+    """Ensure the ERP runtime output contract is the first prompt section."""
+    existing = path.read_text(encoding="utf-8") if path.exists() else ""
+    if existing.startswith(ERP_RUNTIME_MARKER):
+        return False
+    if ERP_RUNTIME_MARKER in existing:
+        before, _, after = existing.partition(ERP_RUNTIME_MARKER)
+        remainder = after
+        next_header = remainder.find("\n# ")
+        if next_header >= 0:
+            existing = (before + remainder[next_header + 1:]).strip()
+        else:
+            existing = before.strip()
+    new_content = ERP_RUNTIME_OUTPUT_CONTRACT.strip()
+    if existing.strip():
+        new_content += "\n\n" + existing.strip()
+    path.write_text(new_content + "\n", encoding="utf-8")
+    return True
 
 
 def parse_skill_frontmatter(skill_md_path: Path) -> dict:
@@ -260,6 +432,9 @@ def reconcile_skill_manifest(workspace_dir: Path):
 def main():
     working_dir = os.environ.get("QWENPAW_WORKING_DIR", "/app/working")
     workspace_base = Path(working_dir) / "workspaces"
+    erp_tool_metadata = load_erp_tool_metadata()
+    erp_tools = list(erp_tool_metadata.keys())
+    print(f"已加载 {len(erp_tools)} 个 ERP 工具用于专业 Agent 初始化")
 
     # 找默认 agent 的配置（用于复制金蝶连接 config）
     default_agent_json = workspace_base / "default" / "agent.json"
@@ -296,11 +471,14 @@ def main():
             dst = ws_dir / md_file
             if src.exists():
                 shutil.copy2(str(src), str(dst))
-                print(f"  复制 {md_file} ✓")
+                print(f"  已复制 {md_file}")
             elif dst.exists():
                 print(f"  {md_file} 已存在（跳过）")
             else:
-                print(f"  ⚠ {md_file} 未找到: {src}")
+                print(f"  警告: {md_file} 未找到: {src}")
+
+        if ensure_erp_runtime_contract(ws_dir / "AGENTS.md"):
+            print("  已写入 ERP 运行期输出契约")
 
         # ── 3. 复制 Skills + 注册到 skill.json ──
         # Skills 需要文件复制 + manifest 更新才能被 QwenPaw 识别
@@ -316,17 +494,23 @@ def main():
                 shutil.copytree(str(skill_src), str(skill_dst))
                 # 验证 SKILL.md 存在
                 if (skill_dst / "SKILL.md").exists():
-                    print(f"  安装 skill: {skill_name} ✓")
+                    print(f"  已安装 skill: {skill_name}")
                     skills_installed += 1
                 else:
-                    print(f"  ⚠ skill {skill_name} 缺少 SKILL.md")
+                    print(f"  警告: skill {skill_name} 缺少 SKILL.md")
             else:
-                print(f"  ⚠ skill 未找到: {skill_src}")
+                print(f"  警告: skill 未找到: {skill_src}")
+
+        for skill_name in DEPRECATED_ERP_SKILLS:
+            deprecated_dst = ws_dir / "skills" / skill_name
+            if deprecated_dst.exists():
+                shutil.rmtree(str(deprecated_dst))
+                print(f"  已移除过期 skill: {skill_name}")
 
         # 执行 reconcile：扫描 skills/ 目录并更新 skill.json
         if skills_installed > 0:
             found, removed = reconcile_skill_manifest(ws_dir)
-            print(f"  reconcile skill.json: 发现 {found} 个 skill, 移除 {removed} 个过期条目 ✓")
+            print(f"  reconcile skill.json: 发现 {found} 个 skill, 移除 {removed} 个过期条目")
 
         # ── 4. 启用金蝶工具到 agent.json ──
         agent_json_path = ws_dir / "agent.json"
@@ -335,25 +519,30 @@ def main():
             builtin = agent_data.setdefault("tools", {}).setdefault("builtin_tools", {})
 
             enabled_count = 0
-            for tool_name in KINGDEE_TOOLS:
+            for tool_name in erp_tools:
+                metadata = erp_tool_metadata.get(tool_name)
                 if tool_name in builtin:
+                    apply_tool_metadata(builtin[tool_name], tool_name, metadata)
                     if not builtin[tool_name].get("enabled", False):
                         builtin[tool_name]["enabled"] = True
                         enabled_count += 1
                 elif tool_name in default_config:
                     entry = dict(default_config[tool_name])
                     entry["enabled"] = True
+                    apply_tool_metadata(entry, tool_name, metadata)
                     builtin[tool_name] = entry
                     enabled_count += 1
                 else:
-                    builtin[tool_name] = {
+                    entry = {
                         "name": tool_name,
                         "enabled": True,
                         "display_to_user": True,
                         "async_execution": False,
-                        "icon": "🔧",
+                        "icon": "erp",
                         "config": {},
                     }
+                    apply_tool_metadata(entry, tool_name, metadata)
+                    builtin[tool_name] = entry
                     enabled_count += 1
 
             # 也启用 chat_with_agent 和 list_agents（跨 Agent 通信）
@@ -361,8 +550,11 @@ def main():
                 if routing_tool in builtin and not builtin[routing_tool].get("enabled", False):
                     builtin[routing_tool]["enabled"] = True
 
+            disabled_flagship = disable_flagship_tools_for_enterprise(builtin)
             write_json(str(agent_json_path), agent_data)
-            print(f"  启用 {enabled_count} 个金蝶工具 ✓")
+            print(f"  启用 {enabled_count} 个金蝶工具")
+            if disabled_flagship:
+                print(f"  已禁用 {disabled_flagship} 个旗舰版专用工具")
 
     print(f"\n=== 全部 {len(AGENTS)} 个 Agent 创建完成 ===")
 
@@ -387,7 +579,7 @@ def main():
         if default_model:
             print(f"  默认模型: {default_model.get('provider_id', '?')}/{default_model.get('model', '?')}")
         else:
-            print("  ⚠ 默认 Agent 无 active_model，跳过模型传播")
+            print("  警告: 默认 Agent 无 active_model，跳过模型传播")
 
         if kd_config:
             # 检查是否有实质内容（不只是空值）
@@ -398,10 +590,10 @@ def main():
             if has_real_config:
                 print(f"  金蝶连接配置: server_url={kd_config.get('server_url', '?')[:50]}...")
             else:
-                print("  ⚠ 金蝶连接配置为空（可能尚未在 Console 中配置），跳过配置传播")
+                print("  警告: 金蝶连接配置为空（可能尚未在 Console 中配置），跳过配置传播")
                 kd_config = {}
         else:
-            print("  ⚠ 默认 Agent 无 Kingdee 连接配置，跳过配置传播")
+            print("  警告: 默认 Agent 无 Kingdee 连接配置，跳过配置传播")
 
         # 写入每个专家 Agent
         propagated = 0
@@ -414,15 +606,16 @@ def main():
             agent_data = read_json(str(agent_json_path))
             changed = False
 
-            # 传播模型
-            if default_model and agent_data.get("active_model") is None:
+            # 传播模型。专业 Agent 必须跟随 default 当前可用模型，
+            # 避免历史 agent.json 保留已无授权的模型配置。
+            if default_model and agent_data.get("active_model") != default_model:
                 agent_data["active_model"] = default_model
                 changed = True
 
             # 传播 Kingdee 连接配置到所有金蝶工具
             if kd_config:
                 bt = agent_data.setdefault("tools", {}).setdefault("builtin_tools", {})
-                for tool_name in KINGDEE_TOOLS:
+                for tool_name in erp_tools:
                     if tool_name in bt:
                         existing_cfg = bt[tool_name].get("config", {})
                         if not existing_cfg or not any(
@@ -436,7 +629,7 @@ def main():
                 write_json(str(agent_json_path), agent_data)
                 propagated += 1
 
-        print(f"  已传播配置到 {propagated}/{len(AGENTS)} 个专家 Agent ✓")
+        print(f"  已传播配置到 {propagated}/{len(AGENTS)} 个专家 Agent")
 
     # ── 5. 修改默认 Agent SOUL.md — 添加 ERP 语义路由 ──
     print("\n--- 配置默认 Agent ERP 语义路由 ---")
@@ -444,12 +637,20 @@ def main():
 
     if default_soul.exists():
         content = default_soul.read_text(encoding="utf-8")
+        if ensure_erp_runtime_contract(default_soul):
+            print("  默认 Agent SOUL.md 已前置 ERP 运行期输出契约")
+        content = default_soul.read_text(encoding="utf-8")
         if "ERP 语义路由" not in content:
             with open(str(default_soul), "a", encoding="utf-8") as f:
                 f.write(ROUTING_SECTION)
-            print("  默认 Agent SOUL.md 已添加 ERP 路由规则 ✓")
+            print("  默认 Agent SOUL.md 已添加 ERP 路由规则")
         else:
             print("  ERP 路由规则已存在，跳过")
+        content = default_soul.read_text(encoding="utf-8")
+        if "ERP 路由输出约束" not in content:
+            with open(str(default_soul), "a", encoding="utf-8") as f:
+                f.write(ROUTING_OUTPUT_CONSTRAINTS)
+            print("  默认 Agent SOUL.md 已添加 ERP 路由输出约束")
 
     # ── 6. 确保默认 Agent 启用 chat_with_agent / list_agents ──
     default_agent_json_path = workspace_base / "default" / "agent.json"
@@ -457,13 +658,24 @@ def main():
         default_data = read_json(str(default_agent_json_path))
         bt = default_data.setdefault("tools", {}).setdefault("builtin_tools", {})
         changed = False
+        for tool_name, metadata in erp_tool_metadata.items():
+            if tool_name in bt:
+                before = dict(bt[tool_name])
+                apply_tool_metadata(bt[tool_name], tool_name, metadata)
+                if bt[tool_name] != before:
+                    changed = True
         for tool in ["chat_with_agent", "list_agents"]:
             if tool in bt and not bt[tool].get("enabled", False):
                 bt[tool]["enabled"] = True
                 changed = True
+        disabled_flagship = disable_flagship_tools_for_enterprise(bt)
+        if disabled_flagship:
+            changed = True
         if changed:
             write_json(str(default_agent_json_path), default_data)
-            print("  默认 Agent 已启用 chat_with_agent/list_agents ✓")
+            print("  默认 Agent 已启用 chat_with_agent/list_agents")
+            if disabled_flagship:
+                print(f"  默认 Agent 已禁用 {disabled_flagship} 个旗舰版专用工具")
         else:
             print("  chat_with_agent/list_agents 已是启用状态")
 
@@ -535,7 +747,7 @@ def migrate_config_to_json():
     try:
         data = json.loads(default_json.read_text(encoding="utf-8"))
     except Exception as e:
-        print(f"\n  ⚠ 读取 agent.json 失败: {e}")
+        print(f"\n  警告: 读取 agent.json 失败: {e}")
         return
 
     # 从 builtin_tools 中读取金蝶配置

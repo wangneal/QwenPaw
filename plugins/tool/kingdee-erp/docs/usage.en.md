@@ -4,7 +4,7 @@ Welcome to the Kingdee ERP Assistant! This guide helps you get started quickly.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Access the System
 
@@ -16,11 +16,11 @@ The system provides 5 specialized roles:
 
 | Role | Use Case | Example Question |
 |------|----------|------------------|
-| 📊 Finance Assistant | Accounting, vouchers, reports | "What is this month's accounts receivable balance?" |
-| 📈 Sales Assistant | Customers, orders, quotes | "Find all orders for customer 'Huaxing Tech'" |
-| 📦 Warehouse Assistant | Inventory, stock in/out | "How many 'A4 paper' are currently in stock?" |
-| 🛒 Purchase Assistant | Suppliers, purchase orders | "Compare steel quotes from three suppliers" |
-| 👔 Executive Assistant | Cross-module summaries | "Quarterly expense summary by department" |
+| Finance Assistant | Accounting, vouchers, reports | "What is this month's accounts receivable balance?" |
+| Sales Assistant | Customers, orders, quotes | "Find all orders for customer 'Huaxing Tech'" |
+| Warehouse Assistant | Inventory, stock in/out | "How many 'A4 paper' are currently in stock?" |
+| Purchase Assistant | Suppliers, purchase orders | "Compare steel quotes from three suppliers" |
+| Executive Assistant | Cross-module summaries | "Quarterly expense summary by department" |
 
 ### 3. Start Chatting
 
@@ -28,16 +28,16 @@ Type your question in the chat box. The assistant will query Kingdee ERP and res
 
 ---
 
-## 💡 Tips
+## Tips
 
 ### Natural Language Queries
 
 Use everyday language — no need to memorize Kingdee navigation paths:
 
-**❌ Not recommended** (command-style):
+**Not recommended** (command-style):
 > "Execute ExecuteBillQuery, FormId=BD_Customer, fields FName,FNumber"
 
-**✅ Recommended** (natural language):
+**Recommended** (natural language):
 > "Look up the basic info for customer 'Huaxing Tech'"
 
 ### Write Operation Safety
@@ -52,7 +52,7 @@ All create/modify/delete operations require your confirmation before execution:
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 Required settings (contact your admin):
 
@@ -65,7 +65,7 @@ Required settings (contact your admin):
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 **Q: The assistant says "no permission to query XXX"?**
 A: Your current role lacks access. Contact admin to adjust permissions or switch roles.

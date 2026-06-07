@@ -12,6 +12,8 @@ services:
       - LLM_API_KEY=${LLM_API_KEY:-sk-placeholder-for-testing}
       - LLM_BASE_URL=${LLM_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       - LLM_API_TYPE=${LLM_API_TYPE:-openai}
+      - KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED=${KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED:-true}
+      - KINGDEE_PERMISSION_BYPASS_CHANNELS=${KINGDEE_PERMISSION_BYPASS_CHANNELS:-console,webui}
       - starmind_WORKING_DIR=/app/working
       - starmind_SECRET_DIR=/app/working.secret
       - starmind_BACKUP_DIR=/app/working.backups

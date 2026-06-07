@@ -43,6 +43,10 @@ After first startup, access `http://<server-ip>:8088` for the console.
 | `QWENPAW_HOST` | Listen address | `0.0.0.0` |
 | `QWENPAW_PORT` | Listen port | `8088` |
 | `QWENPAW_LOG_LEVEL` | Log level | `INFO` |
+| `KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED` | Whether WebUI/Console bypasses Kingdee permission checks | `false` |
+| `KINGDEE_PERMISSION_BYPASS_CHANNELS` | Channels allowed to bypass permission checks when the switch above is enabled | `console,webui` |
+
+`KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED` is disabled by default. Set it to `true` only for trusted local console operations, temporary maintenance, or initialization. In production, keep it `false` and configure each user's organization, business domain, and operation permissions in the Kingdee permission management UI. Restart the service or container after changing environment variables, depending on the deployment method.
 
 ---
 
@@ -139,7 +143,18 @@ Four-dimensional model: **User x Organization x Domain x Access Level**
 | Domain | Data scope | `finance`, `sales`, `inventory`, `procurement`, `base` |
 | Access | Read/Write | `readonly`, `writeable` |
 
-### 4.2 Permission Management UI
+### 4.2 WebUI Permission Bypass Switch
+
+WebUI and Console channels run Kingdee permission checks by default. To disable permission interception temporarily, explicitly set:
+
+```bash
+KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED=true
+KINGDEE_PERMISSION_BYPASS_CHANNELS=console,webui
+```
+
+This setting only affects permission interception. It does not replace the default organization context. The first use still needs a default organization for the current `agent/channel/user` scope. Later operations keep using that default organization until the user explicitly switches organizations.
+
+### 4.3 Permission Management UI
 
 After installing the `erp-admin` frontend plugin, a **Permission Management** entry appears in the console.
 
@@ -151,7 +166,7 @@ After installing the `erp-admin` frontend plugin, a **Permission Management** en
 6. Select access level (readonly / writeable)
 7. Save
 
-### 4.3 API-based Permission Management
+### 4.4 API-based Permission Management
 
 Endpoint: `/api/erp-permissions`
 
@@ -176,7 +191,7 @@ curl -X DELETE http://localhost:8088/api/erp-permissions \
   -d '{"key": "wecom:zhangsan", "org_id": "*"}'
 ```
 
-### 4.4 Channel User Identity Mapping
+### 4.5 Channel User Identity Mapping
 
 | Channel | User ID Format | Example |
 |---------|---------------|---------|
@@ -186,7 +201,7 @@ curl -X DELETE http://localhost:8088/api/erp-permissions \
 | Lark | `lark:<open_id>` | `lark:ou_xxxx` |
 | API | `api:<custom_id>` | `api:erp-user-01` |
 
-### 4.5 Default Permissions
+### 4.6 Default Permissions
 
 The initialization script creates these default permissions:
 
@@ -197,7 +212,7 @@ The initialization script creates these default permissions:
 
 **IMPORTANT: Remove the `unknown:unknown` entry in production.**
 
-### 4.6 Permission Database
+### 4.7 Permission Database
 
 Location: `/app/working/plugin_data/erp/permissions.db` (SQLite)
 

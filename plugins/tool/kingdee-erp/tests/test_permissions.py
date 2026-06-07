@@ -33,6 +33,9 @@ from erp_permissions import (
     resolve_role_operations,
     get_user_operations,
     tool_to_operation,
+    make_org_context_key,
+    set_default_org_context,
+    resolve_org_context,
     add_role,
     list_roles,
 )
@@ -63,13 +66,13 @@ class TestConstants:
     """验证 OPERATIONS、BUILTIN_ROLES、TOOL_OP_MAP、tool_to_operation。"""
 
     def test_operations_count(self):
-        """OPERATIONS 应包含 11 个操作码。"""
-        assert len(OPERATIONS) == 11
+        """OPERATIONS 应包含 12 个操作码。"""
+        assert len(OPERATIONS) == 12
 
     def test_operations_keys(self):
         expected = {
             "query", "view", "report", "save", "submit",
-            "push", "execute", "workflow", "audit", "unaudit", "delete",
+            "push", "allocate", "execute", "workflow", "audit", "unaudit", "delete",
         }
         assert set(OPERATIONS.keys()) == expected
 
@@ -121,6 +124,16 @@ class TestConstants:
         assert tool_to_operation("kingdee_delete_bill") == "delete"
         assert tool_to_operation("kingdee_view_bill") == "view"
         assert tool_to_operation("kingdee_submit_bill") == "submit"
+        assert tool_to_operation("kingdee_allocate_base_data") == "allocate"
+        assert tool_to_operation("kingdee_cancel_allocate_base_data") == "allocate"
+        assert tool_to_operation("kingdee_allocate_customers_to_orgs") == "allocate"
+        assert tool_to_operation("kingdee_cancel_allocate_customers_to_orgs") == "allocate"
+        assert tool_to_operation("kingdee_query_group_info") == "query"
+        assert tool_to_operation("kingdee_group_save_base_data") == "save"
+        assert tool_to_operation("kingdee_create_group_under_parent") == "save"
+        assert tool_to_operation("kingdee_group_delete_base_data") == "delete"
+        assert tool_to_operation("kingdee_delete_group_by_business_key") == "delete"
+        assert tool_to_operation("kingdee_delete_recent_entity") == "delete"
 
     def test_tool_to_operation_unknown(self):
         assert tool_to_operation("nonexistent_tool") is None
@@ -171,6 +184,11 @@ class TestResolveRoleOperations:
     def test_custom_with_operations(self):
         """custom 角色应精确返回指定的操作码。"""
         ops = resolve_role_operations("custom", '["query", "save"]')
+        assert ops == ["query", "save"]
+
+    def test_explicit_operations_override_builtin_role(self):
+        """显式操作码配置应优先生效，用于 WebUI 细粒度授权。"""
+        ops = resolve_role_operations("admin", ["query", "save"])
         assert ops == ["query", "save"]
 
     def test_custom_filters_invalid(self):
@@ -264,6 +282,80 @@ class TestPermissionManager:
         assert perm is not None
         assert perm["org_id"] == "*"
 
+    # ── 默认组织上下文 ──
+
+    def test_default_org_crud(self):
+        context_key = make_org_context_key("console", "default", "agent-a")
+        self.pm.set_default_org(context_key, "kingdee", "100")
+        assert self.pm.get_default_org(context_key, "kingdee") == "100"
+        self.pm.clear_default_org(context_key, "kingdee")
+        assert self.pm.get_default_org(context_key, "kingdee") is None
+
+    def test_resolve_org_context_explicit_wins(self):
+        context_key = make_org_context_key("console", "default", "agent-a")
+        self.pm.set_default_org(context_key, "kingdee", "100")
+        org_id, err = resolve_org_context(
+            self.pm, "console", "default", "kingdee", "200", "agent-a",
+        )
+        assert org_id == "200"
+        assert err is None
+
+    def test_resolve_org_context_uses_persisted_default(self):
+        context_key = make_org_context_key("console", "default", "agent-a")
+        self.pm.set_default_org(context_key, "kingdee", "100")
+        org_id, err = resolve_org_context(
+            self.pm, "console", "default", "kingdee", "", "agent-a",
+        )
+        assert org_id == "100"
+        assert err is None
+
+    def test_resolve_org_context_missing_prompts_setup(self):
+        org_id, err = resolve_org_context(
+            self.pm, "wecom", "user1", "kingdee", "", "agent-a",
+        )
+        assert org_id == ""
+        assert "首次使用" in err
+
+    def test_set_default_org_context_non_bypass_checks_permission(self):
+        self.pm.set_permission("wecom:user1", "01", "张三", ["sales"], role="viewer")
+        ok, err = set_default_org_context(
+            self.pm, "wecom", "user1", "kingdee", "01", "agent-a",
+        )
+        assert ok is True
+        assert err is None
+        context_key = make_org_context_key("wecom", "user1", "agent-a")
+        assert self.pm.get_default_org(context_key, "kingdee") == "01"
+
+    def test_set_default_org_context_non_bypass_rejects_unpermitted_org(self):
+        self.pm.set_permission("wecom:user1", "01", "张三", ["sales"], role="viewer")
+        ok, err = set_default_org_context(
+            self.pm, "wecom", "user1", "kingdee", "02", "agent-a",
+        )
+        assert ok is False
+        assert "没有组织 02" in err
+
+    def test_set_default_org_context_console_requires_permission_by_default(self, monkeypatch):
+        monkeypatch.delenv("KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED", raising=False)
+
+        ok, err = set_default_org_context(
+            self.pm, "console", "default", "kingdee", "02", "agent-a",
+        )
+
+        assert ok is False
+        assert "没有组织 02" in err
+
+    def test_set_default_org_context_bypass_channel_skips_permission_when_enabled(self, monkeypatch):
+        monkeypatch.setenv("KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED", "true")
+        monkeypatch.setenv("KINGDEE_PERMISSION_BYPASS_CHANNELS", "console,webui")
+
+        ok, err = set_default_org_context(
+            self.pm, "console", "default", "kingdee", "02", "agent-a",
+        )
+        assert ok is True
+        assert err is None
+        context_key = make_org_context_key("console", "default", "agent-a")
+        assert self.pm.get_default_org(context_key, "kingdee") == "02"
+
     # ── role / operations 字段 ──
 
     def test_set_permission_with_role(self):
@@ -301,11 +393,11 @@ class TestPermissionManager:
         perm = self.pm.get_permission("wecom:user1", "01")
         assert perm["role"] == "viewer"
 
-    def test_backward_compat_writeable_to_admin(self):
-        """未指定 role 时，access="writeable" 应映射为 role="admin"。"""
+    def test_backward_compat_writeable_to_operator(self):
+        """未指定 role 时，access="writeable" 应映射为 role="operator"。"""
         self.pm.set_permission("wecom:user1", "01", "张三", ["sales"], access="writeable")
         perm = self.pm.get_permission("wecom:user1", "01")
-        assert perm["role"] == "admin"
+        assert perm["role"] == "operator"
 
     # ── update_permission_role ──
 
@@ -724,6 +816,14 @@ class TestCheckOperationPermission:
             self.pm, "wecom", "user1", "kingdee", "SAL_SaleOrder", "01",
         )
         assert ops == ["query", "audit"]
+
+    def test_permission_manager_get_user_operations_accepts_domain_name(self):
+        self.pm.set_permission(
+            "wecom:user1", "01", "张三", ["sales"],
+            role="admin", operations=["query", "save", "allocate"],
+        )
+        ops = self.pm.get_user_operations("wecom:user1", "01", domain="sales")
+        assert ops == ["query", "save", "allocate"]
 
 
 # ═══════════════════════════════════════════════════════════════

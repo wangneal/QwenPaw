@@ -83,9 +83,7 @@ export const getReleaseNotesUrl = (lang: string): string =>
   `/api/erp/docs/release-notes?lang=${getWebsiteLang(lang)}`;
 
 export const getFeatureDemosUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/docs/functiondemo?lang=${getWebsiteLang(
-    lang,
-  )}`;
+  `/api/erp/docs/functiondemo?lang=${getWebsiteLang(lang)}`;
 
 // ── Version helpers ────────────────────────────────────────────────────────
 
@@ -137,101 +135,38 @@ export const compareVersions = (a: string, b: string): number => {
 };
 
 // ── Update markdown ───────────────────────────────────────────────────────
-// TODO
 export const UPDATE_MD: Record<string, string> = {
-  zh: `### QwenPaw如何更新
+  zh: `### StarMind 如何更新
 
-要更新 QwenPaw 到最新版本，可根据你的安装方式选择对应方法：
+要更新 StarMind 到最新版本，请联系系统管理员进行版本更新。
 
-1. 如果你使用的是一键安装脚本，直接重新运行安装命令即可自动升级。
+管理员可通过以下方式升级：
 
-2. 如果你是通过 pip 安装，在终端中执行以下命令升级：
+1. **Docker 部署**：拉取最新镜像并重启容器即可。
 
-\`\`\`
-qwenpaw update
-\`\`\`
+2. **源码部署**：拉取最新代码，重新构建前端并重启服务。
 
-3. 如果你是从源码安装，进入项目目录并拉取最新代码后重新安装：
+升级后重启服务即可生效。`,
 
-\`\`\`
-cd QwenPaw
-git pull origin main
-cd console && npm ci && npm run build
-cd .. && mkdir -p src/qwenpaw/console
-cp -R console/dist/. src/qwenpaw/console/
-pip install -e .
-\`\`\`
+  ru: `### Как обновить StarMind
 
-4. 如果你使用的是 Docker，拉取最新镜像并重启容器：
+Для обновления StarMind обратитесь к системному администратору.
 
-\`\`\`
-docker pull agentscope/qwenpaw:latest
-docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working -v qwenpaw-secrets:/app/working.secret -v qwenpaw-backups:/app/working.backups agentscope/qwenpaw:latest
-\`\`\`
+Администратор может обновить:
 
-升级后重启服务 qwenpaw app。`,
+1. **Docker**: загрузить новый образ и перезапустить контейнер.
+2. **Из исходников**: получить последние изменения, пересобрать и перезапустить.
 
-  ru: `### Как обновить QwenPaw
+После обновления перезапустите сервис.`,
 
-Чтобы обновить QwenPaw, выберите способ в зависимости от типа установки:
+  en: `### How to update StarMind
 
-1. Если вы устанавливали через однострочный скрипт, повторно запустите установщик для обновления.
+To update StarMind, please contact your system administrator.
 
-2. Если устанавливали через pip, выполните:
+Administrators can upgrade by:
 
-\`\`\`
-qwenpaw update
-\`\`\`
+1. **Docker deployment**: Pull the latest image and restart the container.
+2. **Source deployment**: Pull the latest code, rebuild the frontend, and restart the service.
 
-3. Если устанавливали из исходников, получите последние изменения и переустановите:
-
-\`\`\`
-cd QwenPaw
-git pull origin main
-cd console && npm ci && npm run build
-cd .. && mkdir -p src/qwenpaw/console
-cp -R console/dist/. src/qwenpaw/console/
-pip install -e .
-\`\`\`
-
-4. Если используете Docker, загрузите новый образ и перезапустите контейнер:
-
-\`\`\`
-docker pull agentscope/qwenpaw:latest
-docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working -v qwenpaw-secrets:/app/working.secret -v qwenpaw-backups:/app/working.backups agentscope/qwenpaw:latest
-\`\`\`
-
-After upgrading, restart the service with \`qwenpaw app\`.`,
-
-  en: `### How to update QwenPaw
-
-To update QwenPaw, use the method matching your installation type:
-
-1. If installed via one-line script, re-run the installer to upgrade.
-
-2. If installed via pip, run:
-
-\`\`\`
-qwenpaw update
-\`\`\`
-
-3. If installed from source, pull the latest code and reinstall:
-
-\`\`\`
-cd QwenPaw
-git pull origin main
-cd console && npm ci && npm run build
-cd .. && mkdir -p src/qwenpaw/console
-cp -R console/dist/. src/qwenpaw/console/
-pip install -e .
-\`\`\`
-
-4. If using Docker, pull the latest image and restart the container:
-
-\`\`\`
-docker pull agentscope/qwenpaw:latest
-docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working -v qwenpaw-secrets:/app/working.secret -v qwenpaw-backups:/app/working.backups agentscope/qwenpaw:latest
-\`\`\`
-
-After upgrading, restart the service with \`qwenpaw app\`.`,
+After upgrading, restart the service to apply changes.`,
 };

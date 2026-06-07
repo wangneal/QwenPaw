@@ -26,6 +26,7 @@ const {
 const {
   PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, UserOutlined,
   SettingOutlined, LinkOutlined, SaveOutlined, SearchOutlined, ApiOutlined,
+  HomeOutlined,
 } = antdIcons || {};
 
 // ── API 请求封装 ─────────────────────────────────────────────
@@ -33,9 +34,11 @@ const {
 async function fetchApi(path, opts) {
   const url = getApiUrl ? getApiUrl(path) : path;
   const token = getApiToken?.();
+  const agentId = getSelectedAgentId();
   const headers = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(agentId ? { "X-Agent-Id": agentId } : {}),
   };
   const resp = await fetch(url, { ...opts, headers: { ...headers, ...opts?.headers } });
   if (!resp.ok) {
@@ -43,6 +46,37 @@ async function fetchApi(path, opts) {
     throw new Error(text || `HTTP ${resp.status}`);
   }
   return resp.json();
+}
+
+function getSelectedAgentId() {
+  try {
+    const raw =
+      sessionStorage.getItem("qwenpaw-agent-storage") ||
+      localStorage.getItem("qwenpaw-agent-storage");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed?.state?.selectedAgent || "default";
+    }
+  } catch (e) {
+    console.warn("[kingdee-admin] 读取当前 Agent 失败:", e);
+  }
+  return "default";
+}
+
+function getDefaultScope() {
+  return {
+    channel: (window as any).currentChannel || "console",
+    user_id: (window as any).currentUserId || "default",
+    agent_id: getSelectedAgentId(),
+  };
+}
+
+function orgContextPath(scope) {
+  const params = new URLSearchParams();
+  if (scope.channel) params.set("channel", scope.channel);
+  if (scope.user_id) params.set("user_id", scope.user_id);
+  if (scope.agent_id) params.set("agent_id", scope.agent_id);
+  return "/erp-permissions/org-context?" + params.toString();
 }
 
 // ── 权限管理页面 ─────────────────────────────────────────────
@@ -453,6 +487,200 @@ function PermissionPage() {
               { label: "管理者（含审核/下推）", value: "manager" },
               { label: "管理员（全部操作）", value: "admin" },
             ],
+          })
+        )
+      )
+    )
+  );
+}
+
+// ── 默认组织页面 ─────────────────────────────────────────────
+
+function OrgContextPage() {
+  const [orgList, setOrgList] = useState([]);
+  const [context, setContext] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form] = Form.useForm();
+
+  const orgOptions = orgList.map((o) => ({
+    label: o.org_name + " (" + o.org_id + ")",
+    value: o.org_id,
+  }));
+
+  const fetchOrgs = useCallback(async () => {
+    try {
+      const data = await fetchApi("/erp-permissions/meta/orgs");
+      setOrgList(data.orgs || []);
+      if ((data.orgs || []).length === 0 && data.error) {
+        message.warning(data.error);
+      }
+    } catch (e) {
+      console.warn("[kingdee-admin] 加载组织列表失败:", e);
+      message.warning("获取组织列表失败，请检查企业版连接配置");
+    }
+  }, []);
+
+  const fetchContext = useCallback(async (scope) => {
+    setLoading(true);
+    try {
+      const data = await fetchApi(orgContextPath(scope));
+      setContext(data);
+      form.setFieldsValue({
+        channel: data.channel || scope.channel,
+        user_id: data.user_id || scope.user_id,
+        agent_id: data.agent_id || scope.agent_id,
+        org_id: data.org_id || undefined,
+      });
+    } catch (e) {
+      message.error("加载默认组织失败: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [form]);
+
+  useEffect(() => {
+    const scope = getDefaultScope();
+    form.setFieldsValue(scope);
+    fetchOrgs();
+    fetchContext(scope);
+  }, [fetchOrgs, fetchContext, form]);
+
+  const handleLoad = async () => {
+    const values = await form.validateFields(["channel", "user_id", "agent_id"]);
+    await fetchContext(values);
+  };
+
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+      setSaving(true);
+      const data = await fetchApi("/erp-permissions/org-context", {
+        method: "PUT",
+        body: JSON.stringify(values),
+      });
+      if (data.status === "error") {
+        message.error(data.message || "保存失败");
+        return;
+      }
+      setContext(data);
+      message.success("默认组织已保存");
+    } catch (e) {
+      if (e.message) message.error("保存失败: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClear = async () => {
+    try {
+      const values = await form.validateFields(["channel", "user_id", "agent_id"]);
+      await fetchApi(orgContextPath(values), { method: "DELETE" });
+      setContext({ ...values, org_id: "", org_name: "" });
+      form.setFieldsValue({ org_id: undefined });
+      message.success("默认组织已清除");
+    } catch (e) {
+      message.error("清除失败: " + e.message);
+    }
+  };
+
+  return React.createElement(
+    "div", { style: { padding: 24 } },
+    React.createElement(
+      Card, {
+        title: React.createElement(Space, null,
+          React.createElement(HomeOutlined),
+          React.createElement("span", null, "金蝶默认组织")
+        ),
+        extra: React.createElement(
+          Space, null,
+          React.createElement(Button, {
+            icon: React.createElement(ReloadOutlined),
+            onClick: handleLoad,
+            loading,
+          }, "刷新"),
+          React.createElement(Button, {
+            danger: true,
+            onClick: handleClear,
+          }, "清除"),
+          React.createElement(Button, {
+            type: "primary",
+            onClick: handleSave,
+            loading: saving,
+          }, "保存")
+        ),
+      },
+      React.createElement("div", {
+        style: {
+          background: "#f6ffed", border: "1px solid #b7eb8f",
+          borderRadius: 6, padding: "8px 12px", marginBottom: 16,
+          fontSize: 12, color: "#237804",
+        },
+      }, "默认组织按 Agent + 渠道 + 用户保存。对话中不主动切换组织时，金蝶企业版工具会一直使用这里设置的组织。"),
+      context?.org_id ? React.createElement(
+        "div", {
+          style: {
+            marginBottom: 16, padding: "10px 12px",
+            border: "1px solid #d9d9d9", borderRadius: 6,
+          },
+        },
+        React.createElement(Space, { wrap: true },
+          React.createElement("span", null, "当前默认组织:"),
+          React.createElement(Tag, { color: "green" }, context.org_name || context.org_id),
+          React.createElement("code", null, context.context_key || "")
+        )
+      ) : React.createElement(
+        "div", {
+          style: {
+            marginBottom: 16, padding: "10px 12px",
+            border: "1px solid #ffd591", borderRadius: 6,
+            color: "#ad6800", background: "#fff7e6",
+          },
+        },
+        "当前作用域尚未设置默认组织。"
+      ),
+      React.createElement(
+        Form, { form, layout: "vertical" },
+        React.createElement(
+          Space, { align: "start", wrap: true, style: { width: "100%" } },
+          React.createElement(
+            Form.Item, {
+              name: "channel",
+              label: "渠道",
+              rules: [{ required: true, message: "请输入渠道" }],
+            },
+            React.createElement(Input, { style: { width: 160 }, placeholder: "console" })
+          ),
+          React.createElement(
+            Form.Item, {
+              name: "user_id",
+              label: "用户",
+              rules: [{ required: true, message: "请输入用户" }],
+            },
+            React.createElement(Input, { style: { width: 180 }, placeholder: "default" })
+          ),
+          React.createElement(
+            Form.Item, {
+              name: "agent_id",
+              label: "Agent",
+              rules: [{ required: true, message: "请输入 Agent" }],
+            },
+            React.createElement(Input, { style: { width: 180 }, placeholder: "default" })
+          )
+        ),
+        React.createElement(
+          Form.Item, {
+            name: "org_id",
+            label: "默认组织",
+            rules: [{ required: true, message: "请选择默认组织" }],
+          },
+          React.createElement(Select, {
+            showSearch: true,
+            placeholder: "选择金蝶企业版组织",
+            options: orgOptions,
+            loading,
+            filterOption: (input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase()),
           })
         )
       )
@@ -1184,6 +1412,12 @@ function init() {
         icon: "🔐",
       },
       {
+        path: "/org-context",
+        component: OrgContextPage,
+        label: "金蝶默认组织",
+        icon: "🏢",
+      },
+      {
         path: "/audit-log",
         component: AuditLogPage,
         label: "操作审计日志",
@@ -1202,7 +1436,7 @@ function init() {
         icon: "🔗",
       },
     ]);
-    console.log("[kingdee-admin] 路由注册完成: permissions, audit-log, kd-config, kd-mapping");
+    console.log("[kingdee-admin] 路由注册完成: permissions, org-context, audit-log, kd-config, kd-mapping");
   }
 }
 

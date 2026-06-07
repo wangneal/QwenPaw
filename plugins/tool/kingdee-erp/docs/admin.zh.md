@@ -55,6 +55,10 @@ Docker Volume：
 | QWENPAW_HOST | 监听地址 | 0.0.0.0 |
 | QWENPAW_PORT | 监听端口 | 8088 |
 | QWENPAW_LOG_LEVEL | 日志级别 | INFO |
+| KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED | WebUI/Console 是否跳过金蝶权限拦截 | false |
+| KINGDEE_PERMISSION_BYPASS_CHANNELS | 允许跳过权限拦截的渠道列表，仅在上项为 true 时生效 | console,webui |
+
+`KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED` 默认关闭。仅在可信本地控制台、临时运维或初始化场景中设置为 `true`。生产环境建议保持 `false`，通过金蝶权限管理页面为具体用户配置组织、业务域和操作权限。修改环境变量后需按部署方式重启服务或容器。
 
 ---
 
@@ -215,6 +219,17 @@ docker restart kd-erp
 | production | 生产 | PRD_ |
 | hr | 人事 | HR_, BD_Employee |
 | base | 基础资料 | BD_ |
+
+### WebUI 权限绕过开关
+
+WebUI 和 Console 渠道默认也执行金蝶权限拦截。需要临时关闭拦截时，必须显式配置：
+
+```bash
+KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED=true
+KINGDEE_PERMISSION_BYPASS_CHANNELS=console,webui
+```
+
+该配置只影响权限拦截，不会替代默认组织上下文。首次使用仍需为当前 `agent/channel/user` 作用域设置默认组织；用户未主动切换组织时，后续操作继续使用该默认组织。
 
 ### 通过管理界面管理权限
 

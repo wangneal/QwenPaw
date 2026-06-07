@@ -477,6 +477,99 @@ class KingdeeClient:
         await self._cache.clear_by_form_id(form_id)
         return result
 
+    async def allocate_base_data(self, form_id, pk_ids, target_org_ids) -> dict:
+        """基础资料分配（Allocate）。
+
+        Args:
+            form_id: 基础资料表单ID，如 BD_Customer
+            pk_ids: 被分配基础资料内码集合，逗号分隔字符串
+            target_org_ids: 目标组织内码集合，逗号分隔字符串
+        """
+        await self._ensure()
+        data = {"PkIds": str(pk_ids), "TOrgIds": str(target_org_ids)}
+        _logger.info("[Allocate] 请求 form_id=%s data=%s", form_id, _truncate(data))
+        t0 = time.time()
+        if not hasattr(self._sdk, "Allocate"):
+            raise RuntimeError("当前金蝶 SDK 不支持 Allocate 接口")
+        r = self._sdk.Allocate(form_id, data)
+        elapsed = (time.time() - t0) * 1000
+        result = json.loads(r) if isinstance(r, str) else r
+        _logger.info("[Allocate] 响应 elapsed=%.0fms result=%s", elapsed, _truncate(result, 500))
+        _logger.debug("[Allocate] 响应详情 %s", _truncate(result))
+        await self._cache.clear_by_form_id(form_id)
+        return result
+
+    async def cancel_allocate_base_data(self, form_id, pk_ids, target_org_ids) -> dict:
+        """基础资料取消分配（CancelAllocate）。"""
+        await self._ensure()
+        data = {"PkIds": str(pk_ids), "TOrgIds": str(target_org_ids)}
+        _logger.info("[CancelAllocate] 请求 form_id=%s data=%s", form_id, _truncate(data))
+        t0 = time.time()
+        if not hasattr(self._sdk, "CancelAllocate"):
+            raise RuntimeError("当前金蝶 SDK 不支持 CancelAllocate 接口")
+        r = self._sdk.CancelAllocate(form_id, data)
+        elapsed = (time.time() - t0) * 1000
+        result = json.loads(r) if isinstance(r, str) else r
+        _logger.info("[CancelAllocate] 响应 elapsed=%.0fms result=%s", elapsed, _truncate(result, 500))
+        _logger.debug("[CancelAllocate] 响应详情 %s", _truncate(result))
+        await self._cache.clear_by_form_id(form_id)
+        return result
+
+    async def group_save_base_data(self, form_id, group_data) -> dict:
+        """基础资料分组保存（GroupSave）。"""
+        await self._ensure()
+        _logger.info("[GroupSave] 请求 form_id=%s data=%s", form_id, _truncate(group_data))
+        t0 = time.time()
+        if not hasattr(self._sdk, "GroupSave"):
+            raise RuntimeError("当前金蝶 SDK 不支持 GroupSave 接口")
+        r = self._sdk.GroupSave(form_id, group_data)
+        elapsed = (time.time() - t0) * 1000
+        result = json.loads(r) if isinstance(r, str) else r
+        _logger.info("[GroupSave] 响应 elapsed=%.0fms result=%s", elapsed, _truncate(result, 500))
+        _logger.debug("[GroupSave] 响应详情 %s", _truncate(result))
+        await self._cache.clear_by_form_id(form_id)
+        return result
+
+    async def query_group_info(self, form_id, group_field_key="", group_pk_ids="", ids="") -> dict:
+        """基础资料分组信息查询（QueryGroupInfo）。"""
+        await self._ensure()
+        data = {
+            "FormId": form_id,
+            "GroupFieldKey": group_field_key or "",
+            "GroupPkIds": group_pk_ids or "",
+            "Ids": ids or "",
+        }
+        _logger.info("[QueryGroupInfo] 请求 form_id=%s data=%s", form_id, _truncate(data))
+        t0 = time.time()
+        if not hasattr(self._sdk, "QueryGroupInfo"):
+            raise RuntimeError("当前金蝶 SDK 不支持 QueryGroupInfo 接口")
+        r = self._sdk.QueryGroupInfo(data)
+        elapsed = (time.time() - t0) * 1000
+        result = json.loads(r) if isinstance(r, str) else r
+        _logger.info("[QueryGroupInfo] 响应 elapsed=%.0fms result=%s", elapsed, _truncate(result, 500))
+        _logger.debug("[QueryGroupInfo] 响应详情 %s", _truncate(result))
+        return result
+
+    async def group_delete_base_data(self, form_id, group_field_key="", group_pk_ids="") -> dict:
+        """基础资料分组删除（GroupDelete）。"""
+        await self._ensure()
+        data = {
+            "FormId": form_id,
+            "GroupFieldKey": group_field_key or "",
+            "GroupPkIds": group_pk_ids or "",
+        }
+        _logger.info("[GroupDelete] 请求 form_id=%s data=%s", form_id, _truncate(data))
+        t0 = time.time()
+        if not hasattr(self._sdk, "GroupDelete"):
+            raise RuntimeError("当前金蝶 SDK 不支持 GroupDelete 接口")
+        r = self._sdk.GroupDelete(data)
+        elapsed = (time.time() - t0) * 1000
+        result = json.loads(r) if isinstance(r, str) else r
+        _logger.info("[GroupDelete] 响应 elapsed=%.0fms result=%s", elapsed, _truncate(result, 500))
+        _logger.debug("[GroupDelete] 响应详情 %s", _truncate(result))
+        await self._cache.clear_by_form_id(form_id)
+        return result
+
     async def workflow_audit(self, form_id, numbers, user_id, approval_type=1) -> dict:
         """工作流审批。
 

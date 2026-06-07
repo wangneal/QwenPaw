@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel
 
 from erp_backend import ERPBackend, with_request_id
@@ -16,9 +16,11 @@ from erp_permissions import (
     PermissionManager, register_settings_routes,
     OPERATIONS, BUILTIN_ROLES, TOOL_OP_MAP,
     resolve_row_filter,
+    make_org_context_key, set_default_org_context,
 )
 from .domains import get_domain_map, BASE_PREFIXES
 from .config_fields import KINGDEE_CONFIG_FIELDS, BACKEND_NAME, BACKEND_LABEL, BACKEND_ICON
+from .prompts import TOOL_DEFINITIONS
 from .sdk import KingdeeClient
 
 logger = logging.getLogger(__name__)
@@ -60,12 +62,12 @@ a:hover{{text-decoration:underline;}}
 </html>"""
 
 _DOCS_HTML_ZH = _docs_html("使用教程", """
-<h1>📖 星智 StarMind 使用教程</h1>
+<h1>星智 StarMind 使用教程</h1>
 
 <h2>一、快速开始</h2>
 <p>星智 StarMind 是一个 AI 智能助手平台，集成了金蝶云星空 ERP 能力，可以通过自然语言完成业务操作。</p>
 
-<div class="tip"><strong>💡 提示：</strong>首次使用前，请确保管理员已在「设置」中配置金蝶 ERP 连接信息。</div>
+<div class="tip"><strong>提示：</strong>首次使用前，请确保管理员已在「设置」中配置金蝶 ERP 连接信息。</div>
 
 <h2>二、与 AI 对话</h2>
 <p>在对话框中输入自然语言即可与 AI 交流，AI 会自动调用合适的工具完成任务。</p>
@@ -73,7 +75,7 @@ _DOCS_HTML_ZH = _docs_html("使用教程", """
 <ul>
 <li><code>查询最近10条销售订单</code></li>
 <li><code>查看客户"华为技术"的详细信息</code></li>
-<li><code>帮我查一下物料F001的库存</code></li>
+<li><code>查询物料 F001 的库存</code></li>
 <li><code>查询今天的收款单据</code></li>
 </ul>
 
@@ -89,13 +91,13 @@ _DOCS_HTML_ZH = _docs_html("使用教程", """
 <li><strong>查询客户/供应商</strong>：查询基础资料信息</li>
 </ul>
 
-<div class="tip"><strong>⚠️ 安全提示：</strong>涉及写入、删除、审核等操作时，AI 会展示操作摘要并要求你确认后才会执行。</div>
+<div class="tip"><strong>安全提示：</strong>涉及写入、删除、审核等操作时，AI 会展示操作摘要并要求你确认后才会执行。</div>
 
 <h2>四、代码模式</h2>
 <p>点击顶部的「代码模式」切换按钮，可以查看和编辑 Agent 的工作区文件。</p>
 <p>工作区中存放 Agent 的配置文件、技能文件等。你可以自由编辑这些文件来定制 Agent 行为。</p>
 
-<div class="tip"><strong>🔒 注意：</strong>系统源码和内置插件代码为只读，不可修改。</div>
+<div class="tip"><strong>注意：</strong>系统源码和内置插件代码为只读，不可修改。</div>
 
 <h2>五、权限管理</h2>
 <p>管理员可通过「ERP 权限管理」页面为不同渠道配置金蝶 ERP 的操作权限：</p>
@@ -110,12 +112,12 @@ _DOCS_HTML_ZH = _docs_html("使用教程", """
 """)
 
 _DOCS_HTML_EN = _docs_html("Tutorial", """
-<h1>📖 StarMind Tutorial</h1>
+<h1>StarMind Tutorial</h1>
 
 <h2>1. Getting Started</h2>
 <p>StarMind is an AI assistant platform integrated with Kingdee Cloud ERP capabilities. You can complete business operations using natural language.</p>
 
-<div class="tip"><strong>💡 Tip:</strong> Before first use, make sure the administrator has configured the Kingdee ERP connection in Settings.</div>
+<div class="tip"><strong>Tip:</strong> Before first use, make sure the administrator has configured the Kingdee ERP connection in Settings.</div>
 
 <h2>2. Chat with AI</h2>
 <p>Simply type in natural language and the AI will automatically invoke the appropriate tools.</p>
@@ -139,12 +141,12 @@ _DOCS_HTML_EN = _docs_html("Tutorial", """
 <li><strong>Query Customer/Vendor</strong>: Master data lookup</li>
 </ul>
 
-<div class="tip"><strong>⚠️ Security:</strong> Write, delete, and approve operations require your confirmation before execution.</div>
+<div class="tip"><strong>Security:</strong> Write, delete, and approve operations require your confirmation before execution.</div>
 
 <h2>4. Coding Mode</h2>
 <p>Toggle "Coding Mode" in the header to view and edit Agent workspace files such as configurations and skills.</p>
 
-<div class="tip"><strong>🔒 Note:</strong> System source code and built-in plugins are read-only.</div>
+<div class="tip"><strong>Note:</strong> System source code and built-in plugins are read-only.</div>
 
 <h2>5. Permission Management</h2>
 <p>Administrators can configure Kingdee ERP permissions per channel (WeChat, DingTalk, Feishu, etc.) through the ERP Admin panel.</p>
@@ -154,7 +156,7 @@ _DOCS_HTML_EN = _docs_html("Tutorial", """
 """)
 
 _FAQ_HTML_ZH = _docs_html("常见问题", """
-<h1>❓ 常见问题</h1>
+<h1>常见问题</h1>
 
 <h2>Q: 如何配置金蝶 ERP 连接？</h2>
 <p>A: 管理员登录后，进入「设置 → ERP 配置」，填写金蝶云星空的 API 地址、数据库标识、用户名和密码，保存即可。</p>
@@ -187,7 +189,7 @@ _FAQ_HTML_ZH = _docs_html("常见问题", """
 """)
 
 _FAQ_HTML_EN = _docs_html("FAQ", """
-<h1>❓ Frequently Asked Questions</h1>
+<h1>Frequently Asked Questions</h1>
 
 <h2>Q: How to configure Kingdee ERP connection?</h2>
 <p>A: After logging in as admin, go to Settings → ERP Configuration, fill in the Kingdee Cloud API URL, database ID, username and password, then save.</p>
@@ -220,32 +222,32 @@ _FAQ_HTML_EN = _docs_html("FAQ", """
 """)
 
 _RELEASE_NOTES_HTML_ZH = _docs_html("更新日志", """
-<h1>📋 星智 StarMind 更新日志</h1>
+<h1>星智 StarMind 更新日志</h1>
 
 <h2>v1.0.0 — 初始版本</h2>
 <ul>
-<li>✅ 基于 QwenPaw 白标定制</li>
-<li>✅ 集成金蝶云星空 WebAPI 全量工具</li>
-<li>✅ ERP 权限管理前端</li>
-<li>✅ 内置金蝶 ERP Agent Persona 和 Skill</li>
-<li>✅ 代码模式路径保护（系统源码只读）</li>
-<li>✅ 内置文档（教程 / FAQ / 更新日志）</li>
-<li>✅ 品牌定制：星智 StarMind</li>
+<li>基于 QwenPaw 白标定制</li>
+<li>集成金蝶云星空 WebAPI 全量工具</li>
+<li>ERP 权限管理前端</li>
+<li>内置金蝶 ERP Agent Persona 和 Skill</li>
+<li>代码模式路径保护（系统源码只读）</li>
+<li>内置文档（教程 / FAQ / 更新日志）</li>
+<li>品牌定制：星智 StarMind</li>
 </ul>
 """)
 
 _RELEASE_NOTES_HTML_EN = _docs_html("Release Notes", """
-<h1>📋 StarMind Release Notes</h1>
+<h1>StarMind Release Notes</h1>
 
 <h2>v1.0.0 — Initial Release</h2>
 <ul>
-<li>✅ White-label customization based on QwenPaw</li>
-<li>✅ Integrated Kingdee Cloud WebAPI tools</li>
-<li>✅ ERP Permission Management UI</li>
-<li>✅ Built-in Kingdee ERP Agent Persona and Skills</li>
-<li>✅ Coding Mode path protection (system code read-only)</li>
-<li>✅ Built-in documentation (Tutorial / FAQ / Release Notes)</li>
-<li>✅ Brand customization: StarMind</li>
+<li>White-label customization based on QwenPaw</li>
+<li>Integrated Kingdee Cloud WebAPI tools</li>
+<li>ERP Permission Management UI</li>
+<li>Built-in Kingdee ERP Agent Persona and Skills</li>
+<li>Coding Mode path protection (system code read-only)</li>
+<li>Built-in documentation (Tutorial / FAQ / Release Notes)</li>
+<li>Brand customization: StarMind</li>
 </ul>
 """)
 
@@ -283,35 +285,16 @@ class KingdeeBackend:
         """注册全部金蝶工具到 QwenPaw"""
         from . import tools as kingdee_tools
 
-        TOOL_DEFS = [
-            ("kingdee_list_user_orgs", "查询当前用户有权限的组织列表。⚠️ 任何业务操作前必须先调用此工具获取org_id，不得编造或猜测org_id值", "🏢"),
-            ("kingdee_query_bill", "查询金蝶单据数据。⚠️硬性防护：1)FormId校验(非法ID被拒绝)2)空结果强制声明(防止编造)。防幻觉：不确定FormId先调kingdee_search_form；不确定字段名先调kingdee_query_metadata；不得编造过滤值", "📊"),
-            ("kingdee_view_bill", "查看金蝶单据完整详情。⚠️ FormId校验+空结果声明。单据编号必须来自查询结果或用户明确提供，不得编造", "📄"),
-            ("kingdee_get_report", "查询金蝶报表数据（余额表、利润表等）。⚠️ FormId校验+空结果声明。form_id和scheme_id不得猜测", "📈"),
-            ("kingdee_get_kds_report", "查询金蝶合并报表数据。⚠️ 所有编号参数（核算体系/会计政策/币别等）必须从实际配置获取，不得使用示例值或猜测值", "📊"),
-            ("kingdee_save_bill", "保存/新增金蝶单据。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验(非法ID被拒绝)3)防跳步(未预览过拒绝执行)。防幻觉：编码值必须查询获取禁止猜测，基础资料必须{\"FNumber\":\"编码\"}包裹", "💾"),
-            ("kingdee_delete_bill", "删除金蝶单据。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步。删除不可逆！单号必须来自查询结果", "🗑️"),
-            ("kingdee_submit_bill", "提交金蝶单据审批。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步。单号必须来自查询结果", "📤"),
-            ("kingdee_audit_bill", "审核金蝶单据。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步。审核后不可修改！", "✅"),
-            ("kingdee_unaudit_bill", "反审核金蝶单据。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步", "↩️"),
-            ("kingdee_push_bill", "下推金蝶单据（如订单→出库单）。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步。源单编号和目标单ID必须来自查询结果", "⬇️"),
-            ("kingdee_execute_operation", "执行金蝶自定义操作（禁用/启用等）。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步。op_number和op_data不得猜测", "⚙️"),
-            ("kingdee_workflow_audit", "工作流审批金蝶单据（通过/驳回/终止）。⚠️三重防护：1)双步调用(execute=False预览→True执行)2)FormId校验3)防跳步。审批类型必须用户指定，user_id不得猜测", "📝"),
-            ("kingdee_switch_org", "切换金蝶组织。⚠️ org_number必须来自kingdee_list_user_orgs的查询结果，不得猜测", "🔄"),
-            ("kingdee_query_metadata", "查询金蝶表单字段定义（字段名、类型、中文名）。在调用写入工具或构建查询字段前，应先调用此工具确认字段类型和名称", "🔍"),
-            ("kingdee_search_form", "模糊搜索金蝶表单，返回匹配的FormId列表。在调用kingdee_query_bill前，如果不确定FormId，应先调用此工具搜索确认", "🔎"),
-            ("kingdee_product_qa", "金蝶产品智能问答：解答产品使用问题、操作指导、报错解决", "❓"),
-            ("kingdee_list_digest_templates", "列出所有预定义的高管报表摘要模板（销售日报/应收周报/库存月报/财务月报）", "📋"),
-        ]
-
-        for name, desc, icon in TOOL_DEFS:
+        for item in TOOL_DEFINITIONS:
+            name = item["name"]
             func = getattr(kingdee_tools, name)
             wrapped = with_request_id(name)(func)
             api.register_tool(tool_name=name, tool_func=wrapped,
-                              description=desc, icon=icon)
+                              description=item["description"],
+                              icon=item.get("icon", "erp"))
 
-        logger.info(f"Kingdee backend: {len(TOOL_DEFS)} tools registered")
-        return len(TOOL_DEFS)
+        logger.info(f"Kingdee backend: {len(TOOL_DEFINITIONS)} tools registered")
+        return len(TOOL_DEFINITIONS)
 
     def _get_config(self) -> Dict[str, Any]:
         """获取金蝶连接配置。
@@ -387,6 +370,42 @@ class KingdeeBackend:
                 item["org_name"] = names.get(oid, oid if oid != "*" else "全部")
             return items
 
+        def _request_context_scope(
+            request: Request,
+            channel: str = "",
+            user_id: str = "",
+            agent_id: str = "",
+        ) -> dict:
+            """Resolve the same default-org scope used by console chat tools."""
+            resolved_channel = (channel or "").strip() or "console"
+            resolved_user = (user_id or "").strip() or "default"
+            resolved_agent = (
+                (agent_id or "").strip()
+                or request.headers.get("X-Agent-Id", "").strip()
+            )
+            if not resolved_agent:
+                try:
+                    from qwenpaw.app.agent_context import get_active_agent_id
+                    resolved_agent = get_active_agent_id()
+                except Exception:
+                    resolved_agent = "default"
+            return {
+                "channel": resolved_channel,
+                "user_id": resolved_user,
+                "agent_id": resolved_agent or "default",
+                "context_key": make_org_context_key(
+                    resolved_channel,
+                    resolved_user,
+                    resolved_agent or "default",
+                ),
+            }
+
+        async def _org_name(org_id: str) -> str:
+            if not org_id:
+                return ""
+            enriched = await _enrich_with_org_names([{"org_id": org_id}])
+            return enriched[0].get("org_name", org_id) if enriched else org_id
+
         # 注册共享配置和字段映射路由
         register_settings_routes(router, mgr)
 
@@ -447,6 +466,76 @@ class KingdeeBackend:
                         "domains": domains_with_label,
                     }
                 }
+            }
+
+        # ── 默认组织上下文（WebUI/Console 首次使用闭环）──
+
+        class OrgContextBody(BaseModel):
+            """当前用户默认组织请求体"""
+            org_id: str
+            channel: str = ""
+            user_id: str = ""
+            agent_id: str = ""
+
+        @router.get("/org-context")
+        async def get_org_context(
+            request: Request,
+            channel: str = Query(""),
+            user_id: str = Query(""),
+            agent_id: str = Query(""),
+        ):
+            """查询当前 agent/channel/user 作用域下的默认金蝶组织。"""
+            scope = _request_context_scope(request, channel, user_id, agent_id)
+            org_id = mgr.get_default_org(scope["context_key"], self.system_name) or ""
+            return {
+                **scope,
+                "system_name": self.system_name,
+                "org_id": org_id,
+                "org_name": await _org_name(org_id),
+            }
+
+        @router.put("/org-context")
+        async def set_org_context(request: Request, body: OrgContextBody):
+            """设置当前 agent/channel/user 作用域下的默认金蝶组织。"""
+            scope = _request_context_scope(
+                request,
+                body.channel,
+                body.user_id,
+                body.agent_id,
+            )
+            ok, err = set_default_org_context(
+                mgr,
+                scope["channel"],
+                scope["user_id"],
+                self.system_name,
+                body.org_id,
+                scope["agent_id"],
+            )
+            if not ok:
+                return {"status": "error", "message": err, **scope}
+            return {
+                "status": "ok",
+                **scope,
+                "system_name": self.system_name,
+                "org_id": body.org_id,
+                "org_name": await _org_name(body.org_id),
+            }
+
+        @router.delete("/org-context")
+        def clear_org_context(
+            request: Request,
+            channel: str = Query(""),
+            user_id: str = Query(""),
+            agent_id: str = Query(""),
+        ):
+            """清除当前 agent/channel/user 作用域下的默认金蝶组织。"""
+            scope = _request_context_scope(request, channel, user_id, agent_id)
+            mgr.clear_default_org(scope["context_key"], self.system_name)
+            return {
+                "status": "ok",
+                **scope,
+                "system_name": self.system_name,
+                "org_id": "",
             }
 
         # ── CRUD 路由 ──

@@ -13,8 +13,10 @@ pretty-printed to the terminal.
 from __future__ import annotations
 
 import copy
+import json
 import logging
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -55,9 +57,88 @@ _RED = "\033[31m" if _USE_COLOR else ""
 _BOLD = "\033[1m" if _USE_COLOR else ""
 _RESET = "\033[0m" if _USE_COLOR else ""
 
+_PUBLIC_OUTPUT_GUARD_ENV = "QWENPAW_CONSOLE_PUBLIC_OUTPUT_GUARD"
+_FALSE_VALUES = {"0", "false", "no", "off"}
+
+_INTERNAL_THOUGHT_RE = re.compile(
+    r"(?is)(^|[\n。！？])\s*"
+    r"(?:"
+    r"the\s*user\s*(?:\w+\s+){0,3}(?:wants|want|is\s*asking)|"
+    r"according\s*to\s*the\s*rules|"
+    r"first|now|actually|but\s*wait|the\s*same\s*error|"
+    r"i\s*(?:need|should|will|can)|"
+    r"let\s*me|"
+    r"looking\s*at|"
+    r"the\s*(?:tool|query|operation|response)|"
+    r"用户(?:想|要|要求)|"
+    r"我(?:需要|应该|将|可以)|"
+    r"让我|首先|现在我|根据(?:路由)?规则|系统提示"
+    r")"
+    r".*?(?=(?:\n\s*\n)|(?:\*\*[^*]{2,24}\*\*)|"
+    r"(?:阻断原因|查询结果|查询失败|操作预览|执行状态|下一步动作|无法|请)|$)",
+)
+
+_TRAILING_INTERNAL_RE = re.compile(
+    r"(?is)"
+    r"(?:the\s*user\s*(?:\w+\s+){0,3}(?:wants|want|is\s*asking)|"
+    r"according\s*to\s*the\s*rules|first|now|actually|but\s*wait|"
+    r"the\s*same\s*error|"
+    r"i\s*(?:need|should|will|can)|let\s*me|looking\s*at|"
+    r"用户(?:想|要|要求)|我(?:需要|应该|将|可以)|让我|首先|现在我)"
+    r"[^。！？\n]*(?:[。！？\n]|$)"
+)
+
 
 def _ts() -> str:
     return datetime.now().strftime("%H:%M:%S")
+
+
+def _public_output_guard_enabled() -> bool:
+    raw = os.getenv(_PUBLIC_OUTPUT_GUARD_ENV, "1").strip().lower()
+    return raw not in _FALSE_VALUES
+
+
+def _sanitize_public_text(text: str) -> str:
+    if not text:
+        return text
+    cleaned = _INTERNAL_THOUGHT_RE.sub(lambda m: m.group(1) or "", text)
+    cleaned = _TRAILING_INTERNAL_RE.sub("", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
+def _sanitize_public_value(value: Any) -> Any:
+    if isinstance(value, str):
+        return _sanitize_public_text(value)
+    if isinstance(value, list):
+        changed = False
+        items = []
+        for item in value:
+            new_item = _sanitize_public_value(item)
+            changed = changed or new_item != item
+            if new_item not in ("", None):
+                items.append(new_item)
+        return items if changed else value
+    if isinstance(value, dict):
+        changed = False
+        new_value = {}
+        for key, item in value.items():
+            if key in {
+                "text",
+                "content",
+                "message",
+                "response",
+                "delta",
+                "output_text",
+                "output",
+            }:
+                new_item = _sanitize_public_value(item)
+            else:
+                new_item = item
+            changed = changed or new_item != item
+            new_value[key] = new_item
+        return new_value if changed else value
+    return value
 
 
 class ConsoleChannel(BaseChannel):
@@ -121,6 +202,7 @@ class ConsoleChannel(BaseChannel):
         else:
             self._media_dir = DEFAULT_MEDIA_DIR
         self._media_dir.mkdir(parents=True, exist_ok=True)
+        self._public_output_guard = _public_output_guard_enabled()
 
         # Windows stdout encoding fix
         if sys.platform == "win32":
@@ -330,6 +412,27 @@ class ConsoleChannel(BaseChannel):
         logger.info("Usage for session %s (cleaned up): %s", session_id, usage)
         return usage
 
+    @staticmethod
+    def _is_text_content_event(event: Any) -> bool:
+        event_type = getattr(event, "type", None)
+        return (
+            getattr(event, "object", None) == "content"
+            and event_type in (ContentType.TEXT, "text")
+        )
+
+    def _serialize_guarded_event_for_sse(self, event: Any) -> str:
+        data = self._serialize_event_for_sse(event)
+        if not self._public_output_guard:
+            return data
+        try:
+            payload = json.loads(data)
+        except Exception:
+            return _sanitize_public_text(data)
+        sanitized = _sanitize_public_value(payload)
+        if sanitized == payload:
+            return data
+        return json.dumps(sanitized, ensure_ascii=False)
+
     async def stream_one(self, payload: Any) -> AsyncGenerator[str, None]:
         """Process one payload and yield SSE-formatted events"""
         if isinstance(payload, dict) and "content_parts" in payload:
@@ -366,6 +469,8 @@ class ConsoleChannel(BaseChannel):
             send_meta.setdefault("bot_prefix", self.bot_prefix)
             last_response = None
             event_count = 0
+            guarded_text_chunks: list[str] = []
+            completed_message_seen = False
 
             async for event in self._process(request):
                 event_count += 1
@@ -389,6 +494,12 @@ class ConsoleChannel(BaseChannel):
                     event.output = []
                     if event_output is not None:
                         for message in event_output:
+                            if (
+                                self._public_output_guard
+                                and getattr(message, "type", None)
+                                in (MessageType.REASONING, "reasoning")
+                            ):
+                                continue
                             event.output.append(message)
                             media_message = await self._extract_media_message(
                                 message,
@@ -401,13 +512,29 @@ class ConsoleChannel(BaseChannel):
                     if usage_data and hasattr(event, "usage"):
                         setattr(event, "usage", usage_data)
 
-                data = self._serialize_event_for_sse(event)
+                if (
+                    self._public_output_guard
+                    and self._is_text_content_event(event)
+                ):
+                    text = getattr(event, "text", None)
+                    if isinstance(text, str):
+                        guarded_text_chunks.append(text)
+                    continue
+                if (
+                    self._public_output_guard
+                    and obj == "message"
+                    and ev_type in (MessageType.REASONING, "reasoning")
+                ):
+                    continue
+
+                data = self._serialize_guarded_event_for_sse(event)
                 yield f"data: {data}\n\n"
 
                 if obj == "message" and status == RunStatus.Completed:
+                    completed_message_seen = True
                     media_message = await self._extract_media_message(event)
                     if media_message:
-                        media_json = self._serialize_event_for_sse(
+                        media_json = self._serialize_guarded_event_for_sse(
                             media_message,
                         )
                         yield f"data: {media_json}\n\n"
@@ -417,6 +544,32 @@ class ConsoleChannel(BaseChannel):
 
                 elif obj == "response":
                     last_response = event
+
+            if (
+                self._public_output_guard
+                and not completed_message_seen
+                and guarded_text_chunks
+            ):
+                guarded_text = _sanitize_public_text(
+                    "".join(guarded_text_chunks),
+                )
+                if guarded_text:
+                    synthetic = {
+                        "sequence_number": event_count + 1,
+                        "object": "message",
+                        "status": "completed",
+                        "type": "message",
+                        "role": "assistant",
+                        "content": [
+                            {"type": "text", "text": guarded_text},
+                        ],
+                        "session_id": session_id,
+                    }
+                    yield (
+                        "data: "
+                        + json.dumps(synthetic, ensure_ascii=False)
+                        + "\n\n"
+                    )
 
             logger.info(
                 "console stream done: event_count=%s has_response=%s",

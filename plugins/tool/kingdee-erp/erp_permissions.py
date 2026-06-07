@@ -23,27 +23,37 @@ from erp_backend import get_registry, get_current_request_id
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_DB_DIR = os.path.expanduser("~/.qwenpaw/plugin_data/erp")
+def _get_default_db_dir() -> str:
+    base = (
+        os.environ.get("QWENPAW_WORKING_DIR")
+        or os.environ.get("starmind_WORKING_DIR")
+        or os.path.expanduser("~/.qwenpaw")
+    )
+    return os.path.join(os.path.expanduser(base), "plugin_data", "erp")
+
+
+DEFAULT_DB_DIR = _get_default_db_dir()
 DEFAULT_DB_PATH = os.path.join(DEFAULT_DB_DIR, "permissions.db")
 DEFAULT_ARCHIVE_DIR = os.path.join(DEFAULT_DB_DIR, "audit_archive")
 AUDIT_LOG_MAX = 10000
 AUDIT_LOG_EXPORT_BATCH = 5000
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 # ── 操作码定义 ──────────────────────────────────────────────
 # 每个操作码关联一组 MCP 工具名和风险等级
 OPERATIONS: Dict[str, Dict] = {
-    "query":    {"label": "查询", "tools": ["kingdee_query_bill"], "risk": "low"},
+    "query":    {"label": "查询", "tools": ["kingdee_query_bill", "kingdee_query_group_info"], "risk": "low"},
     "view":     {"label": "查看详情", "tools": ["kingdee_view_bill"], "risk": "low"},
     "report":   {"label": "报表", "tools": ["kingdee_get_report", "kingdee_get_kds_report"], "risk": "low"},
-    "save":     {"label": "保存/新增", "tools": ["kingdee_save_bill"], "risk": "medium"},
+    "save":     {"label": "保存/新增", "tools": ["kingdee_save_bill", "kingdee_group_save_base_data", "kingdee_create_group_under_parent"], "risk": "medium"},
     "submit":   {"label": "提交审批", "tools": ["kingdee_submit_bill"], "risk": "medium"},
     "push":     {"label": "下推", "tools": ["kingdee_push_bill"], "risk": "medium"},
+    "allocate": {"label": "基础资料分配", "tools": ["kingdee_allocate_base_data", "kingdee_cancel_allocate_base_data", "kingdee_allocate_customers_to_orgs", "kingdee_cancel_allocate_customers_to_orgs"], "risk": "medium"},
     "execute":  {"label": "自定义操作", "tools": ["kingdee_execute_operation"], "risk": "medium"},
     "workflow": {"label": "工作流审批", "tools": ["kingdee_workflow_audit"], "risk": "medium"},
     "audit":    {"label": "审核", "tools": ["kingdee_audit_bill"], "risk": "high"},
     "unaudit":  {"label": "反审核", "tools": ["kingdee_unaudit_bill"], "risk": "high"},
-    "delete":   {"label": "删除", "tools": ["kingdee_delete_bill"], "risk": "high"},
+    "delete":   {"label": "删除", "tools": ["kingdee_delete_bill", "kingdee_delete_recent_entity", "kingdee_group_delete_base_data", "kingdee_delete_group_by_business_key"], "risk": "high"},
 }
 
 # ── 内置角色定义 ─────────────────────────────────────────────
@@ -51,7 +61,7 @@ OPERATIONS: Dict[str, Dict] = {
 BUILTIN_ROLES: Dict[str, Dict] = {
     "viewer":   {"label": "查看者", "operations": ["query", "view", "report"]},
     "operator": {"label": "操作员", "operations": ["query", "view", "report", "save", "submit"]},
-    "manager":  {"label": "管理者", "operations": ["query", "view", "report", "save", "submit", "audit", "push"]},
+    "manager":  {"label": "管理者", "operations": ["query", "view", "report", "save", "submit", "audit", "push", "allocate"]},
     "admin":    {"label": "管理员", "operations": ["*"]},
     "custom":   {"label": "自定义", "operations": []},
 }
@@ -94,6 +104,99 @@ def _get_admin_contact(system_name: str = "") -> str:
     except Exception as e:
         logger.debug("获取管理员联系方式失败: %s", e)
     return ""
+
+
+def _is_permission_bypass_channel(channel: str) -> bool:
+    """Return True when explicit configuration enables trusted local bypass."""
+    enabled = os.environ.get(
+        "KINGDEE_WEBUI_BYPASS_PERMISSIONS_ENABLED",
+        "false",
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if not enabled:
+        return False
+    channels = {
+        item.strip().lower()
+        for item in os.environ.get(
+            "KINGDEE_PERMISSION_BYPASS_CHANNELS",
+            "console,webui",
+        ).split(",")
+        if item.strip()
+    }
+    return (channel or "").strip().lower() in channels
+
+
+def make_org_context_key(channel: str, user_id: str, agent_id: str = "") -> str:
+    """Build the per-agent, per-user scope key for default ERP organization."""
+    return "|".join((
+        f"agent={agent_id or 'default'}",
+        f"channel={channel or 'unknown'}",
+        f"user={user_id or 'unknown'}",
+    ))
+
+
+def set_default_org_context(
+    perm_mgr: "PermissionManager", channel: str, user_id: str,
+    system_name: str, org_id: str, agent_id: str = "",
+) -> Tuple[bool, Optional[str]]:
+    """Persist default organization for the current agent/user context.
+
+    Non-bypass channels must already have permission for the selected org.
+    Trusted WebUI/console channels may set any org only when permission bypass
+    is explicitly enabled by environment configuration.
+    """
+    org_id = (org_id or "").strip()
+    if not org_id:
+        return False, "组织编号不能为空。"
+
+    key = f"{channel}:{user_id}"
+    if not _is_permission_bypass_channel(channel):
+        user_orgs = perm_mgr.list_user_orgs(key)
+        org_ids = [o["org_id"] for o in user_orgs]
+        if org_id not in org_ids and "*" not in org_ids:
+            return False, (
+                f"您没有组织 {org_id} 的权限（身份: {key}）。\n"
+                f"您有权限的组织: {', '.join(org_ids) if org_ids else '无'}"
+                + _get_admin_contact(system_name)
+            )
+
+    context_key = make_org_context_key(channel, user_id, agent_id)
+    perm_mgr.set_default_org(context_key, system_name, org_id)
+    return True, None
+
+
+def resolve_org_context(
+    perm_mgr: "PermissionManager", channel: str, user_id: str,
+    system_name: str, org_id: str = "", agent_id: str = "",
+) -> Tuple[str, Optional[str]]:
+    """Resolve explicit org_id or the persisted default organization.
+
+    Returns:
+        (effective_org_id, error_message). error_message is None on success.
+    """
+    org_id = str(org_id or "").strip()
+    if org_id:
+        return org_id, None
+
+    context_key = make_org_context_key(channel, user_id, agent_id)
+    default_org = perm_mgr.get_default_org(context_key, system_name)
+    if default_org:
+        return default_org, None
+
+    key = f"{channel}:{user_id}"
+    user_orgs = perm_mgr.list_user_orgs(key)
+    org_ids = [o["org_id"] for o in user_orgs]
+    hint = (
+        f"您有权限的组织: {', '.join(org_ids)}"
+        if org_ids else
+        "当前身份尚未配置组织权限，或当前渠道启用了权限绕过但尚未选择组织。"
+    )
+    return "", (
+        f"首次使用 {system_name} 前请先设置默认组织。\n"
+        f"{hint}\n"
+        "可以在 WebUI 选择默认组织，或调用切换组织工具设置；"
+        "之后只要不主动切换，将一直使用该默认组织。"
+        + _get_admin_contact(system_name)
+    )
 
 
 class PermissionManager:
@@ -185,6 +288,16 @@ class PermissionManager:
                 CREATE INDEX IF NOT EXISTS idx_audit_request_id
                 ON audit_log(request_id)
             """)
+            # ── 默认组织上下文 ──
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS erp_org_context (
+                    context_key TEXT NOT NULL,
+                    system_name TEXT NOT NULL,
+                    org_id TEXT NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (context_key, system_name)
+                )
+            """)
             # ── 自定义字段映射表 ──
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS kd_field_mappings (
@@ -236,6 +349,8 @@ class PermissionManager:
 
         if current < 4:
             self._migrate_v3_to_v4()
+        if current < 5:
+            self._migrate_v4_to_v5()
 
         self._set_schema_version(SCHEMA_VERSION)
         logger.info("权限数据库 schema 迁移完成: v%d", SCHEMA_VERSION)
@@ -279,6 +394,21 @@ class PermissionManager:
 
             conn.commit()
         logger.info("v3→v4 迁移完成：旧 access 数据已映射到 role 字段")
+
+    def _migrate_v4_to_v5(self):
+        """v4→v5 迁移：添加按用户隔离的默认组织上下文。"""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS erp_org_context (
+                    context_key TEXT NOT NULL,
+                    system_name TEXT NOT NULL,
+                    org_id TEXT NOT NULL,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (context_key, system_name)
+                )
+            """)
+            conn.commit()
+        logger.info("v4→v5 迁移完成：已添加默认组织上下文表")
 
     # ── CRUD ──────────────────────────────────────────────────────
 
@@ -412,6 +542,36 @@ class PermissionManager:
             conn.execute("DELETE FROM user_permissions WHERE key = ?", (key,))
             conn.commit()
 
+    # ── 默认组织上下文 ─────────────────────────────────────────
+
+    def set_default_org(self, context_key: str, system_name: str, org_id: str):
+        """Persist the default organization for a user/agent context."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO erp_org_context
+                (context_key, system_name, org_id, updated_at)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+            """, (context_key, system_name, org_id))
+            conn.commit()
+
+    def get_default_org(self, context_key: str, system_name: str) -> Optional[str]:
+        """Get the persisted default organization for a user/agent context."""
+        with sqlite3.connect(self.db_path) as conn:
+            row = conn.execute(
+                "SELECT org_id FROM erp_org_context WHERE context_key = ? AND system_name = ?",
+                (context_key, system_name),
+            ).fetchone()
+            return row[0] if row else None
+
+    def clear_default_org(self, context_key: str, system_name: str):
+        """Clear the persisted default organization for a user/agent context."""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "DELETE FROM erp_org_context WHERE context_key = ? AND system_name = ?",
+                (context_key, system_name),
+            )
+            conn.commit()
+
     # ── 角色权限管理 ────────────────────────────────────────────
 
     def update_permission_role(
@@ -529,24 +689,22 @@ class PermissionManager:
         if perm is None:
             return []
 
-        # 检查域访问权限
+        # 检查域访问权限。该接口参数名为 domain，既兼容传业务域
+        # （如 sales），也兼容传具体 FormId。
         if domain:
-            allowed, _ = _check_domain_access(perm, "kingdee", domain)
-            if not allowed:
-                return []
+            domains = perm.get("domains", [])
+            if "*" not in domains and "kingdee:*" not in domains:
+                exact_allowed = domain in domains or f"kingdee:{domain}" in domains
+                if not exact_allowed:
+                    allowed, _ = _check_domain_access(perm, "kingdee", domain)
+                    if not allowed:
+                        return []
 
         # 解析操作码
-        operations = perm.get("operations", [])
-        if not operations:
-            # 回退到角色默认操作码
-            role_name = perm.get("role", "viewer")
-            role_def = self.get_role(role_name)
-            if role_def:
-                operations = role_def.get("operations", [])
-        # "*" 表示全部操作
-        if "*" in operations:
-            return list(OPERATIONS.keys())
-        return operations
+        return resolve_role_operations(
+            perm.get("role", "viewer"),
+            perm.get("operations", []),
+        )
 
     # ── 字段级权限管理（P2） ────────────────────────────────────────
 
@@ -968,8 +1126,12 @@ def _check_domain_access(
     if not domain_form_map:
         return True, []
 
+    domains = perm.get("domains", [])
+    if "*" in domains or f"{system_name}:*" in domains:
+        return True, []
+
     allowed_prefixes = []
-    for domain in perm.get("domains", []):
+    for domain in domains:
         if ":" in domain:
             # 厂商特定域（如 "kingdee:finance" 或 "sap:finance"）
             vendor, pure_domain = domain.split(":", 1)
@@ -1017,20 +1179,24 @@ def resolve_role_operations(role: str, operations_json: str = "[]") -> List[str]
     Returns:
         操作码列表；admin 返回全部操作码
     """
+    explicit_ops: list = []
+    if isinstance(operations_json, list):
+        explicit_ops = operations_json
+    else:
+        try:
+            explicit_ops = json.loads(operations_json) if operations_json else []
+        except (json.JSONDecodeError, TypeError):
+            explicit_ops = []
+
+    # 显式配置的操作码优先，适用于 WebUI 按操作码精细授权。
+    if explicit_ops:
+        return [op for op in explicit_ops if op in OPERATIONS]
+
     if role == "admin":
         return list(OPERATIONS.keys())
 
     if role == "custom":
-        try:
-            # 兼容 JSON 字符串和已反序列化的列表
-            if isinstance(operations_json, list):
-                ops = operations_json
-            else:
-                ops = json.loads(operations_json) if operations_json else []
-            # 过滤掉无效的操作码
-            return [op for op in ops if op in OPERATIONS]
-        except (json.JSONDecodeError, TypeError):
-            return []
+        return []
 
     # 内置角色：从 BUILTIN_ROLES 查找
     builtin = BUILTIN_ROLES.get(role)
@@ -1102,9 +1268,12 @@ def check_operation_permission(
     """
     key = f"{channel}:{user_id}"
 
-    # 1. 检查操作码是否有效
     if operation not in OPERATIONS:
         return False, f"未知的操作码: {operation}"
+
+    # 1. 检查操作码是否有效；合法操作在可信本地渠道可跳过金蝶权限拦截
+    if _is_permission_bypass_channel(channel):
+        return True, None
 
     # 2. 检查组织权限
     if not org_id:
@@ -1310,6 +1479,9 @@ def check_query_permission(
     Returns:
         (allowed, error_message, org_filter_string)
     """
+    if _is_permission_bypass_channel(channel):
+        return True, None, None
+
     key = f"{channel}:{user_id}"
 
     if not org_id:
@@ -1412,6 +1584,9 @@ def check_integration_permission(
     Returns:
         (allowed, error_message, allowed_systems)
     """
+    if _is_permission_bypass_channel(channel):
+        return True, None, list(systems)
+
     key = f"{channel}:{user_id}"
     user_orgs = perm_mgr.list_user_orgs(key)
 

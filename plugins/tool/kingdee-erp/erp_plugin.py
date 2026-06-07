@@ -26,6 +26,16 @@ from backends.kingdee_flagship import KingdeeFlagshipBackend
 logger = logging.getLogger(__name__)
 
 
+def _flagship_enabled() -> bool:
+    """Return whether Kingdee Flagship Edition backend should be registered."""
+    return os.environ.get("KINGDEE_ENABLE_FLAGSHIP_TOOLS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 class ERPToolPlugin:
     """ERP Tools Plugin - multi-backend architecture."""
 
@@ -36,14 +46,16 @@ class ERPToolPlugin:
         if not reg.get("kingdee"):
             kingdee = KingdeeBackend()
             reg.register(kingdee)
-        if not reg.get("kingdee_flagship"):
+        if _flagship_enabled() and not reg.get("kingdee_flagship"):
             flagship = KingdeeFlagshipBackend()
             reg.register(flagship)
+        elif not _flagship_enabled():
+            logger.info("Kingdee Flagship backend disabled for Enterprise Edition deployment")
 
         # 各后端的 icon（从各自 config_fields 模块常量取）
         _BACKEND_ICONS = {
-            "kingdee": "🦋",
-            "kingdee_flagship": "🌟",
+            "kingdee": "kingdee",
+            "kingdee_flagship": "kingdee-flagship",
         }
 
         # 注册后端到 ConfigManager（多厂商配置管理）
@@ -75,7 +87,7 @@ class ERPToolPlugin:
                         ok = await backend.health_check(cfg)
                     else:
                         ok = backend.health_check(cfg)
-                    status = "✅ 连接正常" if ok else "❌ 连接失败"
+                    status = "连接正常" if ok else "连接失败"
                     logger.info(f"{backend.display_name} WebAPI {status}")
             except Exception as e:
                 logger.warning(f"Health check skipped: {e}")
@@ -89,13 +101,13 @@ class ERPToolPlugin:
                 tool_name="erp_unified_query",
                 tool_func=erp_unified_query,
                 description="跨ERP统一查询：同时查询多个ERP系统并合并结果",
-                icon="🌐",
+                icon="erp",
             )
             api.register_tool(
                 tool_name="erp_compare_data",
                 tool_func=erp_compare_data,
                 description="跨ERP数据比对：对比两个ERP系统中的同类数据差异",
-                icon="⚖️",
+                icon="erp",
             )
             logger.info("Integration tools registered (2 glue tools)")
         except Exception as e:

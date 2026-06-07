@@ -133,7 +133,8 @@ def get_coding_dir(workspace: "Workspace") -> Path:
     """Return the active coding project directory for *workspace*.
 
     If the agent has set a ``coding_mode.project_dir`` in its config, that
-    path is returned.  Otherwise the agent's default ``workspace_dir`` is used.
+    path is returned **only if it passes the path whitelist check**.
+    Otherwise the agent's default ``workspace_dir`` is used.
     """
     from ..config.config import load_agent_config
 
@@ -146,8 +147,67 @@ def get_coding_dir(workspace: "Workspace") -> Path:
         project_dir = None
 
     if project_dir:
-        return Path(project_dir).expanduser().resolve()
+        resolved = Path(project_dir).expanduser().resolve()
+        if _is_allowed_coding_path(resolved, workspace.workspace_dir):
+            return resolved
+        # Path not allowed — fall back to workspace_dir
     return workspace.workspace_dir
+
+
+# ── Path whitelist for Coding Mode ──────────────────────────────────────
+# Only directories under these roots may be opened in the IDE.
+# The agent's own workspace_dir is always allowed (implicit).
+_CODING_ALLOWED_ROOTS: list[Path] = []
+
+
+def _is_allowed_coding_path(
+    target: Path,
+    workspace_dir: Path,
+) -> bool:
+    """Check whether *target* is within an allowed coding root.
+
+    Allowed if:
+    1. target is (or is a child of) the agent's workspace_dir, OR
+    2. target is under one of the ``CODING_ALLOWED_ROOTS`` (env-configurable).
+    """
+    try:
+        target.relative_to(workspace_dir)
+        return True
+    except ValueError:
+        pass
+
+    for root in _CODING_ALLOWED_ROOTS:
+        try:
+            target.relative_to(root)
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def _load_coding_allowed_roots() -> None:
+    """Populate ``_CODING_ALLOWED_ROOTS`` from environment variable.
+
+    ``QWENPAW_CODING_ALLOWED_ROOTS`` is a ``;``-separated (Windows) or
+    ``:``-separated (Unix) list of absolute directory paths.
+    """
+    import os
+
+    raw = os.environ.get("QWENPAW_CODING_ALLOWED_ROOTS", "")
+    if not raw:
+        return
+
+    separator = ";" if os.name == "nt" else ":"
+    for entry in raw.split(separator):
+        entry = entry.strip()
+        if entry:
+            p = Path(entry).expanduser().resolve()
+            if p.is_dir():
+                _CODING_ALLOWED_ROOTS.append(p)
+
+
+# Load once at import time.
+_load_coding_allowed_roots()
 
 
 def get_active_agent_id() -> str:

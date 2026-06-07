@@ -182,6 +182,15 @@ _SKIP_NAMES: frozenset[str] = frozenset(
     },
 )
 
+# ── Protected paths: writing to these directories is forbidden ────────────
+# The coding mode editor must NOT allow modifications to the StarMind/qwenpaw
+# application source code or to the built-in (system) plugin directories.
+# Only the agent workspace (user data) is writable.
+_PROTECTED_PREFIXES: tuple[str, ...] = (
+    "src/",           # StarMind/qwenpaw application source
+    "plugins/",       # Built-in plugin directory (tool + frontend plugins)
+)
+
 
 def _should_skip(rel_parts: tuple[str, ...]) -> bool:
     return any(p.startswith(".") or p in _SKIP_NAMES for p in rel_parts)
@@ -404,6 +413,21 @@ async def write_code_file(
     """
     workspace = await get_agent_for_request(request)
     target = safe_join(get_coding_dir(workspace), file_path)
+
+    # ── Protected-path guard ─────────────────────────────────────────────
+    # Prevent writing to qwenpaw source code or built-in plugin directories.
+    # Only the agent workspace (user data) is writable in coding mode.
+    _posix = file_path.replace(os.sep, "/")
+    for _prefix in _PROTECTED_PREFIXES:
+        if _posix == _prefix or _posix.startswith(_prefix):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"Writing to '{file_path}' is not allowed. "
+                    "System source code and built-in plugins are read-only."
+                ),
+            )
+
     content = body.get("content", "")
     if not isinstance(content, str):
         raise HTTPException(status_code=422, detail="content must be a string")
